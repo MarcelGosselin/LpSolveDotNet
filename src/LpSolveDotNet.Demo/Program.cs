@@ -1,34 +1,4 @@
-﻿/*
-    LpSolveDotNet is a .NET wrapper allowing usage of the 
-    Mixed Integer Linear Programming (MILP) solver lp_solve.
-
-    Copyright (C) 2016 Marcel Gosselin
-
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
-
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
-    USA
-
-	https://github.com/MarcelGosselin/LpSolveDotNet/blob/master/LICENSE
-
- * 
- * This file is a copy of demo.cs from lpsolve project available at
- *      https://sourceforge.net/projects/lpsolve/files/lpsolve/5.5.2.0/lp_solve_5.5.2.0_cs.net.zip/download
- * modified to:
- *      - Be a console app instead of a WinForms app.
- */
-
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Threading;
 
@@ -39,8 +9,9 @@ namespace LpSolveDotNet.Demo
         [STAThread]
         public static void Main()
         {
-            System.Diagnostics.Debug.WriteLine(System.Environment.CurrentDirectory);
-            lpsolve.Init(".\\NativeBinaries\\win32");
+            Debug.WriteLine(Environment.CurrentDirectory);
+
+            lpsolve.Init();
 
             Test();
 
@@ -50,25 +21,25 @@ namespace LpSolveDotNet.Demo
         /* unsafe is needed to make sure that these function are not relocated in memory by the CLR. If that would happen, a crash occurs */
         /* go to the project property page and in “configuration properties>build” set Allow Unsafe Code Blocks to True. */
         /* see http://msdn2.microsoft.com/en-US/library/chfa2zb8.aspx and http://msdn2.microsoft.com/en-US/library/t2yzs44b.aspx */
-        private /* unsafe */ static void logfunc(int lp, int userhandle, string Buf)
+        private /* unsafe */ static void logfunc(IntPtr lp, int userhandle, string Buf)
         {
-            System.Diagnostics.Debug.Write(Buf);
+            Debug.Write(Buf);
         }
 
-        private /* unsafe */ static bool ctrlcfunc(int lp, int userhandle)
+        private /* unsafe */ static bool ctrlcfunc(IntPtr lp, int userhandle)
         {
             /* 'If set to true, then solve is aborted and returncode will indicate this. */
             return (false);
         }
 
-        private /* unsafe */ static void msgfunc(int lp, int userhandle, lpsolve.lpsolve_msgmask message)
+        private /* unsafe */ static void msgfunc(IntPtr lp, int userhandle, lpsolve.lpsolve_msgmask message)
         {
-            System.Diagnostics.Debug.WriteLine(message);
+            Debug.WriteLine(message);
         }
 
         private static void ThreadProc(object filename)
         {
-            int lp;
+            IntPtr lp;
             lpsolve.lpsolve_return ret;
             double o;
 
@@ -87,7 +58,7 @@ namespace LpSolveDotNet.Demo
 
             for (int i = 1; i <= 5000; i++)
             {
-                Thread myThread = new Thread(new ParameterizedThreadStart(ThreadProc));
+                Thread myThread = new Thread(ThreadProc);
                 myThread.Start("ex4.lp");
             }
 
@@ -98,7 +69,7 @@ namespace LpSolveDotNet.Demo
         {
             const string NewLine = "\n";
 
-            int lp;
+            IntPtr lp;
             int release = 0, Major = 0, Minor = 0, build = 0;
             double[] Row;
             double[] Lower;
@@ -111,7 +82,7 @@ namespace LpSolveDotNet.Demo
             lpsolve.lp_solve_version(ref Major, ref Minor, ref release, ref build);
 
             /* let's first demonstrate the logfunc callback feature */
-            lpsolve.put_logfunc(lp, new lpsolve.logfunc(logfunc), 0);
+            lpsolve.put_logfunc(lp, logfunc, 0);
             lpsolve.print_str(lp, "lp_solve " + Major + "." + Minor + "." + release + "." + build + " demo" + NewLine + NewLine);
             lpsolve.solve(lp); /* just to see that a message is send via the logfunc routine ... */
             /* ok, that is enough, no more callback */
@@ -121,10 +92,10 @@ namespace LpSolveDotNet.Demo
             lpsolve.set_outputfile(lp, "result.txt");
 
             /* set an abort function. Again optional */
-            lpsolve.put_abortfunc(lp, new lpsolve.ctrlcfunc(ctrlcfunc), 0);
+            lpsolve.put_abortfunc(lp, ctrlcfunc, 0);
 
             /* set a message function. Again optional */
-            lpsolve.put_msgfunc(lp, new lpsolve.msgfunc(msgfunc), 0, (int)(lpsolve.lpsolve_msgmask.MSG_PRESOLVE | lpsolve.lpsolve_msgmask.MSG_LPFEASIBLE | lpsolve.lpsolve_msgmask.MSG_LPOPTIMAL | lpsolve.lpsolve_msgmask.MSG_MILPEQUAL | lpsolve.lpsolve_msgmask.MSG_MILPFEASIBLE | lpsolve.lpsolve_msgmask.MSG_MILPBETTER));
+            lpsolve.put_msgfunc(lp, msgfunc, 0, (int)(lpsolve.lpsolve_msgmask.MSG_PRESOLVE | lpsolve.lpsolve_msgmask.MSG_LPFEASIBLE | lpsolve.lpsolve_msgmask.MSG_LPOPTIMAL | lpsolve.lpsolve_msgmask.MSG_MILPEQUAL | lpsolve.lpsolve_msgmask.MSG_MILPFEASIBLE | lpsolve.lpsolve_msgmask.MSG_MILPBETTER));
 
             lpsolve.print_str(lp, "lp_solve " + Major + "." + Minor + "." + release + "." + build + " demo" + NewLine + NewLine);
             lpsolve.print_str(lp, "This demo will show most of the features of lp_solve " + Major + "." + Minor + "." + release + "." + build + NewLine);
@@ -311,7 +282,7 @@ namespace LpSolveDotNet.Demo
             lpsolve.delete_lp(lp);
 
             lp = lpsolve.read_LP("lp.lp", 0, "test");
-            if (lp == 0)
+            if (lp == IntPtr.Zero)
             {
                 Console.Error.WriteLine("Can't find lp.lp, stopping");
                 return;
