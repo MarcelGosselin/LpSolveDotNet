@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LpSolveDotNet", "LpSolveDotNet\LpSolveDotNet.csproj", "{F414EC31-02F6-4B0E-AC94-4FD4774E9C76}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LpSolveDotNet.Demo", "LpSolveDotNet.Demo\LpSolveDotNet.Demo.csproj", "{8850A1FB-5764-43BA-BCBE-3D4002014F20}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F414EC31-02F6-4B0E-AC94-4FD4774E9C76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F414EC31-02F6-4B0E-AC94-4FD4774E9C76}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F414EC31-02F6-4B0E-AC94-4FD4774E9C76}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F414EC31-02F6-4B0E-AC94-4FD4774E9C76}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8850A1FB-5764-43BA-BCBE-3D4002014F20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8850A1FB-5764-43BA-BCBE-3D4002014F20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8850A1FB-5764-43BA-BCBE-3D4002014F20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8850A1FB-5764-43BA-BCBE-3D4002014F20}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

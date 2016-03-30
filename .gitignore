@@ -99,6 +99,7 @@ _ReSharper*/
 
 # JustCode is a .NET coding add-in
 .JustCode
+*.jmconfig
 
 # TeamCity is a build add-in
 _TeamCity*
@@ -234,3 +235,6 @@ _Pvt_Extensions
 
 # FAKE - F# Make
 .fake/
+
+# Specific to this project, we want to bundle the lpsolve dlls in the nuget package
+!src/LpSolveDotNet/NativeBinaries/**/lpsolve.dll
