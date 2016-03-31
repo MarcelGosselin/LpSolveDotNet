@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package>
+  <metadata minClientVersion="2.5">
+    <id>LpSolveDotNet</id>
+    <version>$version$</version>
+    <title>LpSolveDotNet - lp_solve for .NET</title>
+    <authors>Marcel Gosselin</authors>
+    <owners>Marcel Gosselin</owners>
+    <licenseUrl>https://github.com/MarcelGosselin/LpSolveDotNet/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/MarcelGosselin/LpSolveDotNet</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+	<summary>Mixed Integer Linear Programming (MILP) solver lp_solve wrapped for .NET use in both 32 and 64-bit applications.</summary>
+    <description>.NET wrapper for both 32-bit and 64-bit applications of lp_solve.
+Mixed Integer Linear Programming (MILP) solver lp_solve solves pure linear, (mixed) integer/binary, semi-cont and special ordered sets (SOS) models.</description>
+    <releaseNotes>Includes version 5.5.2 of lp_solve</releaseNotes>
+    <copyright>Copyright 2016</copyright>
+    <tags>lpsolve lp_solve milp</tags>
+  </metadata>
+  <files>
+    <file src="..\LpSolveDotNet\bin\Release\LpSolveDotNet.dll" target="lib\net20" />
+    <file src="LpSolveDotNet.targets" target="build" />
+    <file src="..\LpSolveDotNet\bin\Release\NativeBinaries\win32\lpsolve55.dll" target="build\NativeBinaries\win32" />
+    <file src="..\LpSolveDotNet\bin\Release\NativeBinaries\win64\lpsolve55.dll" target="build\NativeBinaries\win64" />
+  </files>
+</package>

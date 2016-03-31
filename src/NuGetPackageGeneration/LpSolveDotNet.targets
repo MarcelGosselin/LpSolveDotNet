@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <!-- Add our copy operation as a "post-build" operation -->
+    <BuildDependsOn>
+      $(BuildDependsOn);
+      CopyLpSolveNativeBinaries;
+    </BuildDependsOn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <LpSolveDotNet_NativeBinariesToCopy Include="$(MSBuildThisFileDirectory)NativeBinaries*\**\lpsolve55.dll" />
+  </ItemGroup>
+
+  <Target Name="CopyLpSolveNativeBinaries">
+
+    <Error Text="Cannot copy LpSolve native binaries if OutputPath property is not set."
+           Condition="'$(OutputPath)' == ''"
+           />
+
+    <Copy SourceFiles="@(LpSolveDotNet_NativeBinariesToCopy)"
+          DestinationFiles="@(LpSolveDotNet_NativeBinariesToCopy->'$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)')"
+          />
+
+  </Target>
+
+</Project>
