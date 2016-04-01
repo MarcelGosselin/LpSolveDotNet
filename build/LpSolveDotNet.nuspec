@@ -17,9 +17,9 @@ Mixed Integer Linear Programming (MILP) solver lp_solve solves pure linear, (mix
     <tags>lpsolve lp_solve milp</tags>
   </metadata>
   <files>
-    <file src="..\LpSolveDotNet\bin\Release\LpSolveDotNet.dll" target="lib\net20" />
+    <file src="output\LpSolveDotNet.dll" target="lib\net20" />
     <file src="LpSolveDotNet.targets" target="build" />
-    <file src="..\LpSolveDotNet\bin\Release\NativeBinaries\win32\lpsolve55.dll" target="build\NativeBinaries\win32" />
-    <file src="..\LpSolveDotNet\bin\Release\NativeBinaries\win64\lpsolve55.dll" target="build\NativeBinaries\win64" />
+    <file src="output\NativeBinaries\win32\lpsolve55.dll" target="build\NativeBinaries\win32" />
+    <file src="output\NativeBinaries\win64\lpsolve55.dll" target="build\NativeBinaries\win64" />
   </files>
 </package>

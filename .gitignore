@@ -238,3 +238,4 @@ _Pvt_Extensions
 
 # Specific to this project, we want to bundle the lpsolve dlls in the nuget package
 !src/LpSolveDotNet/NativeBinaries/**/lpsolve.dll
+/build/output
