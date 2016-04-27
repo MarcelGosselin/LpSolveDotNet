@@ -243,7 +243,7 @@ namespace LpSolveDotNet
         public static extern double get_break_at_value(IntPtr lp);
         //[DllImport("lpsolve55.dll", SetLastError=true)] public static extern string get_col_name(int lp, int column);
         [DllImport("lpsolve55.dll", EntryPoint = "get_col_name", SetLastError = true)]
-        private unsafe static extern IntPtr get_col_name_c(IntPtr lp, int column);
+        private static extern IntPtr get_col_name_c(IntPtr lp, int column);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool get_column(IntPtr lp, int col_nr, double[] column);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -280,7 +280,7 @@ namespace LpSolveDotNet
         public static extern int get_lp_index(IntPtr lp, int orig_index);
         //[DllImport("lpsolve55.dll", SetLastError=true)] public static extern string get_lp_name(int lp);
         [DllImport("lpsolve55.dll", EntryPoint = "get_lp_name", SetLastError = true)]
-        private unsafe static extern IntPtr get_lp_name_c(IntPtr lp);
+        private static extern IntPtr get_lp_name_c(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern int get_Lrows(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -313,10 +313,10 @@ namespace LpSolveDotNet
         public static extern int get_orig_index(IntPtr lp, int lp_index);
         //[DllImport("lpsolve55.dll", SetLastError=true)] public static extern string get_origcol_name(int lp, int column);
         [DllImport("lpsolve55.dll", EntryPoint = "get_origcol_name", SetLastError = true)]
-        private unsafe static extern IntPtr get_origcol_name_c(IntPtr lp, int column);
+        private static extern IntPtr get_origcol_name_c(IntPtr lp, int column);
         //[DllImport("lpsolve55.dll", SetLastError=true)] public static extern string get_origrow_name(int lp, int row);
         [DllImport("lpsolve55.dll", EntryPoint = "get_origrow_name", SetLastError = true)]
-        private unsafe static extern IntPtr get_origrow_name_c(IntPtr lp, int row);
+        private static extern IntPtr get_origrow_name_c(IntPtr lp, int row);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern lpsolve_piv_rules get_pivoting(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -339,7 +339,7 @@ namespace LpSolveDotNet
         public static extern int get_rowex(IntPtr lp, int row_nr, double[] row, int[] colno);
         //[DllImport("lpsolve55.dll", SetLastError=true)] public static extern string get_row_name(int lp, int row);
         [DllImport("lpsolve55.dll", EntryPoint = "get_row_name", SetLastError = true)]
-        private unsafe static extern IntPtr get_row_name_c(IntPtr lp, int row);
+        private static extern IntPtr get_row_name_c(IntPtr lp, int row);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern double get_scalelimit(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -360,7 +360,7 @@ namespace LpSolveDotNet
         public static extern int get_status(IntPtr lp);
         //[DllImport("lpsolve55.dll", SetLastError=true)] public static extern string get_statustext(int lp, int statuscode);
         [DllImport("lpsolve55.dll", EntryPoint = "get_statustext", SetLastError = true)]
-        private unsafe static extern IntPtr get_statustext_c(IntPtr lp, int statuscode);
+        private static extern IntPtr get_statustext_c(IntPtr lp, int statuscode);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern int get_timeout(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
