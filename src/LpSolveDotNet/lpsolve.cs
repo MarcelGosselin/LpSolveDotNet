@@ -1,28 +1,716 @@
-﻿using System;
+﻿/*
+    LpSolveDotNet is a .NET wrapper allowing usage of the 
+    Mixed Integer Linear Programming (MILP) solver lp_solve.
+
+    Copyright (C) 2016 Marcel Gosselin
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
+    USA
+
+	https://github.com/MarcelGosselin/LpSolveDotNet/blob/master/LICENSE
+
+ * 
+ * This file is a modified version of lpsolve55 from lpsolve project available at
+ *      https://sourceforge.net/projects/lpsolve/files/lpsolve/5.5.2.0/lp_solve_5.5.2.0_cs.net.zip/download
+ * modified to:
+ *      - handle 64-bit processors better by switching to IntPtr instead of int for pointers to lprec structure.
+ *      - when Init() is called without a path to the dll, try to figure out right version of dll to load.
+ */
+
+using System;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
+// ReSharper disable InconsistentNaming
 namespace LpSolveDotNet
 {
-    public class LpSolve
-        : IDisposable
+    public static class lpsolve
     {
-        #region Static methods
+        public enum lpsolve_constr_types
+        {
+            LE = 1,
+            EQ = 3,
+            GE = 2,
+            FR = 0,
+        }
+        public enum lpsolve_scales
+        {
+            SCALE_EXTREME = 1,
+            SCALE_RANGE = 2,
+            SCALE_MEAN = 3,
+            SCALE_GEOMETRIC = 4,
+            SCALE_CURTISREID = 7,
+            SCALE_QUADRATIC = 8,
+            SCALE_LOGARITHMIC = 16,
+            SCALE_USERWEIGHT = 31,
+            SCALE_POWER2 = 32,
+            SCALE_EQUILIBRATE = 64,
+            SCALE_INTEGERS = 128,
+            SCALE_DYNUPDATE = 256,
+            SCALE_ROWSONLY = 512,
+            SCALE_COLSONLY = 1024,
+        }
+        public enum lpsolve_improves
+        {
+            IMPROVE_NONE = 0,
+            IMPROVE_SOLUTION = 1,
+            IMPROVE_DUALFEAS = 2,
+            IMPROVE_THETAGAP = 4,
+            IMPROVE_BBSIMPLEX = 8,
+            IMPROVE_DEFAULT = (IMPROVE_DUALFEAS + IMPROVE_THETAGAP),
+            IMPROVE_INVERSE = (IMPROVE_SOLUTION + IMPROVE_THETAGAP)
+        }
+        public enum lpsolve_piv_rules
+        {
+            PRICER_FIRSTINDEX = 0,
+            PRICER_DANTZIG = 1,
+            PRICER_DEVEX = 2,
+            PRICER_STEEPESTEDGE = 3,
+            PRICE_PRIMALFALLBACK = 4,
+            PRICE_MULTIPLE = 8,
+            PRICE_PARTIAL = 16,
+            PRICE_ADAPTIVE = 32,
+            PRICE_HYBRID = 64,
+            PRICE_RANDOMIZE = 128,
+            PRICE_AUTOPARTIALCOLS = 256,
+            PRICE_AUTOPARTIALROWS = 512,
+            PRICE_LOOPLEFT = 1024,
+            PRICE_LOOPALTERNATE = 2048,
+            PRICE_AUTOPARTIAL = lpsolve_piv_rules.PRICE_AUTOPARTIALCOLS + lpsolve_piv_rules.PRICE_AUTOPARTIALROWS,
+        }
+        public enum lpsolve_presolve
+        {
+            PRESOLVE_NONE = 0,
+            PRESOLVE_ROWS = 1,
+            PRESOLVE_COLS = 2,
+            PRESOLVE_LINDEP = 4,
+            PRESOLVE_SOS = 32,
+            PRESOLVE_REDUCEMIP = 64,
+            PRESOLVE_KNAPSACK = 128,
+            PRESOLVE_ELIMEQ2 = 256,
+            PRESOLVE_IMPLIEDFREE = 512,
+            PRESOLVE_REDUCEGCD = 1024,
+            PRESOLVE_PROBEFIX = 2048,
+            PRESOLVE_PROBEREDUCE = 4096,
+            PRESOLVE_ROWDOMINATE = 8192,
+            PRESOLVE_COLDOMINATE = 16384,
+            PRESOLVE_MERGEROWS = 32768,
+            PRESOLVE_IMPLIEDSLK = 65536,
+            PRESOLVE_COLFIXDUAL = 131072,
+            PRESOLVE_BOUNDS = 262144,
+            PRESOLVE_DUALS = 524288,
+            PRESOLVE_SENSDUALS = 1048576
+        }
+        public enum lpsolve_anti_degen
+        {
+            ANTIDEGEN_NONE = 0,
+            ANTIDEGEN_FIXEDVARS = 1,
+            ANTIDEGEN_COLUMNCHECK = 2,
+            ANTIDEGEN_STALLING = 4,
+            ANTIDEGEN_NUMFAILURE = 8,
+            ANTIDEGEN_LOSTFEAS = 16,
+            ANTIDEGEN_INFEASIBLE = 32,
+            ANTIDEGEN_DYNAMIC = 64,
+            ANTIDEGEN_DURINGBB = 128,
+            ANTIDEGEN_RHSPERTURB = 256,
+            ANTIDEGEN_BOUNDFLIP = 512
+        }
+        public enum lpsolve_basiscrash
+        {
+            CRASH_NOTHING = 0,
+            CRASH_MOSTFEASIBLE = 2,
+        }
+        public enum lpsolve_simplextypes
+        {
+            SIMPLEX_PRIMAL_PRIMAL = 5,
+            SIMPLEX_DUAL_PRIMAL = 6,
+            SIMPLEX_PRIMAL_DUAL = 9,
+            SIMPLEX_DUAL_DUAL = 10,
+        }
+        public enum lpsolve_BBstrategies
+        {
+            NODE_FIRSTSELECT = 0,
+            NODE_GAPSELECT = 1,
+            NODE_RANGESELECT = 2,
+            NODE_FRACTIONSELECT = 3,
+            NODE_PSEUDOCOSTSELECT = 4,
+            NODE_PSEUDONONINTSELECT = 5,
+            NODE_PSEUDORATIOSELECT = 6,
+            NODE_USERSELECT = 7,
+            NODE_WEIGHTREVERSEMODE = 8,
+            NODE_BRANCHREVERSEMODE = 16,
+            NODE_GREEDYMODE = 32,
+            NODE_PSEUDOCOSTMODE = 64,
+            NODE_DEPTHFIRSTMODE = 128,
+            NODE_RANDOMIZEMODE = 256,
+            NODE_GUBMODE = 512,
+            NODE_DYNAMICMODE = 1024,
+            NODE_RESTARTMODE = 2048,
+            NODE_BREADTHFIRSTMODE = 4096,
+            NODE_AUTOORDER = 8192,
+            NODE_RCOSTFIXING = 16384,
+            NODE_STRONGINIT = 32768
+        }
+        public enum lpsolve_return
+        {
+            NOMEMORY = -2,
+            OPTIMAL = 0,
+            SUBOPTIMAL = 1,
+            INFEASIBLE = 2,
+            UNBOUNDED = 3,
+            DEGENERATE = 4,
+            NUMFAILURE = 5,
+            USERABORT = 6,
+            TIMEOUT = 7,
+            PRESOLVED = 9,
+            PROCFAIL = 10,
+            PROCBREAK = 11,
+            FEASFOUND = 12,
+            NOFEASFOUND = 13,
+        }
+        public enum lpsolve_branch
+        {
+            BRANCH_CEILING = 0,
+            BRANCH_FLOOR = 1,
+            BRANCH_AUTOMATIC = 2,
+            BRANCH_DEFAULT = 3,
+        }
 
-        #region Library initialization
+        public enum lpsolve_msgmask
+        {
+            MSG_PRESOLVE = 1,
+            MSG_LPFEASIBLE = 8,
+            MSG_LPOPTIMAL = 16,
+            MSG_MILPEQUAL = 32,
+            MSG_MILPFEASIBLE = 128,
+            MSG_MILPBETTER = 512,
+        }
+
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool add_column(IntPtr lp, double[] column);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool add_columnex(IntPtr lp, int count, double[] column, int[] rowno);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool add_constraint(IntPtr lp, double[] row, lpsolve_constr_types constr_type, double rh);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool add_constraintex(IntPtr lp, int count, double[] row, int[] colno, lpsolve_constr_types constr_type, double rh);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool add_lag_con(IntPtr lp, double[] row, lpsolve_constr_types con_type, double rhs);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern int add_SOS(IntPtr lp, string name, int sostype, int priority, int count, int[] sosvars, double[] weights);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern int column_in_lp(IntPtr lp, double[] column);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern IntPtr copy_lp(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void default_basis(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool del_column(IntPtr lp, int column);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool del_constraint(IntPtr lp, int del_row);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void delete_lp(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool dualize_lp(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern lpsolve_anti_degen get_anti_degen(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool get_basis(IntPtr lp, int[] bascolumn, bool nonbasic);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern lpsolve_basiscrash get_basiscrash(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern int get_bb_depthlimit(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern lpsolve_branch get_bb_floorfirst(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern lpsolve_BBstrategies get_bb_rule(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool get_bounds_tighter(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern double get_break_at_value(IntPtr lp);
+        //[DllImport("lpsolve55.dll", SetLastError=true)] public static extern string get_col_name(int lp, int column);
+        [DllImport("lpsolve55.dll", EntryPoint = "get_col_name", SetLastError = true)]
+        private static extern IntPtr get_col_name_c(IntPtr lp, int column);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool get_column(IntPtr lp, int col_nr, double[] column);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern int get_columnex(IntPtr lp, int col_nr, double[] column, int[] nzrow);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern lpsolve_constr_types get_constr_type(IntPtr lp, int row);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern double get_constr_value(IntPtr lp, int row, int count, double[] primsolution, int[] nzindex);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool get_constraints(IntPtr lp, double[] constr);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool get_dual_solution(IntPtr lp, double[] rc);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern double get_epsb(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern double get_epsd(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern double get_epsel(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern double get_epsint(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern double get_epsperturb(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern double get_epspivot(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern lpsolve_improves get_improve(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern double get_infinite(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool get_lambda(IntPtr lp, double[] lambda);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern double get_lowbo(IntPtr lp, int column);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern int get_lp_index(IntPtr lp, int orig_index);
+        //[DllImport("lpsolve55.dll", SetLastError=true)] public static extern string get_lp_name(int lp);
+        [DllImport("lpsolve55.dll", EntryPoint = "get_lp_name", SetLastError = true)]
+        private static extern IntPtr get_lp_name_c(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern int get_Lrows(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern double get_mat(IntPtr lp, int row, int column);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern int get_max_level(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern int get_maxpivot(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern double get_mip_gap(IntPtr lp, bool absolute);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern int get_Ncolumns(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern double get_negrange(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern int get_nameindex(IntPtr lp, string name, bool isrow);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern int get_nonzeros(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern int get_Norig_columns(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern int get_Norig_rows(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern int get_Nrows(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern double get_obj_bound(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern double get_objective(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern int get_orig_index(IntPtr lp, int lp_index);
+        //[DllImport("lpsolve55.dll", SetLastError=true)] public static extern string get_origcol_name(int lp, int column);
+        [DllImport("lpsolve55.dll", EntryPoint = "get_origcol_name", SetLastError = true)]
+        private static extern IntPtr get_origcol_name_c(IntPtr lp, int column);
+        //[DllImport("lpsolve55.dll", SetLastError=true)] public static extern string get_origrow_name(int lp, int row);
+        [DllImport("lpsolve55.dll", EntryPoint = "get_origrow_name", SetLastError = true)]
+        private static extern IntPtr get_origrow_name_c(IntPtr lp, int row);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern lpsolve_piv_rules get_pivoting(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern lpsolve_presolve get_presolve(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern int get_presolveloops(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool get_primal_solution(IntPtr lp, double[] pv);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern int get_print_sol(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool get_PseudoCosts(IntPtr lp, double[] clower, double[] cupper, int[] updatelimit);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern double get_rh(IntPtr lp, int row);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern double get_rh_range(IntPtr lp, int row);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool get_row(IntPtr lp, int row_nr, double[] row);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern int get_rowex(IntPtr lp, int row_nr, double[] row, int[] colno);
+        //[DllImport("lpsolve55.dll", SetLastError=true)] public static extern string get_row_name(int lp, int row);
+        [DllImport("lpsolve55.dll", EntryPoint = "get_row_name", SetLastError = true)]
+        private static extern IntPtr get_row_name_c(IntPtr lp, int row);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern double get_scalelimit(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern lpsolve_scales get_scaling(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool get_sensitivity_obj(IntPtr lp, double[] objfrom, double[] objtill);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool get_sensitivity_objex(IntPtr lp, double[] objfrom, double[] objtill, double[] objfromvalue, double[] objtillvalue);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool get_sensitivity_rhs(IntPtr lp, double[] duals, double[] dualsfrom, double[] dualstill);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern lpsolve_simplextypes get_simplextype(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern int get_solutioncount(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern int get_solutionlimit(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern int get_status(IntPtr lp);
+        //[DllImport("lpsolve55.dll", SetLastError=true)] public static extern string get_statustext(int lp, int statuscode);
+        [DllImport("lpsolve55.dll", EntryPoint = "get_statustext", SetLastError = true)]
+        private static extern IntPtr get_statustext_c(IntPtr lp, int statuscode);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern int get_timeout(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern long get_total_iter(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern long get_total_nodes(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern double get_upbo(IntPtr lp, int column);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern lpsolve_branch get_var_branch(IntPtr lp, int column);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern double get_var_dualresult(IntPtr lp, int index);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern double get_var_primalresult(IntPtr lp, int index);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern int get_var_priority(IntPtr lp, int column);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool get_variables(IntPtr lp, double[] var);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern int get_verbose(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern double get_working_objective(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool guess_basis(IntPtr lp, double[] guessvector, int[] basisvector);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool has_BFP(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool has_XLI(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool is_add_rowmode(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool is_anti_degen(IntPtr lp, lpsolve_scales testmask);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool is_binary(IntPtr lp, int column);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool is_break_at_first(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool is_constr_type(IntPtr lp, int row, int mask);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool is_debug(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool is_feasible(IntPtr lp, double[] values, double threshold);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool is_infinite(IntPtr lp, double value);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool is_int(IntPtr lp, int column);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool is_integerscaling(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool is_lag_trace(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool is_maxim(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool is_nativeBFP(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool is_nativeXLI(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool is_negative(IntPtr lp, int column);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool is_piv_mode(IntPtr lp, lpsolve_scales testmask);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool is_piv_rule(IntPtr lp, lpsolve_piv_rules rule);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool is_presolve(IntPtr lp, lpsolve_scales testmask);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool is_scalemode(IntPtr lp, lpsolve_scales testmask);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool is_scaletype(IntPtr lp, lpsolve_scales scaletype);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool is_semicont(IntPtr lp, int column);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool is_SOS_var(IntPtr lp, int column);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool is_trace(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool is_unbounded(IntPtr lp, int column);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool is_use_names(IntPtr lp, bool isrow);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void lp_solve_version(ref int majorversion, ref int minorversion, ref int release, ref int build);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern IntPtr make_lp(int rows, int columns);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern int resize_lp(IntPtr lp, int rows, int columns);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void print_constraints(IntPtr lp, int columns);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool print_debugdump(IntPtr lp, string filename);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void print_duals(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void print_lp(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void print_objective(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void print_scales(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void print_solution(IntPtr lp, int columns);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void print_str(IntPtr lp, string str);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void print_tableau(IntPtr lp);
+        public delegate bool ctrlcfunc(IntPtr lp, int userhandle);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void put_abortfunc(IntPtr lp, ctrlcfunc newctrlc, int ctrlchandle);
+        public delegate void logfunc(IntPtr lp, int userhandle, string buf);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void put_logfunc(IntPtr lp, logfunc newlog, int loghandle);
+        public delegate void msgfunc(IntPtr lp, int userhandle, lpsolve_msgmask message);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void put_msgfunc(IntPtr lp, msgfunc newmsg, int msghandle, int mask);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool read_basis(IntPtr lp, string filename, string info);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern IntPtr read_freeMPS(string filename, int options);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern IntPtr read_LP(string filename, int verbose, string lp_name);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern IntPtr read_MPS(string filename, int options);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern IntPtr read_XLI(string xliname, string modelname, string dataname, string options, int verbose);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool read_params(IntPtr lp, string filename, string options);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void reset_basis(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void reset_params(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_add_rowmode(IntPtr lp, bool turnon);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_anti_degen(IntPtr lp, lpsolve_anti_degen anti_degen);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_basis(IntPtr lp, int[] bascolumn, bool nonbasic);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_basiscrash(IntPtr lp, lpsolve_basiscrash mode);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_basisvar(IntPtr lp, int basisPos, int enteringCol);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_bb_depthlimit(IntPtr lp, int bb_maxlevel);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_bb_floorfirst(IntPtr lp, lpsolve_branch bb_floorfirst);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_bb_rule(IntPtr lp, lpsolve_BBstrategies bb_rule);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_BFP(IntPtr lp, string filename);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_binary(IntPtr lp, int column, bool must_be_bin);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_bounds(IntPtr lp, int column, double lower, double upper);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_bounds_tighter(IntPtr lp, bool tighten);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_break_at_first(IntPtr lp, bool break_at_first);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_break_at_value(IntPtr lp, double break_at_value);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_col_name(IntPtr lp, int column, string new_name);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_column(IntPtr lp, int col_no, double[] column);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_columnex(IntPtr lp, int col_no, int count, double[] column, int[] rowno);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_constr_type(IntPtr lp, int row, lpsolve_constr_types con_type);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_debug(IntPtr lp, bool debug);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_epsb(IntPtr lp, double epsb);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_epsd(IntPtr lp, double epsd);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_epsel(IntPtr lp, double epsel);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_epsint(IntPtr lp, double epsint);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_epslevel(IntPtr lp, int level);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_epsperturb(IntPtr lp, double epsperturb);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_epspivot(IntPtr lp, double epspivot);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_improve(IntPtr lp, lpsolve_improves improve);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_infinite(IntPtr lp, double infinite);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_int(IntPtr lp, int column, bool must_be_int);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_lag_trace(IntPtr lp, bool lag_trace);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_lowbo(IntPtr lp, int column, double value);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_lp_name(IntPtr lp, string lpname);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_mat(IntPtr lp, int row, int column, double value);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_maxim(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_maxpivot(IntPtr lp, int max_num_inv);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_minim(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_mip_gap(IntPtr lp, bool absolute, double mip_gap);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_negrange(IntPtr lp, double negrange);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_obj(IntPtr lp, int Column, double Value);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_obj_bound(IntPtr lp, double obj_bound);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_obj_fn(IntPtr lp, double[] row);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_obj_fnex(IntPtr lp, int count, double[] row, int[] colno);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_outputfile(IntPtr lp, string filename);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_pivoting(IntPtr lp, lpsolve_piv_rules piv_rule);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_preferdual(IntPtr lp, bool dodual);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_presolve(IntPtr lp, lpsolve_presolve do_presolve, int maxloops);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_print_sol(IntPtr lp, int print_sol);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_PseudoCosts(IntPtr lp, double[] clower, double[] cupper, int[] updatelimit);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_rh(IntPtr lp, int row, double value);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_rh_range(IntPtr lp, int row, double deltavalue);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_rh_vec(IntPtr lp, double[] rh);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_row(IntPtr lp, int row_no, double[] row);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_row_name(IntPtr lp, int row, string new_name);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_rowex(IntPtr lp, int row_no, int count, double[] row, int[] colno);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_scalelimit(IntPtr lp, double scalelimit);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_scaling(IntPtr lp, lpsolve_scales scalemode);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_semicont(IntPtr lp, int column, bool must_be_sc);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_sense(IntPtr lp, bool maximize);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_simplextype(IntPtr lp, lpsolve_simplextypes simplextype);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_solutionlimit(IntPtr lp, int limit);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_timeout(IntPtr lp, int sectimeout);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_trace(IntPtr lp, bool trace);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_unbounded(IntPtr lp, int column);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_upbo(IntPtr lp, int column, double value);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_use_names(IntPtr lp, bool isrow, bool use_names);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_var_branch(IntPtr lp, int column, lpsolve_branch branch_mode);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_var_weights(IntPtr lp, double[] weights);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void set_verbose(IntPtr lp, int verbose);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool set_XLI(IntPtr lp, string filename);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern lpsolve_return solve(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool str_add_column(IntPtr lp, string col_string);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool str_add_constraint(IntPtr lp, string row_string, lpsolve_constr_types constr_type, double rh);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool str_add_lag_con(IntPtr lp, string row_string, lpsolve_constr_types con_type, double rhs);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool str_set_obj_fn(IntPtr lp, string row_string);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool str_set_rh_vec(IntPtr lp, string rh_string);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern double time_elapsed(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern void unscale(IntPtr lp);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool write_basis(IntPtr lp, string filename);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool write_freemps(IntPtr lp, string filename);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool write_lp(IntPtr lp, string filename);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool write_mps(IntPtr lp, string filename);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool write_XLI(IntPtr lp, string filename, string options, bool results);
+        [DllImport("lpsolve55.dll", SetLastError = true)]
+        public static extern bool write_params(IntPtr lp, string filename, string options);
+
+        public static string get_col_name(IntPtr lp, int column)
+        {
+            return (Marshal.PtrToStringAnsi(get_col_name_c(lp, column)));
+        }
+
+        public static string get_lp_name(IntPtr lp)
+        {
+            return (Marshal.PtrToStringAnsi(get_lp_name_c(lp)));
+        }
+
+        public static string get_origcol_name(IntPtr lp, int column)
+        {
+            return (Marshal.PtrToStringAnsi(get_origcol_name_c(lp, column)));
+        }
+
+        public static string get_origrow_name(IntPtr lp, int row)
+        {
+            return (Marshal.PtrToStringAnsi(get_origrow_name_c(lp, row)));
+        }
+
+        public static string get_row_name(IntPtr lp, int row)
+        {
+            return (Marshal.PtrToStringAnsi(get_row_name_c(lp, row)));
+        }
+
+        public static string get_statustext(IntPtr lp, int statuscode)
+        {
+            return (Marshal.PtrToStringAnsi(get_statustext_c(lp, statuscode)));
+        }
+
+        private static void SetEnvironmentVariable(string Name, string val)
+        {
+            Environment.SetEnvironmentVariable(Name, val, EnvironmentVariableTarget.Process);
+        }
+
+        private static string GetEnvironmentVariable(string Name)
+        {
+            return Environment.GetEnvironmentVariable(Name);
+        }
+
 
         public static bool Init()
         {
             return Init(null);
         }
 
+
+        static bool bEnvChanged = false;
+
         public static bool Init(string dllFolderPath)
         {
             if (string.IsNullOrEmpty(dllFolderPath))
             {
-                string exePath = Assembly.GetExecutingAssembly().Location;
-                bool is64Bit = IntPtr.Size == 8;
-                dllFolderPath = Path.GetDirectoryName(exePath) + (is64Bit ? @"\NativeBinaries\win64\" : @"\NativeBinaries\win32\");
+				string exePath = Assembly.GetExecutingAssembly().Location;
+				bool is64Bit = IntPtr.Size == 8;
+				dllFolderPath = Path.GetDirectoryName(exePath) + (is64Bit ? @"\NativeBinaries\win64\" : @"\NativeBinaries\win32\");
             }
             var dllFilePath = dllFolderPath;
             if (dllFilePath.Substring(dllFilePath.Length - 1, 1) != "\\")
@@ -34,1180 +722,18 @@ namespace LpSolveDotNet
             bool returnValue = File.Exists(dllFilePath);
             if (returnValue)
             {
-                if (!_hasAlreadyChangedPathEnvironmentVariable)
+                if (!bEnvChanged)
                 {
-                    string pathEnvironmentVariable = Environment.GetEnvironmentVariable("PATH");
+                    string pathEnvironmentVariable = GetEnvironmentVariable("PATH");
                     string pathWithSemiColon = pathEnvironmentVariable + ";";
                     if (pathWithSemiColon.IndexOf(dllFolderPath + ";", StringComparison.InvariantCultureIgnoreCase) < 0)
                     {
-                        Environment.SetEnvironmentVariable("PATH", dllFolderPath + ";" + pathEnvironmentVariable, EnvironmentVariableTarget.Process);
+                        SetEnvironmentVariable("PATH", dllFolderPath + ";" + pathEnvironmentVariable);
                     }
-                    _hasAlreadyChangedPathEnvironmentVariable = true;
+                    bEnvChanged = true;
                 }
             }
             return returnValue;
-        }
-        private static bool _hasAlreadyChangedPathEnvironmentVariable = false;
-
-        #endregion
-
-        public static Version LpSolveVersion
-        {
-            get
-            {
-                int major = 0;
-                int minor = 0;
-                int release = 0;
-                int build = 0;
-                Interop.lp_solve_version(ref major, ref minor, ref release, ref build);
-                return new Version(major, minor, release, build);
-            }
-        }
-
-        private static LpSolve CreateFromLpRecStructurePointer(IntPtr lp)
-        {
-            if (lp == IntPtr.Zero)
-            {
-                return null;
-            }
-            return new LpSolve(lp);
-        }
-
-        public static LpSolve MakeLp(int rows, int columns)
-        {
-            IntPtr lp = Interop.make_lp(rows, columns);
-            return CreateFromLpRecStructurePointer(lp);
-        }
-
-        public static LpSolve ReadFreeMPS(string fileName, int options)
-        {
-            IntPtr lp = Interop.read_freeMPS(fileName, options);
-            return CreateFromLpRecStructurePointer(lp);
-        }
-
-        public static LpSolve ReadLP(string fileName, int verbose, string lpName)
-        {
-            IntPtr lp = Interop.read_LP(fileName, verbose, lpName);
-            return CreateFromLpRecStructurePointer(lp);
-        }
-
-        public static LpSolve ReadMPS(string fileName, int options)
-        {
-            IntPtr lp = Interop.read_MPS(fileName, options);
-            return CreateFromLpRecStructurePointer(lp);
-        }
-
-        public static LpSolve ReadXLI(string xliName, string modelName, string dataName, string options, int verbose)
-        {
-            IntPtr lp = Interop.read_XLI(xliName, modelName, dataName, options, verbose);
-            return CreateFromLpRecStructurePointer(lp);
-        }
-
-        #endregion
-
-
-        private IntPtr _lp;
-
-        private LpSolve(IntPtr lp)
-        {
-            _lp = lp;
-        }
-
-
-        public void Dispose()
-        {
-            delete_lp();
-        }
-
-        public LpSolve Copy()
-        {
-            return new LpSolve(Interop.copy_lp(_lp));
-        }
-
-
-        public bool add_column(double[] column)
-        {
-            return Interop.add_column(_lp, column);
-        }
-
-        public bool add_columnex(int count, double[] column, int[] rowno)
-        {
-            return Interop.add_columnex(_lp, count, column, rowno);
-        }
-
-        public bool add_constraint(double[] row, lpsolve_constr_types constr_type, double rh)
-        {
-            return Interop.add_constraint(_lp, row, constr_type, rh);
-        }
-
-        public bool add_constraintex(int count, double[] row, int[] colno, lpsolve_constr_types constr_type, double rh)
-        {
-            return Interop.add_constraintex(_lp, count, row, colno, constr_type, rh);
-        }
-
-        public bool add_lag_con(double[] row, lpsolve_constr_types con_type, double rhs)
-        {
-            return Interop.add_lag_con(_lp, row, con_type, rhs);
-        }
-
-        public int add_SOS(string name, int sostype, int priority, int count, int[] sosvars, double[] weights)
-        {
-            return Interop.add_SOS(_lp, name, sostype, priority, count, sosvars, weights);
-        }
-
-        public int column_in_lp(double[] column)
-        {
-            return Interop.column_in_lp(_lp, column);
-        }
-
-        public void default_basis()
-        {
-            Interop.default_basis(_lp);
-        }
-
-        public bool del_column(int column)
-        {
-            return Interop.del_column(_lp, column);
-        }
-
-        public bool del_constraint(int del_row)
-        {
-            return Interop.del_constraint(_lp, del_row);
-        }
-
-        public void delete_lp()
-        {
-            if (_lp != IntPtr.Zero)
-            {
-                Interop.delete_lp(_lp);
-                _lp = IntPtr.Zero;
-            }
-        }
-
-        public bool dualize_lp()
-        {
-            return Interop.dualize_lp(_lp);
-        }
-
-        public lpsolve_anti_degen get_anti_degen()
-        {
-            return Interop.get_anti_degen(_lp);
-        }
-
-        public bool get_basis(int[] bascolumn, bool nonbasic)
-        {
-            return Interop.get_basis(_lp, bascolumn, nonbasic);
-        }
-
-        public lpsolve_basiscrash get_basiscrash()
-        {
-            return Interop.get_basiscrash(_lp);
-        }
-
-        public int get_bb_depthlimit()
-        {
-            return Interop.get_bb_depthlimit(_lp);
-        }
-
-        public lpsolve_branch get_bb_floorfirst()
-        {
-            return Interop.get_bb_floorfirst(_lp);
-        }
-
-        public lpsolve_BBstrategies get_bb_rule()
-        {
-            return Interop.get_bb_rule(_lp);
-        }
-
-        public bool get_bounds_tighter()
-        {
-            return Interop.get_bounds_tighter(_lp);
-        }
-
-        public double get_break_at_value()
-        {
-            return Interop.get_break_at_value(_lp);
-        }
-
-        public bool get_column(int col_nr, double[] column)
-        {
-            return Interop.get_column(_lp, col_nr, column);
-        }
-
-        public int get_columnex(int col_nr, double[] column, int[] nzrow)
-        {
-            return Interop.get_columnex(_lp, col_nr, column, nzrow);
-        }
-
-        public string get_col_name(int column)
-        {
-            return Interop.get_col_name(_lp, column);
-        }
-
-        public string get_origcol_name(int column)
-        {
-            return Interop.get_origcol_name(_lp, column);
-        }
-        
-        public lpsolve_constr_types get_constr_type(int row)
-        {
-            return Interop.get_constr_type(_lp, row);
-        }
-
-        public double get_constr_value(int row, int count, double[] primsolution, int[] nzindex)
-        {
-            return Interop.get_constr_value(_lp, row, count, primsolution, nzindex);
-        }
-
-        public bool get_constraints(double[] constr)
-        {
-            return Interop.get_constraints(_lp, constr);
-        }
-
-        public bool get_dual_solution(double[] rc)
-        {
-            return Interop.get_dual_solution(_lp, rc);
-        }
-
-        public double get_epsb()
-        {
-            return Interop.get_epsb(_lp);
-        }
-
-        public double get_epsd()
-        {
-            return Interop.get_epsd(_lp);
-        }
-
-        public double get_epsel()
-        {
-            return Interop.get_epsel(_lp);
-        }
-
-        public double get_epsint()
-        {
-            return Interop.get_epsint(_lp);
-        }
-
-        public double get_epsperturb()
-        {
-            return Interop.get_epsperturb(_lp);
-        }
-
-        public double get_epspivot()
-        {
-            return Interop.get_epspivot(_lp);
-        }
-
-        public lpsolve_improves get_improve()
-        {
-            return Interop.get_improve(_lp);
-        }
-
-        public double get_infinite()
-        {
-            return Interop.get_infinite(_lp);
-        }
-
-        public bool get_lambda(double[] lambda)
-        {
-            return Interop.get_lambda(_lp, lambda);
-        }
-
-        public double get_lowbo(int column)
-        {
-            return Interop.get_lowbo(_lp, column);
-        }
-
-        public int get_lp_index(int orig_index)
-        {
-            return Interop.get_lp_index(_lp, orig_index);
-        }
-
-        public int get_Lrows()
-        {
-            return Interop.get_Lrows(_lp);
-        }
-
-        public double get_mat(int row, int column)
-        {
-            return Interop.get_mat(_lp, row, column);
-        }
-
-        public int get_max_level()
-        {
-            return Interop.get_max_level(_lp);
-        }
-
-        public int get_maxpivot()
-        {
-            return Interop.get_maxpivot(_lp);
-        }
-
-        public double get_mip_gap(bool absolute)
-        {
-            return Interop.get_mip_gap(_lp, absolute);
-        }
-
-        public int get_Ncolumns()
-        {
-            return Interop.get_Ncolumns(_lp);
-        }
-
-        public double get_negrange()
-        {
-            return Interop.get_negrange(_lp);
-        }
-
-        public int get_nameindex(string name, bool isrow)
-        {
-            return Interop.get_nameindex(_lp, name, isrow);
-        }
-
-        public int get_nonzeros()
-        {
-            return Interop.get_nonzeros(_lp);
-        }
-
-        public int get_Norig_columns()
-        {
-            return Interop.get_Norig_columns(_lp);
-        }
-
-        public int get_Norig_rows()
-        {
-            return Interop.get_Norig_rows(_lp);
-        }
-
-        public int get_Nrows()
-        {
-            return Interop.get_Nrows(_lp);
-        }
-
-        public double get_obj_bound()
-        {
-            return Interop.get_obj_bound(_lp);
-        }
-
-        public double get_objective()
-        {
-            return Interop.get_objective(_lp);
-        }
-
-        public int get_orig_index(int lp_index)
-        {
-            return Interop.get_orig_index(_lp, lp_index);
-        }
-
-        public lpsolve_piv_rules get_pivoting()
-        {
-            return Interop.get_pivoting(_lp);
-        }
-
-        public lpsolve_presolve get_presolve()
-        {
-            return Interop.get_presolve(_lp);
-        }
-
-        public int get_presolveloops()
-        {
-            return Interop.get_presolveloops(_lp);
-        }
-
-        public bool get_primal_solution(double[] pv)
-        {
-            return Interop.get_primal_solution(_lp, pv);
-        }
-
-        public int get_print_sol()
-        {
-            return Interop.get_print_sol(_lp);
-        }
-
-        public bool get_PseudoCosts(double[] clower, double[] cupper, int[] updatelimit)
-        {
-            return Interop.get_PseudoCosts(_lp, clower, cupper, updatelimit);
-        }
-
-        public double get_rh(int row)
-        {
-            return Interop.get_rh(_lp, row);
-        }
-
-        public double get_rh_range(int row)
-        {
-            return Interop.get_rh_range(_lp, row);
-        }
-
-        public bool get_row(int row_nr, double[] row)
-        {
-            return Interop.get_row(_lp, row_nr, row);
-        }
-
-        public int get_rowex(int row_nr, double[] row, int[] colno)
-        {
-            return Interop.get_rowex(_lp, row_nr, row, colno);
-        }
-
-        public string get_origrow_name(int row)
-        {
-            return Interop.get_origrow_name(_lp, row);
-        }
-
-        public string get_row_name(int row)
-        {
-            return Interop.get_row_name(_lp, row);
-        }
-
-        public double get_scalelimit()
-        {
-            return Interop.get_scalelimit(_lp);
-        }
-
-        public lpsolve_scales get_scaling()
-        {
-            return Interop.get_scaling(_lp);
-        }
-
-        public bool get_sensitivity_obj(double[] objfrom, double[] objtill)
-        {
-            return Interop.get_sensitivity_obj(_lp, objfrom, objtill);
-        }
-
-        public bool get_sensitivity_objex(double[] objfrom, double[] objtill, double[] objfromvalue,
-            double[] objtillvalue)
-        {
-            return Interop.get_sensitivity_objex(_lp, objfrom, objtill, objfromvalue, objtillvalue);
-        }
-
-        public bool get_sensitivity_rhs(double[] duals, double[] dualsfrom, double[] dualstill)
-        {
-            return Interop.get_sensitivity_rhs(_lp, duals, dualsfrom, dualstill);
-        }
-
-        public lpsolve_simplextypes get_simplextype()
-        {
-            return Interop.get_simplextype(_lp);
-        }
-
-        public int get_solutioncount()
-        {
-            return Interop.get_solutioncount(_lp);
-        }
-
-        public int get_solutionlimit()
-        {
-            return Interop.get_solutionlimit(_lp);
-        }
-
-        public int get_status()
-        {
-            return Interop.get_status(_lp);
-        }
-
-        public string get_statustext(int statuscode)
-        {
-            return Interop.get_statustext(_lp, statuscode);
-        }
-
-        public int get_timeout()
-        {
-            return Interop.get_timeout(_lp);
-        }
-
-        public long get_total_iter()
-        {
-            return Interop.get_total_iter(_lp);
-        }
-
-        public long get_total_nodes()
-        {
-            return Interop.get_total_nodes(_lp);
-        }
-
-        public double get_upbo(int column)
-        {
-            return Interop.get_upbo(_lp, column);
-        }
-
-        public lpsolve_branch get_var_branch(int column)
-        {
-            return Interop.get_var_branch(_lp, column);
-        }
-
-        public double get_var_dualresult(int index)
-        {
-            return Interop.get_var_dualresult(_lp, index);
-        }
-
-        public double get_var_primalresult(int index)
-        {
-            return Interop.get_var_primalresult(_lp, index);
-        }
-
-        public int get_var_priority(int column)
-        {
-            return Interop.get_var_priority(_lp, column);
-        }
-
-        public bool get_variables(double[] var)
-        {
-            return Interop.get_variables(_lp, var);
-        }
-
-        public int get_verbose()
-        {
-            return Interop.get_verbose(_lp);
-        }
-
-        public double get_working_objective()
-        {
-            return Interop.get_working_objective(_lp);
-        }
-
-        public bool guess_basis(double[] guessvector, int[] basisvector)
-        {
-            return Interop.guess_basis(_lp, guessvector, basisvector);
-        }
-
-        public bool has_BFP()
-        {
-            return Interop.has_BFP(_lp);
-        }
-
-        public bool has_XLI()
-        {
-            return Interop.has_XLI(_lp);
-        }
-
-        public bool is_add_rowmode()
-        {
-            return Interop.is_add_rowmode(_lp);
-        }
-
-        public bool is_anti_degen(lpsolve_scales testmask)
-        {
-            return Interop.is_anti_degen(_lp, testmask);
-        }
-
-        public bool is_binary(int column)
-        {
-            return Interop.is_binary(_lp, column);
-        }
-
-        public bool is_break_at_first()
-        {
-            return Interop.is_break_at_first(_lp);
-        }
-
-        public bool is_constr_type(int row, int mask)
-        {
-            return Interop.is_constr_type(_lp, row, mask);
-        }
-
-        public bool is_debug()
-        {
-            return Interop.is_debug(_lp);
-        }
-
-        public bool is_feasible(double[] values, double threshold)
-        {
-            return Interop.is_feasible(_lp, values, threshold);
-        }
-
-        public bool is_infinite(double value)
-        {
-            return Interop.is_infinite(_lp, value);
-        }
-
-        public bool is_int(int column)
-        {
-            return Interop.is_int(_lp, column);
-        }
-
-        public bool is_integerscaling()
-        {
-            return Interop.is_integerscaling(_lp);
-        }
-
-        public bool is_lag_trace()
-        {
-            return Interop.is_lag_trace(_lp);
-        }
-
-        public bool is_maxim()
-        {
-            return Interop.is_maxim(_lp);
-        }
-
-        public bool is_nativeBFP()
-        {
-            return Interop.is_nativeBFP(_lp);
-        }
-
-        public bool is_nativeXLI()
-        {
-            return Interop.is_nativeXLI(_lp);
-        }
-
-        public bool is_negative(int column)
-        {
-            return Interop.is_negative(_lp, column);
-        }
-
-        public bool is_piv_mode(lpsolve_scales testmask)
-        {
-            return Interop.is_piv_mode(_lp, testmask);
-        }
-
-        public bool is_piv_rule(lpsolve_piv_rules rule)
-        {
-            return Interop.is_piv_rule(_lp, rule);
-        }
-
-        public bool is_presolve(lpsolve_scales testmask)
-        {
-            return Interop.is_presolve(_lp, testmask);
-        }
-
-        public bool is_scalemode(lpsolve_scales testmask)
-        {
-            return Interop.is_scalemode(_lp, testmask);
-        }
-
-        public bool is_scaletype(lpsolve_scales scaletype)
-        {
-            return Interop.is_scaletype(_lp, scaletype);
-        }
-
-        public bool is_semicont(int column)
-        {
-            return Interop.is_semicont(_lp, column);
-        }
-
-        public bool is_SOS_var(int column)
-        {
-            return Interop.is_SOS_var(_lp, column);
-        }
-
-        public bool is_trace()
-        {
-            return Interop.is_trace(_lp);
-        }
-
-        public bool is_unbounded(int column)
-        {
-            return Interop.is_unbounded(_lp, column);
-        }
-
-        public bool is_use_names(bool isrow)
-        {
-            return Interop.is_use_names(_lp, isrow);
-        }
-
-        public int resize_lp(int rows, int columns)
-        {
-            return Interop.resize_lp(_lp, rows, columns);
-        }
-
-        public void print_constraints(int columns)
-        {
-            Interop.print_constraints(_lp, columns);
-        }
-
-        public bool print_debugdump(string filename)
-        {
-            return Interop.print_debugdump(_lp, filename);
-        }
-
-        public void print_duals()
-        {
-            Interop.print_duals(_lp);
-        }
-
-        public void print_lp()
-        {
-            Interop.print_lp(_lp);
-        }
-
-        public void print_objective()
-        {
-            Interop.print_objective(_lp);
-        }
-
-        public void print_scales()
-        {
-            Interop.print_scales(_lp);
-        }
-
-        public void print_solution(int columns)
-        {
-            Interop.print_solution(_lp, columns);
-        }
-
-        public void print_str(string str)
-        {
-            Interop.print_str(_lp, str);
-        }
-
-        public void print_tableau()
-        {
-            Interop.print_tableau(_lp);
-        }
-
-        public void put_abortfunc(ctrlcfunc newctrlc, int ctrlchandle)
-        {
-            Interop.put_abortfunc(_lp, newctrlc, ctrlchandle);
-        }
-
-        public void put_logfunc(logfunc newlog, int loghandle)
-        {
-            Interop.put_logfunc(_lp, newlog, loghandle);
-        }
-
-        public void put_msgfunc(msgfunc newmsg, int msghandle, int mask)
-        {
-            Interop.put_msgfunc(_lp, newmsg, msghandle, mask);
-        }
-
-        public bool read_basis(string filename, string info)
-        {
-            return Interop.read_basis(_lp, filename, info);
-        }
-
-        public bool read_params(string filename, string options)
-        {
-            return Interop.read_params(_lp, filename, options);
-        }
-
-        public void reset_basis()
-        {
-            Interop.reset_basis(_lp);
-        }
-
-        public void reset_params()
-        {
-            Interop.reset_params(_lp);
-        }
-
-        public bool set_add_rowmode(bool turnon)
-        {
-            return Interop.set_add_rowmode(_lp, turnon);
-        }
-
-        public void set_anti_degen(lpsolve_anti_degen anti_degen)
-        {
-            Interop.set_anti_degen(_lp, anti_degen);
-        }
-
-        public bool set_basis(int[] bascolumn, bool nonbasic)
-        {
-            return Interop.set_basis(_lp, bascolumn, nonbasic);
-        }
-
-        public void set_basiscrash(lpsolve_basiscrash mode)
-        {
-            Interop.set_basiscrash(_lp, mode);
-        }
-
-        public void set_basisvar(int basisPos, int enteringCol)
-        {
-            Interop.set_basisvar(_lp, basisPos, enteringCol);
-        }
-
-        public void set_bb_depthlimit(int bb_maxlevel)
-        {
-            Interop.set_bb_depthlimit(_lp, bb_maxlevel);
-        }
-
-        public void set_bb_floorfirst(lpsolve_branch bb_floorfirst)
-        {
-            Interop.set_bb_floorfirst(_lp, bb_floorfirst);
-        }
-
-        public void set_bb_rule(lpsolve_BBstrategies bb_rule)
-        {
-            Interop.set_bb_rule(_lp, bb_rule);
-        }
-
-        public bool set_BFP(string filename)
-        {
-            return Interop.set_BFP(_lp, filename);
-        }
-
-        public bool set_binary(int column, bool must_be_bin)
-        {
-            return Interop.set_binary(_lp, column, must_be_bin);
-        }
-
-        public bool set_bounds(int column, double lower, double upper)
-        {
-            return Interop.set_bounds(_lp, column, lower, upper);
-        }
-
-        public void set_bounds_tighter(bool tighten)
-        {
-            Interop.set_bounds_tighter(_lp, tighten);
-        }
-
-        public void set_break_at_first(bool break_at_first)
-        {
-            Interop.set_break_at_first(_lp, break_at_first);
-        }
-
-        public void set_break_at_value(double break_at_value)
-        {
-            Interop.set_break_at_value(_lp, break_at_value);
-        }
-
-        public bool set_col_name(int column, string new_name)
-        {
-            return Interop.set_col_name(_lp, column, new_name);
-        }
-
-        public bool set_column(int col_no, double[] column)
-        {
-            return Interop.set_column(_lp, col_no, column);
-        }
-
-        public bool set_columnex(int col_no, int count, double[] column, int[] rowno)
-        {
-            return Interop.set_columnex(_lp, col_no, count, column, rowno);
-        }
-
-        public bool set_constr_type(int row, lpsolve_constr_types con_type)
-        {
-            return Interop.set_constr_type(_lp, row, con_type);
-        }
-
-        public void set_debug(bool debug)
-        {
-            Interop.set_debug(_lp, debug);
-        }
-
-        public void set_epsb(double epsb)
-        {
-            Interop.set_epsb(_lp, epsb);
-        }
-
-        public void set_epsd(double epsd)
-        {
-            Interop.set_epsd(_lp, epsd);
-        }
-
-        public void set_epsel(double epsel)
-        {
-            Interop.set_epsel(_lp, epsel);
-        }
-
-        public void set_epsint(double epsint)
-        {
-            Interop.set_epsint(_lp, epsint);
-        }
-
-        public bool set_epslevel(int level)
-        {
-            return Interop.set_epslevel(_lp, level);
-        }
-
-        public void set_epsperturb(double epsperturb)
-        {
-            Interop.set_epsperturb(_lp, epsperturb);
-        }
-
-        public void set_epspivot(double epspivot)
-        {
-            Interop.set_epspivot(_lp, epspivot);
-        }
-
-        public void set_improve(lpsolve_improves improve)
-        {
-            Interop.set_improve(_lp, improve);
-        }
-
-        public void set_infinite(double infinite)
-        {
-            Interop.set_infinite(_lp, infinite);
-        }
-
-        public bool set_int(int column, bool must_be_int)
-        {
-            return Interop.set_int(_lp, column, must_be_int);
-        }
-
-        public void set_lag_trace(bool lag_trace)
-        {
-            Interop.set_lag_trace(_lp, lag_trace);
-        }
-
-        public bool set_lowbo(int column, double value)
-        {
-            return Interop.set_lowbo(_lp, column, value);
-        }
-
-        public bool set_lp_name(string lpname)
-        {
-            return Interop.set_lp_name(_lp, lpname);
-        }
-
-        public string get_lp_name()
-        {
-            return Interop.get_lp_name(_lp);
-        }
-
-        public bool set_mat(int row, int column, double value)
-        {
-            return Interop.set_mat(_lp, row, column, value);
-        }
-
-        public void set_maxim()
-        {
-            Interop.set_maxim(_lp);
-        }
-
-        public void set_maxpivot(int max_num_inv)
-        {
-            Interop.set_maxpivot(_lp, max_num_inv);
-        }
-
-        public void set_minim()
-        {
-            Interop.set_minim(_lp);
-        }
-
-        public void set_mip_gap(bool absolute, double mip_gap)
-        {
-            Interop.set_mip_gap(_lp, absolute, mip_gap);
-        }
-
-        public void set_negrange(double negrange)
-        {
-            Interop.set_negrange(_lp, negrange);
-        }
-
-        public bool set_obj(int Column, double Value)
-        {
-            return Interop.set_obj(_lp, Column, Value);
-        }
-
-        public void set_obj_bound(double obj_bound)
-        {
-            Interop.set_obj_bound(_lp, obj_bound);
-        }
-
-        public bool set_obj_fn(double[] row)
-        {
-            return Interop.set_obj_fn(_lp, row);
-        }
-
-        public bool set_obj_fnex(int count, double[] row, int[] colno)
-        {
-            return Interop.set_obj_fnex(_lp, count, row, colno);
-        }
-
-        public bool set_outputfile(string filename)
-        {
-            return Interop.set_outputfile(_lp, filename);
-        }
-
-        public void set_pivoting(lpsolve_piv_rules piv_rule)
-        {
-            Interop.set_pivoting(_lp, piv_rule);
-        }
-
-        public void set_preferdual(bool dodual)
-        {
-            Interop.set_preferdual(_lp, dodual);
-        }
-
-        public void set_presolve(lpsolve_presolve do_presolve, int maxloops)
-        {
-            Interop.set_presolve(_lp, do_presolve, maxloops);
-        }
-
-        public void set_print_sol(int print_sol)
-        {
-            Interop.set_print_sol(_lp, print_sol);
-        }
-
-        public bool set_PseudoCosts(double[] clower, double[] cupper, int[] updatelimit)
-        {
-            return Interop.set_PseudoCosts(_lp, clower, cupper, updatelimit);
-        }
-
-        public bool set_rh(int row, double value)
-        {
-            return Interop.set_rh(_lp, row, value);
-        }
-
-        public bool set_rh_range(int row, double deltavalue)
-        {
-            return Interop.set_rh_range(_lp, row, deltavalue);
-        }
-
-        public void set_rh_vec(double[] rh)
-        {
-            Interop.set_rh_vec(_lp, rh);
-        }
-
-        public bool set_row(int row_no, double[] row)
-        {
-            return Interop.set_row(_lp, row_no, row);
-        }
-
-        public bool set_row_name(int row, string new_name)
-        {
-            return Interop.set_row_name(_lp, row, new_name);
-        }
-
-        public bool set_rowex(int row_no, int count, double[] row, int[] colno)
-        {
-            return Interop.set_rowex(_lp, row_no, count, row, colno);
-        }
-
-        public void set_scalelimit(double scalelimit)
-        {
-            Interop.set_scalelimit(_lp, scalelimit);
-        }
-
-        public void set_scaling(lpsolve_scales scalemode)
-        {
-            Interop.set_scaling(_lp, scalemode);
-        }
-
-        public bool set_semicont(int column, bool must_be_sc)
-        {
-            return Interop.set_semicont(_lp, column, must_be_sc);
-        }
-
-        public void set_sense(bool maximize)
-        {
-            Interop.set_sense(_lp, maximize);
-        }
-
-        public void set_simplextype(lpsolve_simplextypes simplextype)
-        {
-            Interop.set_simplextype(_lp, simplextype);
-        }
-
-        public void set_solutionlimit(int limit)
-        {
-            Interop.set_solutionlimit(_lp, limit);
-        }
-
-        public void set_timeout(int sectimeout)
-        {
-            Interop.set_timeout(_lp, sectimeout);
-        }
-
-        public void set_trace(bool trace)
-        {
-            Interop.set_trace(_lp, trace);
-        }
-
-        public bool set_unbounded(int column)
-        {
-            return Interop.set_unbounded(_lp, column);
-        }
-
-        public bool set_upbo(int column, double value)
-        {
-            return Interop.set_upbo(_lp, column, value);
-        }
-
-        public void set_use_names(bool isrow, bool use_names)
-        {
-            Interop.set_use_names(_lp, isrow, use_names);
-        }
-
-        public bool set_var_branch(int column, lpsolve_branch branch_mode)
-        {
-            return Interop.set_var_branch(_lp, column, branch_mode);
-        }
-
-        public bool set_var_weights(double[] weights)
-        {
-            return Interop.set_var_weights(_lp, weights);
-        }
-
-        public void set_verbose(int verbose)
-        {
-            Interop.set_verbose(_lp, verbose);
-        }
-
-        public bool set_XLI(string filename)
-        {
-            return Interop.set_XLI(_lp, filename);
-        }
-
-        public lpsolve_return solve()
-        {
-            return Interop.solve(_lp);
-        }
-
-        public bool str_add_column(string col_string)
-        {
-            return Interop.str_add_column(_lp, col_string);
-        }
-
-        public bool str_add_constraint(string row_string, lpsolve_constr_types constr_type, double rh)
-        {
-            return Interop.str_add_constraint(_lp, row_string, constr_type, rh);
-        }
-
-        public bool str_add_lag_con(string row_string, lpsolve_constr_types con_type, double rhs)
-        {
-            return Interop.str_add_lag_con(_lp, row_string, con_type, rhs);
-        }
-
-        public bool str_set_obj_fn(string row_string)
-        {
-            return Interop.str_set_obj_fn(_lp, row_string);
-        }
-
-        public bool str_set_rh_vec(string rh_string)
-        {
-            return Interop.str_set_rh_vec(_lp, rh_string);
-        }
-
-        public double time_elapsed()
-        {
-            return Interop.time_elapsed(_lp);
-        }
-
-        public void unscale()
-        {
-            Interop.unscale(_lp);
-        }
-
-        public bool write_basis(string filename)
-        {
-            return Interop.write_basis(_lp, filename);
-        }
-
-        public bool write_freemps(string filename)
-        {
-            return Interop.write_freemps(_lp, filename);
-        }
-
-        public bool write_lp(string filename)
-        {
-            return Interop.write_lp(_lp, filename);
-        }
-
-        public bool write_mps(string filename)
-        {
-            return Interop.write_mps(_lp, filename);
-        }
-
-        public bool write_XLI(string filename, string options, bool results)
-        {
-            return Interop.write_XLI(_lp, filename, options, results);
-        }
-
-        public bool write_params(string filename, string options)
-        {
-            return Interop.write_params(_lp, filename, options);
-        }
+        } //Init
     }
 }
