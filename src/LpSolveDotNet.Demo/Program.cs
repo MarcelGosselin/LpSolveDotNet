@@ -11,7 +11,7 @@ namespace LpSolveDotNet.Demo
         {
             Debug.WriteLine(Environment.CurrentDirectory);
 
-            lpsolve.Init();
+            LpSolve.Init();
 
             Test();
 
@@ -21,40 +21,35 @@ namespace LpSolveDotNet.Demo
         /* unsafe is needed to make sure that these function are not relocated in memory by the CLR. If that would happen, a crash occurs */
         /* go to the project property page and in “configuration properties>build” set Allow Unsafe Code Blocks to True. */
         /* see http://msdn2.microsoft.com/en-US/library/chfa2zb8.aspx and http://msdn2.microsoft.com/en-US/library/t2yzs44b.aspx */
-        private /* unsafe */ static void logfunc(IntPtr lp, int userhandle, string Buf)
+        private /* unsafe */ static void logfunc(IntPtr lp, IntPtr userhandle, string Buf)
         {
             Debug.Write(Buf);
         }
 
-        private /* unsafe */ static bool ctrlcfunc(IntPtr lp, int userhandle)
+        private /* unsafe */ static bool ctrlcfunc(IntPtr lp, IntPtr userhandle)
         {
-            /* 'If set to true, then solve is aborted and returncode will indicate this. */
+            // 'If set to true, then solve is aborted and returncode will indicate this.
             return (false);
         }
 
-        private /* unsafe */ static void msgfunc(IntPtr lp, int userhandle, lpsolve.lpsolve_msgmask message)
+        private /* unsafe */ static void msgfunc(IntPtr lp, IntPtr userhandle, lpsolve_msgmask message)
         {
             Debug.WriteLine(message);
         }
 
         private static void ThreadProc(object filename)
         {
-            IntPtr lp;
-            lpsolve.lpsolve_return ret;
-            double o;
-
-            lp = lpsolve.read_LP((string)filename, 0, "");
-            ret = lpsolve.solve(lp);
-            o = lpsolve.get_objective(lp);
-            Debug.Assert(ret == lpsolve.lpsolve_return.OPTIMAL && Math.Round(o, 13) == 1779.4810350637485);
-            lpsolve.delete_lp(lp);
+            using (var lp = LpSolve.ReadLP((string) filename, 0, ""))
+            {
+                lpsolve_return ret = lp.solve();
+                double o = lp.get_objective();
+                Debug.Assert(ret == lpsolve_return.OPTIMAL && Math.Round(o, 13) == 1779.4810350637485);
+            }
         }
 
         private static void TestMultiThreads()
         {
-            int release = 0, Major = 0, Minor = 0, build = 0;
-
-            lpsolve.lp_solve_version(ref Major, ref Minor, ref release, ref build);
+            Version version = LpSolve.LpSolveVersion;
 
             for (int i = 1; i <= 5000; i++)
             {
@@ -69,251 +64,249 @@ namespace LpSolveDotNet.Demo
         {
             const string NewLine = "\n";
 
-            IntPtr lp;
-            int release = 0, Major = 0, Minor = 0, build = 0;
             double[] Row;
             double[] Lower;
             double[] Upper;
             double[] Col;
             double[] Arry;
 
-            lp = lpsolve.make_lp(0, 4);
+            var lp = LpSolve.MakeLp(0, 4);
 
-            lpsolve.lp_solve_version(ref Major, ref Minor, ref release, ref build);
+            Version version = LpSolve.LpSolveVersion;
 
             /* let's first demonstrate the logfunc callback feature */
-            lpsolve.put_logfunc(lp, logfunc, 0);
-            lpsolve.print_str(lp, "lp_solve " + Major + "." + Minor + "." + release + "." + build + " demo" + NewLine + NewLine);
-            lpsolve.solve(lp); /* just to see that a message is send via the logfunc routine ... */
+            lp.put_logfunc(logfunc, 0);
+            lp.print_str("lp_solve " + version + " demo" + NewLine + NewLine);
+            lp.solve(); /* just to see that a message is send via the logfunc routine ... */
             /* ok, that is enough, no more callback */
-            lpsolve.put_logfunc(lp, null, 0);
+            lp.put_logfunc(null, 0);
 
             /* Now redirect all output to a file */
-            lpsolve.set_outputfile(lp, "result.txt");
+            lp.set_outputfile("result.txt");
 
             /* set an abort function. Again optional */
-            lpsolve.put_abortfunc(lp, ctrlcfunc, 0);
+            lp.put_abortfunc(ctrlcfunc, 0);
 
             /* set a message function. Again optional */
-            lpsolve.put_msgfunc(lp, msgfunc, 0, (int)(lpsolve.lpsolve_msgmask.MSG_PRESOLVE | lpsolve.lpsolve_msgmask.MSG_LPFEASIBLE | lpsolve.lpsolve_msgmask.MSG_LPOPTIMAL | lpsolve.lpsolve_msgmask.MSG_MILPEQUAL | lpsolve.lpsolve_msgmask.MSG_MILPFEASIBLE | lpsolve.lpsolve_msgmask.MSG_MILPBETTER));
+            lp.put_msgfunc(msgfunc, 0, (int)(lpsolve_msgmask.MSG_PRESOLVE | lpsolve_msgmask.MSG_LPFEASIBLE | lpsolve_msgmask.MSG_LPOPTIMAL | lpsolve_msgmask.MSG_MILPEQUAL | lpsolve_msgmask.MSG_MILPFEASIBLE | lpsolve_msgmask.MSG_MILPBETTER));
 
-            lpsolve.print_str(lp, "lp_solve " + Major + "." + Minor + "." + release + "." + build + " demo" + NewLine + NewLine);
-            lpsolve.print_str(lp, "This demo will show most of the features of lp_solve " + Major + "." + Minor + "." + release + "." + build + NewLine);
+            lp.print_str("lp_solve " + version + " demo" + NewLine + NewLine);
+            lp.print_str("This demo will show most of the features of lp_solve " + version + NewLine);
 
-            lpsolve.print_str(lp, NewLine + "We start by creating a new problem with 4 variables and 0 constraints" + NewLine);
-            lpsolve.print_str(lp, "We use: lp = lpsolve.make_lp(0, 4);" + NewLine);
+            lp.print_str(NewLine + "We start by creating a new problem with 4 variables and 0 constraints" + NewLine);
+            lp.print_str("We use: lp = LpSolve.MakeLp(0, 4);" + NewLine);
 
-            lpsolve.set_timeout(lp, 0);
+            lp.set_timeout(0);
 
-            lpsolve.print_str(lp, "We can show the current problem with lpsolve.print_lp(lp);" + NewLine);
-            lpsolve.print_lp(lp);
+            lp.print_str("We can show the current problem with lp.print_lp();" + NewLine);
+            lp.print_lp();
 
-            lpsolve.print_str(lp, "Now we add some constraints" + NewLine);
-            lpsolve.print_str(lp, "lpsolve.add_constraint(lp, Row, lpsolve.lpsolve_constr_types.LE, 4);" + NewLine);
+            lp.print_str("Now we add some constraints" + NewLine);
+            lp.print_str("lp.add_constraint(Row, lpsolve.lpsolve_constr_types.LE, 4);" + NewLine);
             // pay attention to the 1 base and ignored 0 column for constraints
-            lpsolve.add_constraint(lp, new double[] { 0, 3, 2, 2, 1 }, lpsolve.lpsolve_constr_types.LE, 4);
-            lpsolve.print_lp(lp);
+            lp.add_constraint(new double[] { 0, 3, 2, 2, 1 }, lpsolve_constr_types.LE, 4);
+            lp.print_lp();
 
             // check ROW array works
             Row = new double[] { 0, 0, 4, 3, 1 };
-            lpsolve.print_str(lp, "lpsolve.add_constraint(lp, Row, lpsolve.lpsolve_constr_types.GE, 3);" + NewLine);
-            lpsolve.add_constraint(lp, Row, lpsolve.lpsolve_constr_types.GE, 3);
-            lpsolve.print_lp(lp);
+            lp.print_str("lp.add_constraint(Row, lpsolve.lpsolve_constr_types.GE, 3);" + NewLine);
+            lp.add_constraint(Row, lpsolve_constr_types.GE, 3);
+            lp.print_lp();
 
-            lpsolve.print_str(lp, "Set the objective function" + NewLine);
-            lpsolve.print_str(lp, "lpsolve.set_obj_fn(lp, Row);" + NewLine);
-            lpsolve.set_obj_fn(lp, new double[] { 0, 2, 3, -2, 3 });
-            lpsolve.print_lp(lp);
+            lp.print_str("Set the objective function" + NewLine);
+            lp.print_str("lp.set_obj_fn(Row);" + NewLine);
+            lp.set_obj_fn(new double[] { 0, 2, 3, -2, 3 });
+            lp.print_lp();
 
-            lpsolve.print_str(lp, "Now solve the problem with lpsolve.solve(lp);" + NewLine);
-            lpsolve.print_str(lp, lpsolve.solve(lp) + ": " + lpsolve.get_objective(lp) + NewLine);
+            lp.print_str("Now solve the problem with lp.solve();" + NewLine);
+            lp.print_str(lp.solve() + ": " + lp.get_objective() + NewLine);
 
-            Col = new double[lpsolve.get_Ncolumns(lp)];
-            lpsolve.get_variables(lp, Col);
+            Col = new double[lp.get_Ncolumns()];
+            lp.get_variables(Col);
 
-            Row = new double[lpsolve.get_Nrows(lp)];
-            lpsolve.get_constraints(lp, Row);
+            Row = new double[lp.get_Nrows()];
+            lp.get_constraints(Row);
 
-            Arry = new double[lpsolve.get_Ncolumns(lp) + lpsolve.get_Nrows(lp) + 1];
-            lpsolve.get_dual_solution(lp, Arry);
+            Arry = new double[lp.get_Ncolumns() + lp.get_Nrows() + 1];
+            lp.get_dual_solution(Arry);
 
-            Arry = new double[lpsolve.get_Ncolumns(lp) + lpsolve.get_Nrows(lp)];
-            Lower = new double[lpsolve.get_Ncolumns(lp) + lpsolve.get_Nrows(lp)];
-            Upper = new double[lpsolve.get_Ncolumns(lp) + lpsolve.get_Nrows(lp)];
-            lpsolve.get_sensitivity_rhs(lp, Arry, Lower, Upper);
+            Arry = new double[lp.get_Ncolumns() + lp.get_Nrows()];
+            Lower = new double[lp.get_Ncolumns() + lp.get_Nrows()];
+            Upper = new double[lp.get_Ncolumns() + lp.get_Nrows()];
+            lp.get_sensitivity_rhs(Arry, Lower, Upper);
 
-            Lower = new double[lpsolve.get_Ncolumns(lp) + 1];
-            Upper = new double[lpsolve.get_Ncolumns(lp) + 1];
-            lpsolve.get_sensitivity_obj(lp, Lower, Upper);
+            Lower = new double[lp.get_Ncolumns() + 1];
+            Upper = new double[lp.get_Ncolumns() + 1];
+            lp.get_sensitivity_obj(Lower, Upper);
 
-            lpsolve.print_str(lp, "The value is 0, this means we found an optimal solution" + NewLine);
-            lpsolve.print_str(lp, "We can display this solution with lpsolve.print_solution(lp);" + NewLine);
-            lpsolve.print_objective(lp);
-            lpsolve.print_solution(lp, 1);
-            lpsolve.print_constraints(lp, 1);
+            lp.print_str("The value is 0, this means we found an optimal solution" + NewLine);
+            lp.print_str("We can display this solution with lp.print_solution();" + NewLine);
+            lp.print_objective();
+            lp.print_solution(1);
+            lp.print_constraints(1);
 
-            lpsolve.print_str(lp, "The dual variables of the solution are printed with" + NewLine);
-            lpsolve.print_str(lp, "lpsolve.print_duals(lp);" + NewLine);
-            lpsolve.print_duals(lp);
+            lp.print_str("The dual variables of the solution are printed with" + NewLine);
+            lp.print_str("lp.print_duals();" + NewLine);
+            lp.print_duals();
 
-            lpsolve.print_str(lp, "We can change a single element in the matrix with" + NewLine);
-            lpsolve.print_str(lp, "lpsolve.set_mat(lp, 2, 1, 0.5);" + NewLine);
-            lpsolve.set_mat(lp, 2, 1, 0.5);
-            lpsolve.print_lp(lp);
+            lp.print_str("We can change a single element in the matrix with" + NewLine);
+            lp.print_str("lp.set_mat(2, 1, 0.5);" + NewLine);
+            lp.set_mat(2, 1, 0.5);
+            lp.print_lp();
 
-            lpsolve.print_str(lp, "If we want to maximize the objective function use lpsolve.set_maxim(lp);" + NewLine);
-            lpsolve.set_maxim(lp);
-            lpsolve.print_lp(lp);
+            lp.print_str("If we want to maximize the objective function use lp.set_maxim();" + NewLine);
+            lp.set_maxim();
+            lp.print_lp();
 
-            lpsolve.print_str(lp, "after solving this gives us:" + NewLine);
-            lpsolve.solve(lp);
-            lpsolve.print_objective(lp);
-            lpsolve.print_solution(lp, 1);
-            lpsolve.print_constraints(lp, 1);
-            lpsolve.print_duals(lp);
+            lp.print_str("after solving this gives us:" + NewLine);
+            lp.solve();
+            lp.print_objective();
+            lp.print_solution(1);
+            lp.print_constraints(1);
+            lp.print_duals();
 
-            lpsolve.print_str(lp, "Change the value of a rhs element with lpsolve.set_rh(lp, 1, 7.45);" + NewLine);
-            lpsolve.set_rh(lp, 1, 7.45);
-            lpsolve.print_lp(lp);
-            lpsolve.solve(lp);
-            lpsolve.print_objective(lp);
-            lpsolve.print_solution(lp, 1);
-            lpsolve.print_constraints(lp, 1);
+            lp.print_str("Change the value of a rhs element with lp.set_rh(1, 7.45);" + NewLine);
+            lp.set_rh(1, 7.45);
+            lp.print_lp();
+            lp.solve();
+            lp.print_objective();
+            lp.print_solution(1);
+            lp.print_constraints(1);
 
-            lpsolve.print_str(lp, "We change C4 to the integer type with" + NewLine);
-            lpsolve.print_str(lp, "lpsolve.set_int(lp, 4, true);" + NewLine);
-            lpsolve.set_int(lp, 4, true);
-            lpsolve.print_lp(lp);
+            lp.print_str("We change C4 to the integer type with" + NewLine);
+            lp.print_str("lp.set_int(4, true);" + NewLine);
+            lp.set_int(4, true);
+            lp.print_lp();
 
-            lpsolve.print_str(lp, "We set branch & bound debugging on with lpsolve.set_debug(lp, true);" + NewLine);
+            lp.print_str("We set branch & bound debugging on with lp.set_debug(true);" + NewLine);
 
-            lpsolve.set_debug(lp, true);
-            lpsolve.print_str(lp, "and solve..." + NewLine);
+            lp.set_debug(true);
+            lp.print_str("and solve..." + NewLine);
 
-            lpsolve.solve(lp);
-            lpsolve.print_objective(lp);
-            lpsolve.print_solution(lp, 1);
-            lpsolve.print_constraints(lp, 1);
+            lp.solve();
+            lp.print_objective();
+            lp.print_solution(1);
+            lp.print_constraints(1);
 
-            lpsolve.print_str(lp, "We can set bounds on the variables with" + NewLine);
-            lpsolve.print_str(lp, "lpsolve.set_lowbo(lp, 2, 2); & lpsolve.set_upbo(lp, 4, 5.3);" + NewLine);
-            lpsolve.set_lowbo(lp, 2, 2);
-            lpsolve.set_upbo(lp, 4, 5.3);
-            lpsolve.print_lp(lp);
+            lp.print_str("We can set bounds on the variables with" + NewLine);
+            lp.print_str("lp.set_lowbo(2, 2); & lp.set_upbo(4, 5.3);" + NewLine);
+            lp.set_lowbo(2, 2);
+            lp.set_upbo(4, 5.3);
+            lp.print_lp();
 
-            lpsolve.solve(lp);
-            lpsolve.print_objective(lp);
-            lpsolve.print_solution(lp, 1);
-            lpsolve.print_constraints(lp, 1);
+            lp.solve();
+            lp.print_objective();
+            lp.print_solution(1);
+            lp.print_constraints(1);
 
-            lpsolve.print_str(lp, "Now remove a constraint with lpsolve.del_constraint(lp, 1);" + NewLine);
-            lpsolve.del_constraint(lp, 1);
-            lpsolve.print_lp(lp);
-            lpsolve.print_str(lp, "Add an equality constraint" + NewLine);
+            lp.print_str("Now remove a constraint with lp.del_constraint(1);" + NewLine);
+            lp.del_constraint(1);
+            lp.print_lp();
+            lp.print_str("Add an equality constraint" + NewLine);
             Row = new double[] { 0, 1, 2, 1, 4 };
-            lpsolve.add_constraint(lp, Row, lpsolve.lpsolve_constr_types.EQ, 8);
-            lpsolve.print_lp(lp);
+            lp.add_constraint(Row, lpsolve_constr_types.EQ, 8);
+            lp.print_lp();
 
-            lpsolve.print_str(lp, "A column can be added with:" + NewLine);
-            lpsolve.print_str(lp, "lpsolve.add_column(lp, Col);" + NewLine);
-            lpsolve.add_column(lp, new double[] { 3, 2, 2 });
-            lpsolve.print_lp(lp);
+            lp.print_str("A column can be added with:" + NewLine);
+            lp.print_str("lp.add_column(Col);" + NewLine);
+            lp.add_column(new double[] { 3, 2, 2 });
+            lp.print_lp();
 
-            lpsolve.print_str(lp, "A column can be removed with:" + NewLine);
-            lpsolve.print_str(lp, "lpsolve.del_column(lp, 3);" + NewLine);
-            lpsolve.del_column(lp, 3);
-            lpsolve.print_lp(lp);
+            lp.print_str("A column can be removed with:" + NewLine);
+            lp.print_str("lp.del_column(3);" + NewLine);
+            lp.del_column(3);
+            lp.print_lp();
 
-            lpsolve.print_str(lp, "We can use automatic scaling with:" + NewLine);
-            lpsolve.print_str(lp, "lpsolve.set_scaling(lp, lpsolve.lpsolve_scales.SCALE_MEAN);" + NewLine);
-            lpsolve.set_scaling(lp, lpsolve.lpsolve_scales.SCALE_MEAN);
-            lpsolve.print_lp(lp);
+            lp.print_str("We can use automatic scaling with:" + NewLine);
+            lp.print_str("lp.set_scaling(lp.lpsolve_scales.SCALE_MEAN);" + NewLine);
+            lp.set_scaling(lpsolve_scales.SCALE_MEAN);
+            lp.print_lp();
 
-            lpsolve.print_str(lp, "The function lpsolve.get_mat(lp, row, column); returns a single" + NewLine);
-            lpsolve.print_str(lp, "matrix element" + NewLine);
-            lpsolve.print_str(lp, "lpsolve.get_mat(lp, 2, 3); lpsolve.get_mat(lp, 1, 1); gives " + lpsolve.get_mat(lp, 2, 3) + ", " + lpsolve.get_mat(lp, 1, 1) + NewLine);
-            lpsolve.print_str(lp, "Notice that get_mat returns the value of the original unscaled problem" + NewLine);
+            lp.print_str("The function lp.get_mat(row, column); returns a single" + NewLine);
+            lp.print_str("matrix element" + NewLine);
+            lp.print_str("lp.get_mat(2, 3); lp.get_mat(1, 1); gives " + lp.get_mat(2, 3) + ", " + lp.get_mat(1, 1) + NewLine);
+            lp.print_str("Notice that get_mat returns the value of the original unscaled problem" + NewLine);
 
-            lpsolve.print_str(lp, "If there are any integer type variables, then only the rows are scaled" + NewLine);
-            lpsolve.print_str(lp, "lpsolve.set_int(lp, 3, false);" + NewLine);
-            lpsolve.set_int(lp, 3, false);
-            lpsolve.print_lp(lp);
+            lp.print_str("If there are any integer type variables, then only the rows are scaled" + NewLine);
+            lp.print_str("lp.set_int(3, false);" + NewLine);
+            lp.set_int(3, false);
+            lp.print_lp();
 
-            lpsolve.solve(lp);
-            lpsolve.print_str(lp, "print_solution gives the solution to the original problem" + NewLine);
-            lpsolve.print_objective(lp);
-            lpsolve.print_solution(lp, 1);
-            lpsolve.print_constraints(lp, 1);
+            lp.solve();
+            lp.print_str("print_solution gives the solution to the original problem" + NewLine);
+            lp.print_objective();
+            lp.print_solution(1);
+            lp.print_constraints(1);
 
-            lpsolve.print_str(lp, "Scaling is turned off with lpsolve.unscale(lp);" + NewLine);
-            lpsolve.unscale(lp);
-            lpsolve.print_lp(lp);
+            lp.print_str("Scaling is turned off with lp.unscale();" + NewLine);
+            lp.unscale();
+            lp.print_lp();
 
-            lpsolve.print_str(lp, "Now turn B&B debugging off and simplex tracing on with" + NewLine);
-            lpsolve.print_str(lp, "lpsolve.set_debug(lp, false); lpsolve.set_trace(lp, true); and lpsolve.solve(lp);" + NewLine);
-            lpsolve.set_debug(lp, false);
-            lpsolve.set_trace(lp, true);
+            lp.print_str("Now turn B&B debugging off and simplex tracing on with" + NewLine);
+            lp.print_str("lp.set_debug(false); lp.set_trace(true); and lp.solve();" + NewLine);
+            lp.set_debug(false);
+            lp.set_trace(true);
 
-            lpsolve.solve(lp);
-            lpsolve.print_str(lp, "Where possible, lp_solve will start at the last found basis" + NewLine);
-            lpsolve.print_str(lp, "We can reset the problem to the initial basis with" + NewLine);
-            lpsolve.print_str(lp, "default_basis lp. Now solve it again..." + NewLine);
+            lp.solve();
+            lp.print_str("Where possible, lp_solve will start at the last found basis" + NewLine);
+            lp.print_str("We can reset the problem to the initial basis with" + NewLine);
+            lp.print_str("default_basis lp. Now solve it again..." + NewLine);
 
-            lpsolve.default_basis(lp);
-            lpsolve.solve(lp);
+            lp.default_basis();
+            lp.solve();
 
-            lpsolve.print_str(lp, "It is possible to give variables and constraints names" + NewLine);
-            lpsolve.print_str(lp, "lpsolve.set_row_name(lp, 1, \"speed\"); lpsolve.set_col_name(lp, 2, \"money\");" + NewLine);
-            lpsolve.set_row_name(lp, 1, "speed");
-            lpsolve.set_col_name(lp, 2, "money");
-            lpsolve.print_lp(lp);
-            lpsolve.print_str(lp, "As you can see, all column and rows are assigned default names" + NewLine);
-            lpsolve.print_str(lp, "If a column or constraint is deleted, the names shift place also:" + NewLine);
+            lp.print_str("It is possible to give variables and constraints names" + NewLine);
+            lp.print_str("lp.set_row_name(1, \"speed\"); lp.set_col_name(2, \"money\");" + NewLine);
+            lp.set_row_name(1, "speed");
+            lp.set_col_name(2, "money");
+            lp.print_lp();
+            lp.print_str("As you can see, all column and rows are assigned default names" + NewLine);
+            lp.print_str("If a column or constraint is deleted, the names shift place also:" + NewLine);
 
-            lpsolve.print_str(lp, "lpsolve.del_column(lp, 1);" + NewLine);
-            lpsolve.del_column(lp, 1);
-            lpsolve.print_lp(lp);
+            lp.print_str("lp.del_column(1);" + NewLine);
+            lp.del_column(1);
+            lp.print_lp();
 
-            lpsolve.write_lp(lp, "lp.lp");
-            lpsolve.write_mps(lp, "lp.mps");
+            lp.write_lp("lp.lp");
+            lp.write_mps("lp.mps");
 
-            lpsolve.set_outputfile(lp, null);
+            lp.set_outputfile(null);
 
-            lpsolve.delete_lp(lp);
+            lp.delete_lp();
 
-            lp = lpsolve.read_LP("lp.lp", 0, "test");
-            if (lp == IntPtr.Zero)
+            lp = LpSolve.ReadLP("lp.lp", 0, "test");
+            if (lp == null)
             {
                 Console.Error.WriteLine("Can't find lp.lp, stopping");
                 return;
             }
 
-            lpsolve.set_outputfile(lp, "result2.txt");
+            lp.set_outputfile("result2.txt");
 
-            lpsolve.print_str(lp, "An lp structure can be created and read from a .lp file" + NewLine);
-            lpsolve.print_str(lp, "lp = lpsolve.read_LP(\"lp.lp\", 0, \"test\");" + NewLine);
-            lpsolve.print_str(lp, "The verbose option is disabled" + NewLine);
+            lp.print_str("An lp structure can be created and read from a .lp file" + NewLine);
+            lp.print_str("lp = LpSolve.ReadLP(\"lp.lp\", 0, \"test\");" + NewLine);
+            lp.print_str("The verbose option is disabled" + NewLine);
 
-            lpsolve.print_str(lp, "lp is now:" + NewLine);
-            lpsolve.print_lp(lp);
+            lp.print_str("lp is now:" + NewLine);
+            lp.print_lp();
 
-            lpsolve.print_str(lp, "solution:" + NewLine);
-            lpsolve.set_debug(lp, true);
-            lpsolve.lpsolve_return statuscode = lpsolve.solve(lp);
-            string status = lpsolve.get_statustext(lp, (int)statuscode);
+            lp.print_str("solution:" + NewLine);
+            lp.set_debug(true);
+            lpsolve_return statuscode = lp.solve();
+            string status = lp.get_statustext((int)statuscode);
             Debug.WriteLine(status);
 
-            lpsolve.set_debug(lp, false);
-            lpsolve.print_objective(lp);
-            lpsolve.print_solution(lp, 1);
-            lpsolve.print_constraints(lp, 1);
+            lp.set_debug(false);
+            lp.print_objective();
+            lp.print_solution(1);
+            lp.print_constraints(1);
 
-            lpsolve.write_lp(lp, "lp.lp");
-            lpsolve.write_mps(lp, "lp.mps");
+            lp.write_lp("lp.lp");
+            lp.write_mps("lp.mps");
 
-            lpsolve.set_outputfile(lp, null);
+            lp.set_outputfile(null);
 
-            lpsolve.delete_lp(lp);
+            lp.delete_lp();
         }   //Test
     }
 }
