@@ -33,16 +33,33 @@
  *      - remove methods declared internal by lpsolve
  *      - fix enum types passed to methods
  *      - extract enums and delegates out of the lpsolve static class
+ *      - add Flags attribute to some enums
+ *      - rename class to Interop and make internal so we can create a new class LpSolve which is a
+ *        real object-oriented wrapper on top of lpsolve.
+ *      - moved library initialization to new LpSolve wrapper
  */
 
 using System;
-using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
 
 // ReSharper disable InconsistentNaming
 namespace LpSolveDotNet
 {
+    public enum lpsolve_epsilon_level
+    {
+        /// <summary>Very tight epsilon values (default).</summary>
+        EPS_TIGHT = 0,
+
+        /// <summary>Medium epsilon values.</summary>
+        EPS_MEDIUM = 1,
+
+        /// <summary>Loose epsilon values.</summary>
+        EPS_LOOSE = 2,
+
+        /// <summary>Very loose epsilon values.</summary>
+        EPS_BAGGY = 3,
+    }
+
     public enum lpsolve_constr_types
     {
         LE = 1,
@@ -51,6 +68,7 @@ namespace LpSolveDotNet
         FR = 0,
     }
 
+    [Flags]
     public enum lpsolve_scales
     {
         SCALE_EXTREME = 1,
@@ -69,6 +87,7 @@ namespace LpSolveDotNet
         SCALE_COLSONLY = 1024,
     }
 
+    [Flags]
     public enum lpsolve_improves
     {
         IMPROVE_NONE = 0,
@@ -80,6 +99,7 @@ namespace LpSolveDotNet
         IMPROVE_INVERSE = (IMPROVE_SOLUTION + IMPROVE_THETAGAP)
     }
 
+    [Flags]
     public enum lpsolve_piv_rules
     {
         PRICER_FIRSTINDEX = 0,
@@ -96,9 +116,10 @@ namespace LpSolveDotNet
         PRICE_AUTOPARTIALROWS = 512,
         PRICE_LOOPLEFT = 1024,
         PRICE_LOOPALTERNATE = 2048,
-        PRICE_AUTOPARTIAL = lpsolve_piv_rules.PRICE_AUTOPARTIALCOLS + lpsolve_piv_rules.PRICE_AUTOPARTIALROWS,
+        PRICE_AUTOPARTIAL = PRICE_AUTOPARTIALCOLS | PRICE_AUTOPARTIALROWS,
     }
 
+    [Flags]
     public enum lpsolve_presolve
     {
         PRESOLVE_NONE = 0,
@@ -123,6 +144,7 @@ namespace LpSolveDotNet
         PRESOLVE_SENSDUALS = 1048576
     }
 
+    [Flags]
     public enum lpsolve_anti_degen
     {
         ANTIDEGEN_NONE = 0,
@@ -152,6 +174,7 @@ namespace LpSolveDotNet
         SIMPLEX_DUAL_DUAL = 10,
     }
 
+    [Flags]
     public enum lpsolve_BBstrategies
     {
         NODE_FIRSTSELECT = 0,
@@ -203,6 +226,7 @@ namespace LpSolveDotNet
         BRANCH_DEFAULT = 3,
     }
 
+    [Flags]
     public enum lpsolve_msgmask
     {
         MSG_PRESOLVE = 1,
@@ -217,7 +241,7 @@ namespace LpSolveDotNet
     public delegate void msgfunc(IntPtr lp, IntPtr userhandle, lpsolve_msgmask message);
     public delegate void logfunc(IntPtr lp, IntPtr userhandle, string buf);
 
-    public static class lpsolve
+    internal static class Interop
     {
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool add_column(IntPtr lp, double[] column);
@@ -552,7 +576,7 @@ namespace LpSolveDotNet
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern void set_epsint(IntPtr lp, double epsint);
         [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool set_epslevel(IntPtr lp, int level);
+        public static extern bool set_epslevel(IntPtr lp, lpsolve_epsilon_level level);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern void set_epsperturb(IntPtr lp, double epsperturb);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -701,56 +725,5 @@ namespace LpSolveDotNet
         {
             return (Marshal.PtrToStringAnsi(get_statustext_c(lp, statuscode)));
         }
-
-        private static void SetEnvironmentVariable(string Name, string val)
-        {
-            Environment.SetEnvironmentVariable(Name, val, EnvironmentVariableTarget.Process);
-        }
-
-        private static string GetEnvironmentVariable(string Name)
-        {
-            return Environment.GetEnvironmentVariable(Name);
-        }
-
-
-        public static bool Init()
-        {
-            return Init(null);
-        }
-
-
-        static bool bEnvChanged = false;
-
-        public static bool Init(string dllFolderPath)
-        {
-            if (string.IsNullOrEmpty(dllFolderPath))
-            {
-				string exePath = Assembly.GetExecutingAssembly().Location;
-				bool is64Bit = IntPtr.Size == 8;
-				dllFolderPath = Path.GetDirectoryName(exePath) + (is64Bit ? @"\NativeBinaries\win64\" : @"\NativeBinaries\win32\");
-            }
-            var dllFilePath = dllFolderPath;
-            if (dllFilePath.Substring(dllFilePath.Length - 1, 1) != "\\")
-            {
-                dllFilePath += "\\";
-            }
-            dllFilePath += "lpsolve55.dll";
-
-            bool returnValue = File.Exists(dllFilePath);
-            if (returnValue)
-            {
-                if (!bEnvChanged)
-                {
-                    string pathEnvironmentVariable = GetEnvironmentVariable("PATH");
-                    string pathWithSemiColon = pathEnvironmentVariable + ";";
-                    if (pathWithSemiColon.IndexOf(dllFolderPath + ";", StringComparison.InvariantCultureIgnoreCase) < 0)
-                    {
-                        SetEnvironmentVariable("PATH", dllFolderPath + ";" + pathEnvironmentVariable);
-                    }
-                    bEnvChanged = true;
-                }
-            }
-            return returnValue;
-        } //Init
     }
 }
