@@ -21,18 +21,18 @@ namespace LpSolveDotNet.Demo
         /* unsafe is needed to make sure that these function are not relocated in memory by the CLR. If that would happen, a crash occurs */
         /* go to the project property page and in “configuration properties>build” set Allow Unsafe Code Blocks to True. */
         /* see http://msdn2.microsoft.com/en-US/library/chfa2zb8.aspx and http://msdn2.microsoft.com/en-US/library/t2yzs44b.aspx */
-        private /* unsafe */ static void logfunc(IntPtr lp, int userhandle, string Buf)
+        private /* unsafe */ static void logfunc(IntPtr lp, IntPtr userhandle, string Buf)
         {
             Debug.Write(Buf);
         }
 
-        private /* unsafe */ static bool ctrlcfunc(IntPtr lp, int userhandle)
+        private /* unsafe */ static bool ctrlcfunc(IntPtr lp, IntPtr userhandle)
         {
             /* 'If set to true, then solve is aborted and returncode will indicate this. */
             return (false);
         }
 
-        private /* unsafe */ static void msgfunc(IntPtr lp, int userhandle, lpsolve.lpsolve_msgmask message)
+        private /* unsafe */ static void msgfunc(IntPtr lp, IntPtr userhandle, lpsolve_msgmask message)
         {
             Debug.WriteLine(message);
         }
@@ -40,13 +40,13 @@ namespace LpSolveDotNet.Demo
         private static void ThreadProc(object filename)
         {
             IntPtr lp;
-            lpsolve.lpsolve_return ret;
+            lpsolve_return ret;
             double o;
 
             lp = lpsolve.read_LP((string)filename, 0, "");
             ret = lpsolve.solve(lp);
             o = lpsolve.get_objective(lp);
-            Debug.Assert(ret == lpsolve.lpsolve_return.OPTIMAL && Math.Round(o, 13) == 1779.4810350637485);
+            Debug.Assert(ret == lpsolve_return.OPTIMAL && Math.Round(o, 13) == 1779.4810350637485);
             lpsolve.delete_lp(lp);
         }
 
@@ -82,20 +82,20 @@ namespace LpSolveDotNet.Demo
             lpsolve.lp_solve_version(ref Major, ref Minor, ref release, ref build);
 
             /* let's first demonstrate the logfunc callback feature */
-            lpsolve.put_logfunc(lp, logfunc, 0);
+            lpsolve.put_logfunc(lp, logfunc, IntPtr.Zero);
             lpsolve.print_str(lp, "lp_solve " + Major + "." + Minor + "." + release + "." + build + " demo" + NewLine + NewLine);
             lpsolve.solve(lp); /* just to see that a message is send via the logfunc routine ... */
             /* ok, that is enough, no more callback */
-            lpsolve.put_logfunc(lp, null, 0);
+            lpsolve.put_logfunc(lp, null, IntPtr.Zero);
 
             /* Now redirect all output to a file */
             lpsolve.set_outputfile(lp, "result.txt");
 
             /* set an abort function. Again optional */
-            lpsolve.put_abortfunc(lp, ctrlcfunc, 0);
+            lpsolve.put_abortfunc(lp, ctrlcfunc, IntPtr.Zero);
 
             /* set a message function. Again optional */
-            lpsolve.put_msgfunc(lp, msgfunc, 0, (int)(lpsolve.lpsolve_msgmask.MSG_PRESOLVE | lpsolve.lpsolve_msgmask.MSG_LPFEASIBLE | lpsolve.lpsolve_msgmask.MSG_LPOPTIMAL | lpsolve.lpsolve_msgmask.MSG_MILPEQUAL | lpsolve.lpsolve_msgmask.MSG_MILPFEASIBLE | lpsolve.lpsolve_msgmask.MSG_MILPBETTER));
+            lpsolve.put_msgfunc(lp, msgfunc, IntPtr.Zero, (int)(lpsolve_msgmask.MSG_PRESOLVE | lpsolve_msgmask.MSG_LPFEASIBLE | lpsolve_msgmask.MSG_LPOPTIMAL | lpsolve_msgmask.MSG_MILPEQUAL | lpsolve_msgmask.MSG_MILPFEASIBLE | lpsolve_msgmask.MSG_MILPBETTER));
 
             lpsolve.print_str(lp, "lp_solve " + Major + "." + Minor + "." + release + "." + build + " demo" + NewLine + NewLine);
             lpsolve.print_str(lp, "This demo will show most of the features of lp_solve " + Major + "." + Minor + "." + release + "." + build + NewLine);
@@ -111,13 +111,13 @@ namespace LpSolveDotNet.Demo
             lpsolve.print_str(lp, "Now we add some constraints" + NewLine);
             lpsolve.print_str(lp, "lpsolve.add_constraint(lp, Row, lpsolve.lpsolve_constr_types.LE, 4);" + NewLine);
             // pay attention to the 1 base and ignored 0 column for constraints
-            lpsolve.add_constraint(lp, new double[] { 0, 3, 2, 2, 1 }, lpsolve.lpsolve_constr_types.LE, 4);
+            lpsolve.add_constraint(lp, new double[] { 0, 3, 2, 2, 1 }, lpsolve_constr_types.LE, 4);
             lpsolve.print_lp(lp);
 
             // check ROW array works
             Row = new double[] { 0, 0, 4, 3, 1 };
             lpsolve.print_str(lp, "lpsolve.add_constraint(lp, Row, lpsolve.lpsolve_constr_types.GE, 3);" + NewLine);
-            lpsolve.add_constraint(lp, Row, lpsolve.lpsolve_constr_types.GE, 3);
+            lpsolve.add_constraint(lp, Row, lpsolve_constr_types.GE, 3);
             lpsolve.print_lp(lp);
 
             lpsolve.print_str(lp, "Set the objective function" + NewLine);
@@ -211,7 +211,7 @@ namespace LpSolveDotNet.Demo
             lpsolve.print_lp(lp);
             lpsolve.print_str(lp, "Add an equality constraint" + NewLine);
             Row = new double[] { 0, 1, 2, 1, 4 };
-            lpsolve.add_constraint(lp, Row, lpsolve.lpsolve_constr_types.EQ, 8);
+            lpsolve.add_constraint(lp, Row, lpsolve_constr_types.EQ, 8);
             lpsolve.print_lp(lp);
 
             lpsolve.print_str(lp, "A column can be added with:" + NewLine);
@@ -226,7 +226,7 @@ namespace LpSolveDotNet.Demo
 
             lpsolve.print_str(lp, "We can use automatic scaling with:" + NewLine);
             lpsolve.print_str(lp, "lpsolve.set_scaling(lp, lpsolve.lpsolve_scales.SCALE_MEAN);" + NewLine);
-            lpsolve.set_scaling(lp, lpsolve.lpsolve_scales.SCALE_MEAN);
+            lpsolve.set_scaling(lp, lpsolve_scales.SCALE_MEAN);
             lpsolve.print_lp(lp);
 
             lpsolve.print_str(lp, "The function lpsolve.get_mat(lp, row, column); returns a single" + NewLine);
@@ -299,7 +299,7 @@ namespace LpSolveDotNet.Demo
 
             lpsolve.print_str(lp, "solution:" + NewLine);
             lpsolve.set_debug(lp, true);
-            lpsolve.lpsolve_return statuscode = lpsolve.solve(lp);
+            lpsolve_return statuscode = lpsolve.solve(lp);
             string status = lpsolve.get_statustext(lp, (int)statuscode);
             Debug.WriteLine(status);
 

@@ -22,11 +22,17 @@
 	https://github.com/MarcelGosselin/LpSolveDotNet/blob/master/LICENSE
 
  * 
- * This file is a modified version of lpsolve55 from lpsolve project available at
+ * This file is a modified version of lpsolve55.cs from lpsolve project available at
  *      https://sourceforge.net/projects/lpsolve/files/lpsolve/5.5.2.0/lp_solve_5.5.2.0_cs.net.zip/download
  * modified to:
  *      - handle 64-bit processors better by switching to IntPtr instead of int for pointers to lprec structure.
+ *      - handle 64-bit user handles in delegates
  *      - when Init() is called without a path to the dll, try to figure out right version of dll to load.
+ *      - remove useless unsafe keywords
+ *      - remove Lagrangian-related methods as they are not working as stated in lpsolve docs
+ *      - remove methods declared internal by lpsolve
+ *      - fix enum types passed to methods
+ *      - extract enums and delegates out of the lpsolve static class
  */
 
 using System;
@@ -37,168 +43,182 @@ using System.Runtime.InteropServices;
 // ReSharper disable InconsistentNaming
 namespace LpSolveDotNet
 {
+    public enum lpsolve_constr_types
+    {
+        LE = 1,
+        EQ = 3,
+        GE = 2,
+        FR = 0,
+    }
+
+    public enum lpsolve_scales
+    {
+        SCALE_EXTREME = 1,
+        SCALE_RANGE = 2,
+        SCALE_MEAN = 3,
+        SCALE_GEOMETRIC = 4,
+        SCALE_CURTISREID = 7,
+        SCALE_QUADRATIC = 8,
+        SCALE_LOGARITHMIC = 16,
+        SCALE_USERWEIGHT = 31,
+        SCALE_POWER2 = 32,
+        SCALE_EQUILIBRATE = 64,
+        SCALE_INTEGERS = 128,
+        SCALE_DYNUPDATE = 256,
+        SCALE_ROWSONLY = 512,
+        SCALE_COLSONLY = 1024,
+    }
+
+    public enum lpsolve_improves
+    {
+        IMPROVE_NONE = 0,
+        IMPROVE_SOLUTION = 1,
+        IMPROVE_DUALFEAS = 2,
+        IMPROVE_THETAGAP = 4,
+        IMPROVE_BBSIMPLEX = 8,
+        IMPROVE_DEFAULT = (IMPROVE_DUALFEAS + IMPROVE_THETAGAP),
+        IMPROVE_INVERSE = (IMPROVE_SOLUTION + IMPROVE_THETAGAP)
+    }
+
+    public enum lpsolve_piv_rules
+    {
+        PRICER_FIRSTINDEX = 0,
+        PRICER_DANTZIG = 1,
+        PRICER_DEVEX = 2,
+        PRICER_STEEPESTEDGE = 3,
+        PRICE_PRIMALFALLBACK = 4,
+        PRICE_MULTIPLE = 8,
+        PRICE_PARTIAL = 16,
+        PRICE_ADAPTIVE = 32,
+        PRICE_HYBRID = 64,
+        PRICE_RANDOMIZE = 128,
+        PRICE_AUTOPARTIALCOLS = 256,
+        PRICE_AUTOPARTIALROWS = 512,
+        PRICE_LOOPLEFT = 1024,
+        PRICE_LOOPALTERNATE = 2048,
+        PRICE_AUTOPARTIAL = lpsolve_piv_rules.PRICE_AUTOPARTIALCOLS + lpsolve_piv_rules.PRICE_AUTOPARTIALROWS,
+    }
+
+    public enum lpsolve_presolve
+    {
+        PRESOLVE_NONE = 0,
+        PRESOLVE_ROWS = 1,
+        PRESOLVE_COLS = 2,
+        PRESOLVE_LINDEP = 4,
+        PRESOLVE_SOS = 32,
+        PRESOLVE_REDUCEMIP = 64,
+        PRESOLVE_KNAPSACK = 128,
+        PRESOLVE_ELIMEQ2 = 256,
+        PRESOLVE_IMPLIEDFREE = 512,
+        PRESOLVE_REDUCEGCD = 1024,
+        PRESOLVE_PROBEFIX = 2048,
+        PRESOLVE_PROBEREDUCE = 4096,
+        PRESOLVE_ROWDOMINATE = 8192,
+        PRESOLVE_COLDOMINATE = 16384,
+        PRESOLVE_MERGEROWS = 32768,
+        PRESOLVE_IMPLIEDSLK = 65536,
+        PRESOLVE_COLFIXDUAL = 131072,
+        PRESOLVE_BOUNDS = 262144,
+        PRESOLVE_DUALS = 524288,
+        PRESOLVE_SENSDUALS = 1048576
+    }
+
+    public enum lpsolve_anti_degen
+    {
+        ANTIDEGEN_NONE = 0,
+        ANTIDEGEN_FIXEDVARS = 1,
+        ANTIDEGEN_COLUMNCHECK = 2,
+        ANTIDEGEN_STALLING = 4,
+        ANTIDEGEN_NUMFAILURE = 8,
+        ANTIDEGEN_LOSTFEAS = 16,
+        ANTIDEGEN_INFEASIBLE = 32,
+        ANTIDEGEN_DYNAMIC = 64,
+        ANTIDEGEN_DURINGBB = 128,
+        ANTIDEGEN_RHSPERTURB = 256,
+        ANTIDEGEN_BOUNDFLIP = 512
+    }
+
+    public enum lpsolve_basiscrash
+    {
+        CRASH_NOTHING = 0,
+        CRASH_MOSTFEASIBLE = 2,
+    }
+
+    public enum lpsolve_simplextypes
+    {
+        SIMPLEX_PRIMAL_PRIMAL = 5,
+        SIMPLEX_DUAL_PRIMAL = 6,
+        SIMPLEX_PRIMAL_DUAL = 9,
+        SIMPLEX_DUAL_DUAL = 10,
+    }
+
+    public enum lpsolve_BBstrategies
+    {
+        NODE_FIRSTSELECT = 0,
+        NODE_GAPSELECT = 1,
+        NODE_RANGESELECT = 2,
+        NODE_FRACTIONSELECT = 3,
+        NODE_PSEUDOCOSTSELECT = 4,
+        NODE_PSEUDONONINTSELECT = 5,
+        NODE_PSEUDORATIOSELECT = 6,
+        NODE_USERSELECT = 7,
+        NODE_WEIGHTREVERSEMODE = 8,
+        NODE_BRANCHREVERSEMODE = 16,
+        NODE_GREEDYMODE = 32,
+        NODE_PSEUDOCOSTMODE = 64,
+        NODE_DEPTHFIRSTMODE = 128,
+        NODE_RANDOMIZEMODE = 256,
+        NODE_GUBMODE = 512,
+        NODE_DYNAMICMODE = 1024,
+        NODE_RESTARTMODE = 2048,
+        NODE_BREADTHFIRSTMODE = 4096,
+        NODE_AUTOORDER = 8192,
+        NODE_RCOSTFIXING = 16384,
+        NODE_STRONGINIT = 32768
+    }
+
+    public enum lpsolve_return
+    {
+        NOMEMORY = -2,
+        OPTIMAL = 0,
+        SUBOPTIMAL = 1,
+        INFEASIBLE = 2,
+        UNBOUNDED = 3,
+        DEGENERATE = 4,
+        NUMFAILURE = 5,
+        USERABORT = 6,
+        TIMEOUT = 7,
+        PRESOLVED = 9,
+        PROCFAIL = 10,
+        PROCBREAK = 11,
+        FEASFOUND = 12,
+        NOFEASFOUND = 13,
+    }
+
+    public enum lpsolve_branch
+    {
+        BRANCH_CEILING = 0,
+        BRANCH_FLOOR = 1,
+        BRANCH_AUTOMATIC = 2,
+        BRANCH_DEFAULT = 3,
+    }
+
+    public enum lpsolve_msgmask
+    {
+        MSG_PRESOLVE = 1,
+        MSG_LPFEASIBLE = 8,
+        MSG_LPOPTIMAL = 16,
+        MSG_MILPEQUAL = 32,
+        MSG_MILPFEASIBLE = 128,
+        MSG_MILPBETTER = 512,
+    }
+
+    public delegate bool ctrlcfunc(IntPtr lp, IntPtr userhandle);
+    public delegate void msgfunc(IntPtr lp, IntPtr userhandle, lpsolve_msgmask message);
+    public delegate void logfunc(IntPtr lp, IntPtr userhandle, string buf);
+
     public static class lpsolve
     {
-        public enum lpsolve_constr_types
-        {
-            LE = 1,
-            EQ = 3,
-            GE = 2,
-            FR = 0,
-        }
-        public enum lpsolve_scales
-        {
-            SCALE_EXTREME = 1,
-            SCALE_RANGE = 2,
-            SCALE_MEAN = 3,
-            SCALE_GEOMETRIC = 4,
-            SCALE_CURTISREID = 7,
-            SCALE_QUADRATIC = 8,
-            SCALE_LOGARITHMIC = 16,
-            SCALE_USERWEIGHT = 31,
-            SCALE_POWER2 = 32,
-            SCALE_EQUILIBRATE = 64,
-            SCALE_INTEGERS = 128,
-            SCALE_DYNUPDATE = 256,
-            SCALE_ROWSONLY = 512,
-            SCALE_COLSONLY = 1024,
-        }
-        public enum lpsolve_improves
-        {
-            IMPROVE_NONE = 0,
-            IMPROVE_SOLUTION = 1,
-            IMPROVE_DUALFEAS = 2,
-            IMPROVE_THETAGAP = 4,
-            IMPROVE_BBSIMPLEX = 8,
-            IMPROVE_DEFAULT = (IMPROVE_DUALFEAS + IMPROVE_THETAGAP),
-            IMPROVE_INVERSE = (IMPROVE_SOLUTION + IMPROVE_THETAGAP)
-        }
-        public enum lpsolve_piv_rules
-        {
-            PRICER_FIRSTINDEX = 0,
-            PRICER_DANTZIG = 1,
-            PRICER_DEVEX = 2,
-            PRICER_STEEPESTEDGE = 3,
-            PRICE_PRIMALFALLBACK = 4,
-            PRICE_MULTIPLE = 8,
-            PRICE_PARTIAL = 16,
-            PRICE_ADAPTIVE = 32,
-            PRICE_HYBRID = 64,
-            PRICE_RANDOMIZE = 128,
-            PRICE_AUTOPARTIALCOLS = 256,
-            PRICE_AUTOPARTIALROWS = 512,
-            PRICE_LOOPLEFT = 1024,
-            PRICE_LOOPALTERNATE = 2048,
-            PRICE_AUTOPARTIAL = lpsolve_piv_rules.PRICE_AUTOPARTIALCOLS + lpsolve_piv_rules.PRICE_AUTOPARTIALROWS,
-        }
-        public enum lpsolve_presolve
-        {
-            PRESOLVE_NONE = 0,
-            PRESOLVE_ROWS = 1,
-            PRESOLVE_COLS = 2,
-            PRESOLVE_LINDEP = 4,
-            PRESOLVE_SOS = 32,
-            PRESOLVE_REDUCEMIP = 64,
-            PRESOLVE_KNAPSACK = 128,
-            PRESOLVE_ELIMEQ2 = 256,
-            PRESOLVE_IMPLIEDFREE = 512,
-            PRESOLVE_REDUCEGCD = 1024,
-            PRESOLVE_PROBEFIX = 2048,
-            PRESOLVE_PROBEREDUCE = 4096,
-            PRESOLVE_ROWDOMINATE = 8192,
-            PRESOLVE_COLDOMINATE = 16384,
-            PRESOLVE_MERGEROWS = 32768,
-            PRESOLVE_IMPLIEDSLK = 65536,
-            PRESOLVE_COLFIXDUAL = 131072,
-            PRESOLVE_BOUNDS = 262144,
-            PRESOLVE_DUALS = 524288,
-            PRESOLVE_SENSDUALS = 1048576
-        }
-        public enum lpsolve_anti_degen
-        {
-            ANTIDEGEN_NONE = 0,
-            ANTIDEGEN_FIXEDVARS = 1,
-            ANTIDEGEN_COLUMNCHECK = 2,
-            ANTIDEGEN_STALLING = 4,
-            ANTIDEGEN_NUMFAILURE = 8,
-            ANTIDEGEN_LOSTFEAS = 16,
-            ANTIDEGEN_INFEASIBLE = 32,
-            ANTIDEGEN_DYNAMIC = 64,
-            ANTIDEGEN_DURINGBB = 128,
-            ANTIDEGEN_RHSPERTURB = 256,
-            ANTIDEGEN_BOUNDFLIP = 512
-        }
-        public enum lpsolve_basiscrash
-        {
-            CRASH_NOTHING = 0,
-            CRASH_MOSTFEASIBLE = 2,
-        }
-        public enum lpsolve_simplextypes
-        {
-            SIMPLEX_PRIMAL_PRIMAL = 5,
-            SIMPLEX_DUAL_PRIMAL = 6,
-            SIMPLEX_PRIMAL_DUAL = 9,
-            SIMPLEX_DUAL_DUAL = 10,
-        }
-        public enum lpsolve_BBstrategies
-        {
-            NODE_FIRSTSELECT = 0,
-            NODE_GAPSELECT = 1,
-            NODE_RANGESELECT = 2,
-            NODE_FRACTIONSELECT = 3,
-            NODE_PSEUDOCOSTSELECT = 4,
-            NODE_PSEUDONONINTSELECT = 5,
-            NODE_PSEUDORATIOSELECT = 6,
-            NODE_USERSELECT = 7,
-            NODE_WEIGHTREVERSEMODE = 8,
-            NODE_BRANCHREVERSEMODE = 16,
-            NODE_GREEDYMODE = 32,
-            NODE_PSEUDOCOSTMODE = 64,
-            NODE_DEPTHFIRSTMODE = 128,
-            NODE_RANDOMIZEMODE = 256,
-            NODE_GUBMODE = 512,
-            NODE_DYNAMICMODE = 1024,
-            NODE_RESTARTMODE = 2048,
-            NODE_BREADTHFIRSTMODE = 4096,
-            NODE_AUTOORDER = 8192,
-            NODE_RCOSTFIXING = 16384,
-            NODE_STRONGINIT = 32768
-        }
-        public enum lpsolve_return
-        {
-            NOMEMORY = -2,
-            OPTIMAL = 0,
-            SUBOPTIMAL = 1,
-            INFEASIBLE = 2,
-            UNBOUNDED = 3,
-            DEGENERATE = 4,
-            NUMFAILURE = 5,
-            USERABORT = 6,
-            TIMEOUT = 7,
-            PRESOLVED = 9,
-            PROCFAIL = 10,
-            PROCBREAK = 11,
-            FEASFOUND = 12,
-            NOFEASFOUND = 13,
-        }
-        public enum lpsolve_branch
-        {
-            BRANCH_CEILING = 0,
-            BRANCH_FLOOR = 1,
-            BRANCH_AUTOMATIC = 2,
-            BRANCH_DEFAULT = 3,
-        }
-
-        public enum lpsolve_msgmask
-        {
-            MSG_PRESOLVE = 1,
-            MSG_LPFEASIBLE = 8,
-            MSG_LPOPTIMAL = 16,
-            MSG_MILPEQUAL = 32,
-            MSG_MILPFEASIBLE = 128,
-            MSG_MILPBETTER = 512,
-        }
-
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool add_column(IntPtr lp, double[] column);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -207,8 +227,8 @@ namespace LpSolveDotNet
         public static extern bool add_constraint(IntPtr lp, double[] row, lpsolve_constr_types constr_type, double rh);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool add_constraintex(IntPtr lp, int count, double[] row, int[] colno, lpsolve_constr_types constr_type, double rh);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool add_lag_con(IntPtr lp, double[] row, lpsolve_constr_types con_type, double rhs);
+        //[DllImport("lpsolve55.dll", SetLastError = true)]
+        //public static extern bool add_lag_con(IntPtr lp, double[] row, lpsolve_constr_types con_type, double rhs);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern int add_SOS(IntPtr lp, string name, int sostype, int priority, int count, int[] sosvars, double[] weights);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -272,8 +292,8 @@ namespace LpSolveDotNet
         public static extern lpsolve_improves get_improve(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern double get_infinite(IntPtr lp);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool get_lambda(IntPtr lp, double[] lambda);
+        //[DllImport("lpsolve55.dll", SetLastError = true)]
+        //public static extern bool get_lambda(IntPtr lp, double[] lambda);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern double get_lowbo(IntPtr lp, int column);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -392,7 +412,7 @@ namespace LpSolveDotNet
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool is_add_rowmode(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool is_anti_degen(IntPtr lp, lpsolve_scales testmask);
+        public static extern bool is_anti_degen(IntPtr lp, lpsolve_anti_degen testmask);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool is_binary(IntPtr lp, int column);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -409,8 +429,8 @@ namespace LpSolveDotNet
         public static extern bool is_int(IntPtr lp, int column);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool is_integerscaling(IntPtr lp);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool is_lag_trace(IntPtr lp);
+        //[DllImport("lpsolve55.dll", SetLastError = true)]
+        //public static extern bool is_lag_trace(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool is_maxim(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -420,11 +440,11 @@ namespace LpSolveDotNet
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool is_negative(IntPtr lp, int column);
         [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool is_piv_mode(IntPtr lp, lpsolve_scales testmask);
+        public static extern bool is_piv_mode(IntPtr lp, lpsolve_piv_rules testmask);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool is_piv_rule(IntPtr lp, lpsolve_piv_rules rule);
         [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool is_presolve(IntPtr lp, lpsolve_scales testmask);
+        public static extern bool is_presolve(IntPtr lp, lpsolve_presolve testmask);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool is_scalemode(IntPtr lp, lpsolve_scales testmask);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -444,7 +464,7 @@ namespace LpSolveDotNet
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern IntPtr make_lp(int rows, int columns);
         [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern int resize_lp(IntPtr lp, int rows, int columns);
+        public static extern bool resize_lp(IntPtr lp, int rows, int columns);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern void print_constraints(IntPtr lp, int columns);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -463,15 +483,12 @@ namespace LpSolveDotNet
         public static extern void print_str(IntPtr lp, string str);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern void print_tableau(IntPtr lp);
-        public delegate bool ctrlcfunc(IntPtr lp, int userhandle);
         [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern void put_abortfunc(IntPtr lp, ctrlcfunc newctrlc, int ctrlchandle);
-        public delegate void logfunc(IntPtr lp, int userhandle, string buf);
+        public static extern void put_abortfunc(IntPtr lp, ctrlcfunc newctrlc, IntPtr ctrlchandle);
         [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern void put_logfunc(IntPtr lp, logfunc newlog, int loghandle);
-        public delegate void msgfunc(IntPtr lp, int userhandle, lpsolve_msgmask message);
+        public static extern void put_logfunc(IntPtr lp, logfunc newlog, IntPtr loghandle);
         [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern void put_msgfunc(IntPtr lp, msgfunc newmsg, int msghandle, int mask);
+        public static extern void put_msgfunc(IntPtr lp, msgfunc newmsg, IntPtr msghandle, int mask);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool read_basis(IntPtr lp, string filename, string info);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -496,8 +513,8 @@ namespace LpSolveDotNet
         public static extern bool set_basis(IntPtr lp, int[] bascolumn, bool nonbasic);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern void set_basiscrash(IntPtr lp, lpsolve_basiscrash mode);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern void set_basisvar(IntPtr lp, int basisPos, int enteringCol);
+        //[DllImport("lpsolve55.dll", SetLastError = true)]
+        //public static extern void set_basisvar(IntPtr lp, int basisPos, int enteringCol);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern void set_bb_depthlimit(IntPtr lp, int bb_maxlevel);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -546,8 +563,8 @@ namespace LpSolveDotNet
         public static extern void set_infinite(IntPtr lp, double infinite);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool set_int(IntPtr lp, int column, bool must_be_int);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern void set_lag_trace(IntPtr lp, bool lag_trace);
+        //[DllImport("lpsolve55.dll", SetLastError = true)]
+        //public static extern void set_lag_trace(IntPtr lp, bool lag_trace);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool set_lowbo(IntPtr lp, int column, double value);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -632,8 +649,8 @@ namespace LpSolveDotNet
         public static extern bool str_add_column(IntPtr lp, string col_string);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool str_add_constraint(IntPtr lp, string row_string, lpsolve_constr_types constr_type, double rh);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool str_add_lag_con(IntPtr lp, string row_string, lpsolve_constr_types con_type, double rhs);
+        //[DllImport("lpsolve55.dll", SetLastError = true)]
+        //public static extern bool str_add_lag_con(IntPtr lp, string row_string, lpsolve_constr_types con_type, double rhs);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool str_set_obj_fn(IntPtr lp, string row_string);
         [DllImport("lpsolve55.dll", SetLastError = true)]
