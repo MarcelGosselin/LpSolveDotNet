@@ -12,7 +12,13 @@
 	<summary>Mixed Integer Linear Programming (MILP) solver lp_solve wrapped for .NET use in both 32 and 64-bit applications.</summary>
     <description>.NET wrapper for both 32-bit and 64-bit applications of lp_solve.
 Mixed Integer Linear Programming (MILP) solver lp_solve solves pure linear, (mixed) integer/binary, semi-cont and special ordered sets (SOS) models.</description>
-    <releaseNotes>Includes version 5.5.2 of lp_solve</releaseNotes>
+    <releaseNotes>
+      - LpSolve is now a class with instance methods instead of just a static class. It still has static factory methods to create the LP.
+      - Use right enum types to pass to methods.
+      - Use IntPtr in a few more places that were forgotten.
+      - Removed methods that according to lpsolve  API docs were either internal or non-functioning. http://lpsolve.sourceforge.net/5.5/
+      - Do not build with "unsafe" mode anymore.
+    </releaseNotes>
     <copyright>Copyright 2016</copyright>
     <tags>lpsolve lp_solve milp</tags>
   </metadata>
