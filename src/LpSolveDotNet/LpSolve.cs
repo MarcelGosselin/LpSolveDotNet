@@ -444,6 +444,21 @@ namespace LpSolveDotNet
             return Interop.str_set_obj_fn(_lp, row_string);
         }
 
+        public bool is_maxim()
+        {
+            return Interop.is_maxim(_lp);
+        }
+
+        public void set_maxim()
+        {
+            Interop.set_maxim(_lp);
+        }
+
+        public void set_minim()
+        {
+            Interop.set_minim(_lp);
+        }
+
         #endregion
 
         public string get_lp_name()
@@ -826,21 +841,6 @@ namespace LpSolveDotNet
         public void set_improve(lpsolve_improves improve)
         {
             Interop.set_improve(_lp, improve);
-        }
-
-        public bool is_maxim()
-        {
-            return Interop.is_maxim(_lp);
-        }
-
-        public void set_maxim()
-        {
-            Interop.set_maxim(_lp);
-        }
-
-        public void set_minim()
-        {
-            Interop.set_minim(_lp);
         }
 
         public void set_mip_gap(bool absolute, double mip_gap)
