@@ -20,3 +20,5 @@ To use lpsolve in .NET follow these steps:
 4. Use methods on that instance. The methods are like the [official lpsolve documentation](http://lpsolve.sourceforge.net/5.5/index.htm) except the first parameter which is removed from the .NET API and passed implicitly as it is a pointer to this object's private field.
 
 *In a future version, there will be documentation on the methods and the API will look more like .NET than C. Don't worry the old syntax will stay there.*
+
+You can see the [release history](./ReleaseNotes.md).

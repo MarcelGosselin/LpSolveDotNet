@@ -1,5 +1,7 @@
 @echo off
 setlocal
+pushd %~dp0
+
 if [%1]==[] (
 	echo.
 	echo Usage: %~nx0 ^<VersionNo^> [push]
@@ -61,7 +63,9 @@ echo **********************************
 echo Build failed, see above for errors
 echo **********************************
 echo.
+popd
 exit /b 1
 
 :end
+popd
 exit /b 0
