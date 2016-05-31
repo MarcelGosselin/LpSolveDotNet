@@ -1301,16 +1301,6 @@ namespace LpSolveDotNet
             return Interop.get_orig_index(_lp, lp_index);
         }
 
-        public bool get_PseudoCosts(double[] clower, double[] cupper, int[] updatelimit)
-        {
-            return Interop.get_PseudoCosts(_lp, clower, cupper, updatelimit);
-        }
-
-        public bool set_PseudoCosts(double[] clower, double[] cupper, int[] updatelimit)
-        {
-            return Interop.set_PseudoCosts(_lp, clower, cupper, updatelimit);
-        }
-
         #endregion
 
 

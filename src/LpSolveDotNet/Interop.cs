@@ -239,7 +239,7 @@ namespace LpSolveDotNet
 
     public delegate bool ctrlcfunc(IntPtr lp, IntPtr userhandle);
     public delegate void msgfunc(IntPtr lp, IntPtr userhandle, lpsolve_msgmask message);
-    public delegate void logfunc(IntPtr lp, IntPtr userhandle, string buf);
+    public delegate void logfunc(IntPtr lp, IntPtr userhandle, [MarshalAs(UnmanagedType.LPStr)] string buf);
 
     internal static class Interop
     {
@@ -253,8 +253,8 @@ namespace LpSolveDotNet
         public static extern bool add_constraintex(IntPtr lp, int count, double[] row, int[] colno, lpsolve_constr_types constr_type, double rh);
         //[DllImport("lpsolve55.dll", SetLastError = true)]
         //public static extern bool add_lag_con(IntPtr lp, double[] row, lpsolve_constr_types con_type, double rhs);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern int add_SOS(IntPtr lp, string name, int sostype, int priority, int count, int[] sosvars, double[] weights);
+        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        public static extern int add_SOS(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string name, int sostype, int priority, int count, int[] sosvars, double[] weights);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern int column_in_lp(IntPtr lp, double[] column);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -285,7 +285,7 @@ namespace LpSolveDotNet
         public static extern bool get_bounds_tighter(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern double get_break_at_value(IntPtr lp);
-        //[DllImport("lpsolve55.dll", SetLastError=true)] public static extern string get_col_name(int lp, int column);
+        //[DllImport("lpsolve55.dll", SetLastError=true)] public static extern string get_col_name(IntPtr lp, int column);
         [DllImport("lpsolve55.dll", EntryPoint = "get_col_name", SetLastError = true)]
         private static extern IntPtr get_col_name_c(IntPtr lp, int column);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -322,7 +322,7 @@ namespace LpSolveDotNet
         public static extern double get_lowbo(IntPtr lp, int column);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern int get_lp_index(IntPtr lp, int orig_index);
-        //[DllImport("lpsolve55.dll", SetLastError=true)] public static extern string get_lp_name(int lp);
+        //[DllImport("lpsolve55.dll", SetLastError=true)] public static extern string get_lp_name(IntPtr lp);
         [DllImport("lpsolve55.dll", EntryPoint = "get_lp_name", SetLastError = true)]
         private static extern IntPtr get_lp_name_c(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -339,8 +339,8 @@ namespace LpSolveDotNet
         public static extern int get_Ncolumns(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern double get_negrange(IntPtr lp);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern int get_nameindex(IntPtr lp, string name, bool isrow);
+        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        public static extern int get_nameindex(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string name, bool isrow);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern int get_nonzeros(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -355,10 +355,10 @@ namespace LpSolveDotNet
         public static extern double get_objective(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern int get_orig_index(IntPtr lp, int lp_index);
-        //[DllImport("lpsolve55.dll", SetLastError=true)] public static extern string get_origcol_name(int lp, int column);
+        //[DllImport("lpsolve55.dll", SetLastError=true)] public static extern string get_origcol_name(IntPtr lp, int column);
         [DllImport("lpsolve55.dll", EntryPoint = "get_origcol_name", SetLastError = true)]
         private static extern IntPtr get_origcol_name_c(IntPtr lp, int column);
-        //[DllImport("lpsolve55.dll", SetLastError=true)] public static extern string get_origrow_name(int lp, int row);
+        //[DllImport("lpsolve55.dll", SetLastError=true)] public static extern string get_origrow_name(IntPtr lp, int row);
         [DllImport("lpsolve55.dll", EntryPoint = "get_origrow_name", SetLastError = true)]
         private static extern IntPtr get_origrow_name_c(IntPtr lp, int row);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -372,8 +372,6 @@ namespace LpSolveDotNet
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern int get_print_sol(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool get_PseudoCosts(IntPtr lp, double[] clower, double[] cupper, int[] updatelimit);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern double get_rh(IntPtr lp, int row);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern double get_rh_range(IntPtr lp, int row);
@@ -381,7 +379,7 @@ namespace LpSolveDotNet
         public static extern bool get_row(IntPtr lp, int row_nr, double[] row);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern int get_rowex(IntPtr lp, int row_nr, double[] row, int[] colno);
-        //[DllImport("lpsolve55.dll", SetLastError=true)] public static extern string get_row_name(int lp, int row);
+        //[DllImport("lpsolve55.dll", SetLastError=true)] public static extern string get_row_name(IntPtr lp, int row);
         [DllImport("lpsolve55.dll", EntryPoint = "get_row_name", SetLastError = true)]
         private static extern IntPtr get_row_name_c(IntPtr lp, int row);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -402,7 +400,7 @@ namespace LpSolveDotNet
         public static extern int get_solutionlimit(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern int get_status(IntPtr lp);
-        //[DllImport("lpsolve55.dll", SetLastError=true)] public static extern string get_statustext(int lp, int statuscode);
+        //[DllImport("lpsolve55.dll", SetLastError=true)] public static extern string get_statustext(IntPtr lp, int statuscode);
         [DllImport("lpsolve55.dll", EntryPoint = "get_statustext", SetLastError = true)]
         private static extern IntPtr get_statustext_c(IntPtr lp, int statuscode);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -491,8 +489,8 @@ namespace LpSolveDotNet
         public static extern bool resize_lp(IntPtr lp, int rows, int columns);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern void print_constraints(IntPtr lp, int columns);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool print_debugdump(IntPtr lp, string filename);
+        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        public static extern bool print_debugdump(IntPtr lp,  [MarshalAs(UnmanagedType.LPStr)] string filename);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern void print_duals(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -503,28 +501,28 @@ namespace LpSolveDotNet
         public static extern void print_scales(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern void print_solution(IntPtr lp, int columns);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern void print_str(IntPtr lp, string str);
+        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        public static extern void print_str(IntPtr lp,  [MarshalAs(UnmanagedType.LPStr)] string str);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern void print_tableau(IntPtr lp);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
+        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
         public static extern void put_abortfunc(IntPtr lp, ctrlcfunc newctrlc, IntPtr ctrlchandle);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern void put_logfunc(IntPtr lp, logfunc newlog, IntPtr loghandle);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern void put_msgfunc(IntPtr lp, msgfunc newmsg, IntPtr msghandle, int mask);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool read_basis(IntPtr lp, string filename, string info);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern IntPtr read_freeMPS(string filename, int options);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern IntPtr read_LP(string filename, int verbose, string lp_name);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern IntPtr read_MPS(string filename, int options);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern IntPtr read_XLI(string xliname, string modelname, string dataname, string options, int verbose);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool read_params(IntPtr lp, string filename, string options);
+        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        public static extern bool read_basis(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string filename, [MarshalAs(UnmanagedType.LPStr)] string info);
+        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        public static extern IntPtr read_freeMPS([MarshalAs(UnmanagedType.LPStr)] string filename, int options);
+        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        public static extern IntPtr read_LP([MarshalAs(UnmanagedType.LPStr)] string filename, int verbose, [MarshalAs(UnmanagedType.LPStr)] string lp_name);
+        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        public static extern IntPtr read_MPS([MarshalAs(UnmanagedType.LPStr)] string filename, int options);
+        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        public static extern IntPtr read_XLI([MarshalAs(UnmanagedType.LPStr)] string xliname, [MarshalAs(UnmanagedType.LPStr)] string modelname, [MarshalAs(UnmanagedType.LPStr)] string dataname, [MarshalAs(UnmanagedType.LPStr)] string options, int verbose);
+        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        public static extern bool read_params(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string filename, [MarshalAs(UnmanagedType.LPStr)] string options);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern void reset_basis(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -545,8 +543,8 @@ namespace LpSolveDotNet
         public static extern void set_bb_floorfirst(IntPtr lp, lpsolve_branch bb_floorfirst);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern void set_bb_rule(IntPtr lp, lpsolve_BBstrategies bb_rule);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool set_BFP(IntPtr lp, string filename);
+        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        public static extern bool set_BFP(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string filename);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool set_binary(IntPtr lp, int column, bool must_be_bin);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -557,8 +555,8 @@ namespace LpSolveDotNet
         public static extern void set_break_at_first(IntPtr lp, bool break_at_first);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern void set_break_at_value(IntPtr lp, double break_at_value);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool set_col_name(IntPtr lp, int column, string new_name);
+        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        public static extern bool set_col_name(IntPtr lp, int column, [MarshalAs(UnmanagedType.LPStr)] string new_name);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool set_column(IntPtr lp, int col_no, double[] column);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -591,8 +589,8 @@ namespace LpSolveDotNet
         //public static extern void set_lag_trace(IntPtr lp, bool lag_trace);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool set_lowbo(IntPtr lp, int column, double value);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool set_lp_name(IntPtr lp, string lpname);
+        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        public static extern bool set_lp_name(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string lpname);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool set_mat(IntPtr lp, int row, int column, double value);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -613,8 +611,8 @@ namespace LpSolveDotNet
         public static extern bool set_obj_fn(IntPtr lp, double[] row);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool set_obj_fnex(IntPtr lp, int count, double[] row, int[] colno);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool set_outputfile(IntPtr lp, string filename);
+        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        public static extern bool set_outputfile(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string filename);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern void set_pivoting(IntPtr lp, lpsolve_piv_rules piv_rule);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -624,8 +622,6 @@ namespace LpSolveDotNet
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern void set_print_sol(IntPtr lp, int print_sol);
         [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool set_PseudoCosts(IntPtr lp, double[] clower, double[] cupper, int[] updatelimit);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool set_rh(IntPtr lp, int row, double value);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool set_rh_range(IntPtr lp, int row, double deltavalue);
@@ -633,8 +629,8 @@ namespace LpSolveDotNet
         public static extern void set_rh_vec(IntPtr lp, double[] rh);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool set_row(IntPtr lp, int row_no, double[] row);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool set_row_name(IntPtr lp, int row, string new_name);
+        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        public static extern bool set_row_name(IntPtr lp, int row, [MarshalAs(UnmanagedType.LPStr)] string new_name);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool set_rowex(IntPtr lp, int row_no, int count, double[] row, int[] colno);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -665,36 +661,36 @@ namespace LpSolveDotNet
         public static extern bool set_var_weights(IntPtr lp, double[] weights);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern void set_verbose(IntPtr lp, int verbose);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool set_XLI(IntPtr lp, string filename);
+        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        public static extern bool set_XLI(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string filename);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern lpsolve_return solve(IntPtr lp);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool str_add_column(IntPtr lp, string col_string);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool str_add_constraint(IntPtr lp, string row_string, lpsolve_constr_types constr_type, double rh);
-        //[DllImport("lpsolve55.dll", SetLastError = true)]
-        //public static extern bool str_add_lag_con(IntPtr lp, string row_string, lpsolve_constr_types con_type, double rhs);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool str_set_obj_fn(IntPtr lp, string row_string);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool str_set_rh_vec(IntPtr lp, string rh_string);
+        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        public static extern bool str_add_column(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string col_string);
+        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        public static extern bool str_add_constraint(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string row_string, lpsolve_constr_types constr_type, double rh);
+        //[DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        //public static extern bool str_add_lag_con(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string row_string, lpsolve_constr_types con_type, double rhs);
+        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        public static extern bool str_set_obj_fn(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string row_string);
+        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        public static extern bool str_set_rh_vec(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string rh_string);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern double time_elapsed(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern void unscale(IntPtr lp);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool write_basis(IntPtr lp, string filename);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool write_freemps(IntPtr lp, string filename);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool write_lp(IntPtr lp, string filename);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool write_mps(IntPtr lp, string filename);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool write_XLI(IntPtr lp, string filename, string options, bool results);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool write_params(IntPtr lp, string filename, string options);
+        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        public static extern bool write_basis(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string filename);
+        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        public static extern bool write_freemps(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string filename);
+        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        public static extern bool write_lp(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string filename);
+        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        public static extern bool write_mps(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string filename);
+        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        public static extern bool write_XLI(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string filename, [MarshalAs(UnmanagedType.LPStr)] string options, bool results);
+        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        public static extern bool write_params(IntPtr lp, [MarshalAs(UnmanagedType.LPStr) ] string filename, [MarshalAs(UnmanagedType.LPStr)] string options);
 
         public static string get_col_name(IntPtr lp, int column)
         {
