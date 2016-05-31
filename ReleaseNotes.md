@@ -1,5 +1,13 @@
 # LpSolveDotNet Release Notes
 
+## 3.0.0
+
+* Update lpsolve dlls to 5.5.2.3.
+
+### API changes
+
+* `get_PseudoCosts()` and `set_PseudoCosts()`  were removed as they are no longer part of the [lpsolve API](http://lpsolve.sourceforge.net/5.5/).
+
 ##  2.0.0 ~~1.1.0~~
 
 Was originally released under 1.1.0 but then re-released as 2.0.0 to follow [semantic versioning rules](http://semver.org/).
