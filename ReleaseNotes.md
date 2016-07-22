@@ -1,5 +1,11 @@
 # LpSolveDotNet Release Notes
 
+## 3.0.1
+
+To see all commits for this version, [click here](https://github.com/MarcelGosselin/LpSolveDotNet/compare/v3.0.0...v3.0.1).
+
+* Fixes issue #3: Native binaries are not copied when project is built with property OutDir=some_path.
+
 ## 3.0.0
 
 To see all commits for this version, [click here](https://github.com/MarcelGosselin/LpSolveDotNet/compare/v2.0.0...v3.0.0).
