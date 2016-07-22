@@ -6,13 +6,16 @@
   </ItemGroup>
 
   <Target Name="CopyLpSolveNativeBinaries" AfterTargets="Build">
-
-    <Error Text="Cannot copy LpSolve native binaries if OutputPath property is not set."
-           Condition="'$(OutputPath)' == ''"
+    <!--
+    For OutDir vs outputPath, see http://blogs.clariusconsulting.net/kzu/outdir-vs-outputpath/ and https://github.com/Microsoft/msbuild/issues/87
+    In message below: %0A = New line
+    -->
+    <Error Text="Cannot copy LpSolve native binaries if OutDir property is not set.%0AIf not explicitly set, it should be initialized from OutputPath property by 'Microsoft.Common.targets' file."
+           Condition="'$(OutDir)' == ''"
            />
 
     <Copy SourceFiles="@(LpSolveDotNet_NativeBinariesToCopy)"
-          DestinationFiles="@(LpSolveDotNet_NativeBinariesToCopy->'$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)')"
+          DestinationFiles="@(LpSolveDotNet_NativeBinariesToCopy->'$(OutDir)\%(RecursiveDir)%(Filename)%(Extension)')"
           />
 
   </Target>
