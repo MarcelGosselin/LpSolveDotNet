@@ -2,19 +2,21 @@
 
 ## 3.0.1
 
-To see all commits for this version, [click here](https://github.com/MarcelGosselin/LpSolveDotNet/compare/v3.0.0...v3.0.1).
-
 * Fixes issue #3: Native binaries are not copied when project is built with property OutDir=some_path.
 
 ## 3.0.0
 
 To see all commits for this version, [click here](https://github.com/MarcelGosselin/LpSolveDotNet/compare/v2.0.0...v3.0.0).
 
-* Update lpsolve dlls to 5.5.2.3.
+* Update lpsolve dlls to [5.5.2.3](http://lp-solve.2324885.n4.nabble.com/lpsolve-5-5-2-3-released-tt10210.html).
 
 ### API changes
 
 * `get_PseudoCosts()` and `set_PseudoCosts()`  were removed as they are no longer part of the [lpsolve API](http://lpsolve.sourceforge.net/5.5/).
+
+## 2.0.1 (built after 3.0.0)
+
+* Fixes issue #3: Native binaries are not copied when project is built with property OutDir=some_path.
 
 ##  2.0.0 ~~1.1.0~~
 
