@@ -13,6 +13,7 @@
     <description>.NET wrapper for both 32-bit and 64-bit applications of lp_solve.
 Mixed Integer Linear Programming (MILP) solver lp_solve solves pure linear, (mixed) integer/binary, semi-cont and special ordered sets (SOS) models.</description>
     <releaseNotes>
+      - [2.0.1] Fixes issue #3: Native binaries are not copied when project is built with property OutDir=some_path.
       - LpSolve is now a class with instance methods instead of just a static class. It still has static factory methods to create the LP.
       - Use right enum types to pass to methods.
       - Use IntPtr in a few more places that were forgotten.
