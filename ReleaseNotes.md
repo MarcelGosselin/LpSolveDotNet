@@ -1,5 +1,9 @@
 # LpSolveDotNet Release Notes
 
+## vNext -- not released yet
+
+* Update lpsolve dlls to [5.5.2.5](http://lp-solve.2324885.n4.nabble.com/lpsolve-version-5-5-2-5-released-td10331.html)
+
 ## 3.0.1
 
 * Fixes issue #3: Native binaries are not copied when project is built with property OutDir=some_path.
