@@ -13,11 +13,12 @@
     <description>.NET wrapper for both 32-bit and 64-bit applications of lp_solve.
 Mixed Integer Linear Programming (MILP) solver lp_solve solves pure linear, (mixed) integer/binary, semi-cont and special ordered sets (SOS) models.</description>
     <releaseNotes>
+      - [3.1.0] Update lpsolve dlls to 5.5.2.5.
       - [3.0.1] Issue #3: Native binaries are now copied when project is built with property OutDir=some_path.
       - [3.0.0] Update lpsolve dlls to 5.5.2.3.
       - Other release notes can be found at https://github.com/MarcelGosselin/LpSolveDotNet/blob/master/ReleaseNotes.md
     </releaseNotes>
-    <copyright>Copyright 2016</copyright>
+    <copyright>Copyright 2018</copyright>
     <tags>lpsolve lp_solve milp</tags>
   </metadata>
   <files>

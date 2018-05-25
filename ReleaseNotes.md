@@ -2,6 +2,10 @@
 
 ## vNext -- not released yet
 
+* nothing yet
+
+## 3.1.0
+
 * Update lpsolve dlls to [5.5.2.5](http://lp-solve.2324885.n4.nabble.com/lpsolve-version-5-5-2-5-released-td10331.html)
 
 ## 3.0.1
