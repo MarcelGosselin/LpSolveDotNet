@@ -2,7 +2,19 @@
 
 ## vNext -- not released yet
 
-* nothing yet
+### New Features/Improvements
+* Document enum values
+* Add missing enum values to be equal to those in lpsolve's source code.
+
+### Bug Fixes
+* Fixes issue #6: Missing enum value `lpsolve_return.ACCURACYERROR` with value `25`
+* Fix all enum values to be equal to those in lpsolve's source code.
+
+### API changes
+* Changed value of `lpsolve_msgmask.MSG_MILPEQUAL` from `32` to `256` which is the value expected from lp_solve.
+* Changes to the pivot modes in the `lpsolve_piv_rules` enum to follow lp_solve's source code:
+  * `PRICE_AUTOPARTIALCOLS` and `PRICE_AUTOPARTIALROWS` now obsolete and replaced by `PRICE_AUTOPARTIAL` and  `PRICE_AUTOMULTIPLE` respectively.
+  * **The behaviour of `PRICE_AUTOPARTIAL` has changed**. The previous definition of `PRICE_AUTOPARTIAL` was `PRICE_AUTOPARTIALCOLS | PRICE_AUTOPARTIALROWS` but now only has the first component.  If you used this previously and want to retain same behaviour, you must use `lpsolve_piv_rules.PRICE_AUTOPARTIAL | lpsolve_piv_rules.PRICE_AUTOMULTIPLE`.
 
 ## 3.1.0
 

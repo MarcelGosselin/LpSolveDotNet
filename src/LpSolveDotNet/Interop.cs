@@ -19,7 +19,7 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 
-	https://github.com/MarcelGosselin/LpSolveDotNet/blob/master/LICENSE
+    https://github.com/MarcelGosselin/LpSolveDotNet/blob/master/LICENSE
 
  * 
  * This file is a modified version of lpsolve55.cs from lpsolve project available at
@@ -45,6 +45,9 @@ using System.Runtime.InteropServices;
 // ReSharper disable InconsistentNaming
 namespace LpSolveDotNet
 {
+    /// <summary>
+    /// Parameters constants for short-cut setting of tolerances.
+    /// </summary>
     public enum lpsolve_epsilon_level
     {
         /// <summary>Very tight epsilon values (default).</summary>
@@ -58,183 +61,454 @@ namespace LpSolveDotNet
 
         /// <summary>Very loose epsilon values.</summary>
         EPS_BAGGY = 3,
+
+        /// <summary>Default: EPS_TIGHT</summary>
+        EPS_DEFAULT = EPS_TIGHT,
     }
 
     public enum lpsolve_constr_types
     {
-        LE = 1,
-        EQ = 3,
-        GE = 2,
+        /// <summary>Free. A free constraint will act as if the constraint is not there. The lower bound is -Infinity and the upper bound is +Infinity.
+        /// This can be used to temporary disable a constraint without having to delete it from the model. Note that the already set RHS and range on this constraint is overruled with Infinity by this.</summary>
         FR = 0,
+        /// <summary>Less than or equal (&lt;=)</summary>
+        LE = 1,
+        /// <summary>Greater than or equal (&gt;=)</summary>
+        GE = 2,
+        /// <summary>Equal (=)</summary>
+        EQ = 3,
+
+        OF = 4,
     }
 
+    /// <summary>
+    /// Defines scaling algorithm to use. Can be any of the values from <see cref="SCALE_NONE">SCALE_NONE (0)</see> to <see cref="SCALE_CURTISREID">SCALE_CURTISREID (7)</see>
+    /// that can be OR-ed with values above <see cref="SCALE_CURTISREID">SCALE_CURTISREID (7)</see>.
+    /// </summary>
     [Flags]
     public enum lpsolve_scales
     {
+        /// <summary>No scaling</summary>
+        SCALE_NONE = 0,
+        /// <summary>Scale to convergence using largest absolute value</summary>
         SCALE_EXTREME = 1,
+        /// <summary>Scale based on the simple numerical range</summary>
         SCALE_RANGE = 2,
+        /// <summary>Numerical range-based scaling</summary>
         SCALE_MEAN = 3,
+        /// <summary>Geometric scaling</summary>
         SCALE_GEOMETRIC = 4,
+        /// <summary>Curtis-reid scaling</summary>
         SCALE_CURTISREID = 7,
+
+        /// <summary></summary>
         SCALE_QUADRATIC = 8,
+        /// <summary>Scale to convergence using logarithmic mean of all values</summary>
         SCALE_LOGARITHMIC = 16,
+        /// <summary>User can specify scalars</summary>
         SCALE_USERWEIGHT = 31,
+        /// <summary>also do Power scaling</summary>
         SCALE_POWER2 = 32,
+        /// <summary>Make sure that no scaled number is above 1</summary>
         SCALE_EQUILIBRATE = 64,
+        /// <summary>also scaling integer variables</summary>
         SCALE_INTEGERS = 128,
+        /// <summary>dynamic update</summary>
         SCALE_DYNUPDATE = 256,
+        /// <summary>scale only rows</summary>
         SCALE_ROWSONLY = 512,
+        /// <summary>scale only columns</summary>
         SCALE_COLSONLY = 1024,
     }
 
+    /// <summary>
+    /// Specifies the iterative improvement level
+    /// </summary>
     [Flags]
     public enum lpsolve_improves
     {
+        /// <summary>improve none</summary>
         IMPROVE_NONE = 0,
+        /// <summary>Running accuracy measurement of solved equations based on Bx=r (primal simplex), remedy is refactorization.</summary>
         IMPROVE_SOLUTION = 1,
+        /// <summary>Improve initial dual feasibility by bound flips (highly recommended, and default)</summary>
         IMPROVE_DUALFEAS = 2,
+        /// <summary>Low-cost accuracy monitoring in the dual, remedy is refactorization</summary>
         IMPROVE_THETAGAP = 4,
+        /// <summary>By default there is a check for primal/dual feasibility at optimum only for the relaxed problem, this also activates the test at the node level</summary>
         IMPROVE_BBSIMPLEX = 8,
+        /// <summary>The default is IMPROVE_DUALFEAS | IMPROVE_THETAGAP.</summary>
         IMPROVE_DEFAULT = (IMPROVE_DUALFEAS + IMPROVE_THETAGAP),
+        /// <summary></summary>
         IMPROVE_INVERSE = (IMPROVE_SOLUTION + IMPROVE_THETAGAP)
     }
 
+    /// <summary>
+    /// Pivot Rule and Mode. Can be <em>one</em> of the rules below <see cref="PRICE_PRIMALFALLBACK"/> combined with any
+    /// modes above <see cref="PRICER_STEEPESTEDGE"/>;
+    /// </summary>
     [Flags]
     public enum lpsolve_piv_rules
     {
+        /// <summary>Select first</summary>
         PRICER_FIRSTINDEX = 0,
+        /// <summary>Select according to Dantzig</summary>
         PRICER_DANTZIG = 1,
+        /// <summary>Devex pricing from Paula Harris</summary>
         PRICER_DEVEX = 2,
+        /// <summary>Steepest Edge</summary>
         PRICER_STEEPESTEDGE = 3,
+        /// <summary>In case of Steepest Edge, fall back to DEVEX in primal</summary>
         PRICE_PRIMALFALLBACK = 4,
+        /// <summary>Preliminary implementation of the multiple pricing scheme.This means that attractive candidate entering columns from one iteration may be used in the subsequent iteration, avoiding full updating of reduced costs.In the current implementation, lp_solve only reuses the 2nd best entering column alternative</summary>
         PRICE_MULTIPLE = 8,
+        /// <summary>Enable partial pricing</summary>
         PRICE_PARTIAL = 16,
+        /// <summary>Temporarily use alternative strategy if cycling is detected</summary>
         PRICE_ADAPTIVE = 32,
+        /// <summary>NOT_IMPLEMENTED</summary>
+        [Obsolete("This pivot mode is not implemented in lp_solve so this enum value will be removed in LpSolveDotNet 4.0 unless by then the pivot rule is implemented.")]
         PRICE_HYBRID = 64,
+        /// <summary>Adds a small randomization effect to the selected pricer</summary>
         PRICE_RANDOMIZE = 128,
+        /// <summary>Indicates automatic detection of segmented/staged/blocked models.It refers to partial pricing rather than full pricing.With full pricing, all non-basic columns are scanned, but with partial pricing only a subset is scanned for every iteration. This can speed up several models</summary>
+        PRICE_AUTOPARTIAL = 256,
+        [Obsolete("This enum value will be removed in LpSolveDotNet 4.0, the same enum value is PRICE_AUTOPARTIAL.")]
         PRICE_AUTOPARTIALCOLS = 256,
+        /// <summary>Automatically select multiple pricing (primal simplex)</summary>
+        PRICE_AUTOMULTIPLE = 512,
+        [Obsolete("This enum value will be removed in LpSolveDotNet 4.0, the same enum value is PRICE_AUTOMULTIPLE.")]
         PRICE_AUTOPARTIALROWS = 512,
+        /// <summary>Scan entering/leaving columns left rather than right</summary>
         PRICE_LOOPLEFT = 1024,
+        /// <summary>Scan entering/leaving columns alternatingly left/right</summary>
         PRICE_LOOPALTERNATE = 2048,
-        PRICE_AUTOPARTIAL = PRICE_AUTOPARTIALCOLS | PRICE_AUTOPARTIALROWS,
+        /// <summary>Use Harris' primal pivot logic rather than the default</summary>
+        PRICE_HARRISTWOPASS = 4096,
+        // /// <summary>Non-user option to force full pricing</summary>
+        // non user option PRICE_FORCEFULL = 8192,
+        /// <summary>Use true norms for Devex and Steepest Edge initializations</summary>
+        PRICE_TRUENORMINIT = 16384,
+        /// <summary>Disallow automatic bound-flip during pivot</summary>
+        PRICE_NOBOUNDFLIP = 65536,
     }
 
+    /// <summary>
+    /// Presolve levels. Can be the OR-combination of any of the values.
+    /// </summary>
     [Flags]
     public enum lpsolve_presolve
     {
+        /// <summary>No presolve at all</summary>
         PRESOLVE_NONE = 0,
+        /// <summary>Presolve rows</summary>
         PRESOLVE_ROWS = 1,
+        /// <summary>Presolve columns</summary>
         PRESOLVE_COLS = 2,
+        /// <summary>Eliminate linearly dependent rows</summary>
         PRESOLVE_LINDEP = 4,
+        /// <summary>Convert constraints to SOSes (only SOS1 handled)</summary>
+        //PRESOLVE_AGGREGATE = 8, //not implemented
+        //PRESOLVE_SPARSER = 16, //not implemented
         PRESOLVE_SOS = 32,
+        /// <summary>If the phase 1 solution process finds that a constraint is redundant then this constraint is deleted</summary>
         PRESOLVE_REDUCEMIP = 64,
+        /// <summary>Simplification of knapsack-type constraints through addition of an extra variable, which also helps bound the OF</summary>
         PRESOLVE_KNAPSACK = 128,
+        /// <summary>Direct substitution of one variable in 2-element equality constraints; this requires changes to the constraint matrix.
+        /// Elimeq2 simply eliminates a variable by substitution when you have 2-element equality constraints.
+        /// This can sometimes cause fill-in of the constraint matrix, and also be a source of rounding errors which can lead to problems in the simplex.
+        /// </summary>
         PRESOLVE_ELIMEQ2 = 256,
+        /// <summary>Identify implied free variables (releasing their explicit bounds)</summary>
         PRESOLVE_IMPLIEDFREE = 512,
+        /// <summary>Reduce (tighten) coefficients in integer models based on GCD argument.
+        /// Reduce GCD is for mixed integer programs where it is possible to adjust the constraint coefficies due to integrality.
+        /// This can cause the dual objective ("lower bound") to increase and may make it easier to prove optimality.
+        /// </summary>
         PRESOLVE_REDUCEGCD = 1024,
+        /// <summary>Attempt to fix binary variables at one of their bounds</summary>
         PRESOLVE_PROBEFIX = 2048,
+        /// <summary>Attempt to reduce coefficients in binary models</summary>
         PRESOLVE_PROBEREDUCE = 4096,
+        /// <summary>Idenfify and delete qualifying constraints that are dominated by others, also fixes variables at a bound</summary>
         PRESOLVE_ROWDOMINATE = 8192,
+        /// <summary>Deletes variables (mainly binary), that are dominated by others (only one can be non-zero)</summary>
         PRESOLVE_COLDOMINATE = 16384,
+        /// <summary>Merges neighboring >= or <= constraints when the vectors are otherwise relatively identical into a single ranged constraint</summary>
         PRESOLVE_MERGEROWS = 32768,
+        /// <summary>Converts qualifying equalities to inequalities by converting a column singleton variable to slack.
+        /// The routine also detects implicit duplicate slacks from inequality constraints, fixes and removes the redundant variable.
+        /// This latter removal also tends to reduce the risk of degeneracy.
+        /// The combined function of this option can have a dramatic simplifying effect on some models.
+        /// Implied slacks is when, for example, there is a column singleton (with zero OF) in an equality constraint.
+        /// In this case, the column can be deleted and the constraint converted to a LE constraint.</summary>
         PRESOLVE_IMPLIEDSLK = 65536,
+        /// <summary>Variable fixing and removal based on considering signs of the associated dual constraint.
+        /// Dual fixing is when the (primal) variable can be fixed due to the implied value of the dual being infinite.</summary>
         PRESOLVE_COLFIXDUAL = 131072,
+        /// <summary>Does bound tightening based on full-row constraint information. This can assist in tightening the OF bound, eliminate variables and constraints.
+        /// At the end of presolve, it is checked if any variables can be deemed free, thereby reducing any chance that degeneracy is introduced via this presolve option.</summary>
         PRESOLVE_BOUNDS = 262144,
+        /// <summary>Calculate duals</summary>
         PRESOLVE_DUALS = 524288,
+        /// <summary>Calculate sensitivity if there are integer variables</summary>
         PRESOLVE_SENSDUALS = 1048576
     }
 
+    /// <summary>
+    /// Strategy codes to avoid or recover from degenerate pivots,
+    /// infeasibility or numeric errors via randomized bound relaxation
+    /// </summary>
     [Flags]
     public enum lpsolve_anti_degen
     {
+        /// <summary>No anti-degeneracy handling</summary>
         ANTIDEGEN_NONE = 0,
+        /// <summary>Check if there are equality slacks in the basis and try to drive them out in order to reduce chance of degeneracy in Phase 1</summary>
         ANTIDEGEN_FIXEDVARS = 1,
+        /// <summary></summary>
         ANTIDEGEN_COLUMNCHECK = 2,
+        /// <summary></summary>
         ANTIDEGEN_STALLING = 4,
+        /// <summary></summary>
         ANTIDEGEN_NUMFAILURE = 8,
+        /// <summary></summary>
         ANTIDEGEN_LOSTFEAS = 16,
+        /// <summary></summary>
         ANTIDEGEN_INFEASIBLE = 32,
+        /// <summary></summary>
         ANTIDEGEN_DYNAMIC = 64,
+        /// <summary></summary>
         ANTIDEGEN_DURINGBB = 128,
+        /// <summary>Perturbation of the working RHS at refactorization</summary>
         ANTIDEGEN_RHSPERTURB = 256,
+        /// <summary>Limit bound flips that can sometimes contribute to degeneracy in some models</summary>
         ANTIDEGEN_BOUNDFLIP = 512
     }
 
+
     public enum lpsolve_basiscrash
     {
+        /// <summary>No basis crash</summary>
         CRASH_NOTHING = 0,
+        /// <summary>Most feasible basis</summary>
         CRASH_MOSTFEASIBLE = 2,
+        /// <summary>Construct a basis that is in some measure the "least degenerate"</summary>
+        CRASH_LEASTDEGENERATE = 3,
     }
 
     public enum lpsolve_simplextypes
     {
+        /// <summary>Phase1 Primal, Phase2 Primal</summary>
         SIMPLEX_PRIMAL_PRIMAL = 5,
+        /// <summary>Phase1 Dual, Phase2 Primal</summary>
         SIMPLEX_DUAL_PRIMAL = 6,
+        /// <summary>Phase1 Primal, Phase2 Dual</summary>
         SIMPLEX_PRIMAL_DUAL = 9,
+        /// <summary>Phase1 Dual, Phase2 Dual</summary>
         SIMPLEX_DUAL_DUAL = 10,
     }
 
+    /// <summary>
+    /// Branch-and-bound rule. Can be <em>one</em> of the values below <see cref="NODE_WEIGHTREVERSEMODE">NODE_WEIGHTREVERSEMODE (8)</see>.
+    /// It can be combined with one or more of the values greater than <see cref="NODE_USERSELECT">NODE_USERSELECT (7)</see>
+    /// </summary>
     [Flags]
     public enum lpsolve_BBstrategies
     {
+        /// <summary></summary>
         NODE_FIRSTSELECT = 0,
+        /// <summary></summary>
         NODE_GAPSELECT = 1,
+        /// <summary></summary>
         NODE_RANGESELECT = 2,
+        /// <summary></summary>
         NODE_FRACTIONSELECT = 3,
+        /// <summary></summary>
         NODE_PSEUDOCOSTSELECT = 4,
+        /// <summary></summary>
         NODE_PSEUDONONINTSELECT = 5,
+        /// <summary></summary>
         NODE_PSEUDORATIOSELECT = 6,
+        /// <summary></summary>
         NODE_USERSELECT = 7,
+        /// <summary></summary>
         NODE_WEIGHTREVERSEMODE = 8,
+        /// <summary></summary>
         NODE_BRANCHREVERSEMODE = 16,
+        /// <summary></summary>
         NODE_GREEDYMODE = 32,
+        /// <summary></summary>
         NODE_PSEUDOCOSTMODE = 64,
+        /// <summary></summary>
         NODE_DEPTHFIRSTMODE = 128,
+        /// <summary></summary>
         NODE_RANDOMIZEMODE = 256,
+        /// <summary></summary>
         NODE_GUBMODE = 512,
+        /// <summary></summary>
         NODE_DYNAMICMODE = 1024,
+        /// <summary></summary>
         NODE_RESTARTMODE = 2048,
+        /// <summary></summary>
         NODE_BREADTHFIRSTMODE = 4096,
+        /// <summary></summary>
         NODE_AUTOORDER = 8192,
+        /// <summary></summary>
         NODE_RCOSTFIXING = 16384,
+        /// <summary></summary>
         NODE_STRONGINIT = 32768
     }
 
     public enum lpsolve_return
     {
+        /// <summary>Undefined internal error</summary>
+        UNKNOWNERROR = -5,
+
+        /// <summary>Invalid input data provided</summary>
+        DATAIGNORED = -4,
+
+        /// <summary>No basis factorization package</summary>
+        NOBFP = -3,
+        
+        /// <summary>
+        /// Out of memory
+        /// </summary>
         NOMEMORY = -2,
+
+        /// <summary>
+        /// Solver has not run, usually because of an empty model.
+        /// </summary>
+        NOTRUN = -1,
+
+        /// <summary>
+        /// An optimal solution was obtained
+        /// </summary>
         OPTIMAL = 0,
+
+        /// <summary>
+        /// The model is sub-optimal. Only happens if there are integer variables and there is already an integer solution found. The solution is not guaranteed the most optimal one.
+        /// <list>
+        /// <item><description>A timeout occured (set via set_timeout or with the -timeout option in lp_solve)</description></item>
+        /// <item><description>set_break_at_first was called so that the first found integer solution is found (-f option in lp_solve)</description></item>
+        /// <item><description>set_break_at_value was called so that when integer solution is found that is better than the specified value that it stops (-o option in lp_solve)</description></item>
+        /// <item><description>set_mip_gap was called (-g/-ga/-gr options in lp_solve) to specify a MIP gap</description></item>
+        /// <item><description>An abort function is installed (<see cref="put_abortfunc"/>) and this function returned TRUE</description></item>
+        /// <item><description>At some point not enough memory could not be allocated</description></item>
+        /// </list>
+        /// </summary>
         SUBOPTIMAL = 1,
+
+        /// <summary>
+        /// The model is infeasible
+        /// </summary>
         INFEASIBLE = 2,
+
+        /// <summary>
+        /// The model is unbounded
+        /// </summary>
         UNBOUNDED = 3,
+
+        /// <summary>
+        /// The model is degenerative
+        /// </summary>
         DEGENERATE = 4,
+
+        /// <summary>
+        /// Numerical failure encountered
+        /// </summary>
         NUMFAILURE = 5,
+
+        /// <summary>
+        /// The abort routine returned TRUE. <see cref="put_abortfunc"/>
+        /// </summary>
         USERABORT = 6,
+
+        /// <summary>
+        /// A timeout occurred. A timeout was set via <see cref="set_timeout"/>
+        /// </summary>
         TIMEOUT = 7,
+
+        /// <summary>
+        /// The model could be solved by presolve. This can only happen if presolve is active via <see cref="set_presolve"/>
+        /// </summary>
         PRESOLVED = 9,
-        PROCFAIL = 10,
-        PROCBREAK = 11,
-        FEASFOUND = 12,
-        NOFEASFOUND = 13,
+
+        // defined as internal in lp_lib.h as of 5.5.2.5
+        //PROCFAIL = 10,
+        //PROCBREAK = 11,
+        //FEASFOUND = 12,
+        //NOFEASFOUND = 13,
+        //FATHOMED = 14,
+        //SWITCH_TO_PRIMAL = 20,
+        //SWITCH_TO_DUAL   = 21,
+        //SINGULAR_BASIS   = 22,
+        //LOSTFEAS         = 23,
+        //MATRIXERROR      = 24,
+
+        /// <summary>
+        /// Accuracy error encountered
+        /// </summary>
+        ACCURACYERROR = 25,
     }
 
+    /// <summary>
+    /// Defines which branch to take first in branch-and-bound algorithm.
+    /// </summary>
     public enum lpsolve_branch
     {
+        /// <summary>Take ceiling branch first</summary>
         BRANCH_CEILING = 0,
+        /// <summary>Take floor branch first</summary>
         BRANCH_FLOOR = 1,
+        /// <summary>Algorithm decides which branch being taken first</summary>
         BRANCH_AUTOMATIC = 2,
+
         BRANCH_DEFAULT = 3,
     }
 
     [Flags]
     public enum lpsolve_msgmask
     {
+        /// <summary>Do not handle any message.</summary>
+        MSG_NONE = 0,
+
+        /// <summary>Presolve done.</summary>
         MSG_PRESOLVE = 1,
+
+        ///// <summary>?? Only used on user abort.</summary>
+        //MSG_ITERATION = 2,
+
+        ///// <summary>?? Only used on user abort.</summary>
+        //MSG_INVERT = 4,
+
+        /// <summary>Feasible solution found.</summary>
         MSG_LPFEASIBLE = 8,
+
+        /// <summary>Real optimal solution found. Only fired when there are integer variables at the start of B&B</summary>
         MSG_LPOPTIMAL = 16,
-        MSG_MILPEQUAL = 32,
+
+        //MSG_LPEQUAL = 32, //not used in lpsolve code
+        //MSG_LPBETTER = 64, //not used in lpsolve code
+
+        /// <summary>First MILPsolution found. Only fired when there are integer variables during B&B</summary>
         MSG_MILPFEASIBLE = 128,
+
+        /// <summary>Equal MILP solution found. Only fired when there are integer variables during B&B</summary>
+        MSG_MILPEQUAL = 256,
+
+        /// <summary>Better MILPsolution found. Only fired when there are integer variables during B&B</summary>
         MSG_MILPBETTER = 512,
+
+        ///// <summary>?? Only used on user abort.</summary>
+        //MSG_MILPSTRATEGY = 1024,
+
+        //MSG_MILPOPTIMAL = 2048, //not used in lpsolve code
+        //MSG_PERFORMANCE = 4096, //not used in lpsolve code
+
+        ///// <summary>?? Only used on user abort.</summary>
+        //MSG_INITPSEUDOCOSR = 8192,
     }
 
     public delegate bool ctrlcfunc(IntPtr lp, IntPtr userhandle);
