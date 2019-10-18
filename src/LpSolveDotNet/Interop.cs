@@ -166,19 +166,14 @@ namespace LpSolveDotNet
         PRICE_PARTIAL = 16,
         /// <summary>Temporarily use alternative strategy if cycling is detected</summary>
         PRICE_ADAPTIVE = 32,
-        /// <summary>NOT_IMPLEMENTED</summary>
-        [Obsolete("This pivot mode is not implemented in lp_solve so this enum value will be removed in LpSolveDotNet 4.0 unless by then the pivot rule is implemented.")]
-        PRICE_HYBRID = 64,
+        // /// <summary>NOT_IMPLEMENTED</summary>
+        // PRICE_HYBRID = 64,
         /// <summary>Adds a small randomization effect to the selected pricer</summary>
         PRICE_RANDOMIZE = 128,
         /// <summary>Indicates automatic detection of segmented/staged/blocked models.It refers to partial pricing rather than full pricing.With full pricing, all non-basic columns are scanned, but with partial pricing only a subset is scanned for every iteration. This can speed up several models</summary>
         PRICE_AUTOPARTIAL = 256,
-        [Obsolete("This enum value will be removed in LpSolveDotNet 4.0, the same enum value is PRICE_AUTOPARTIAL.")]
-        PRICE_AUTOPARTIALCOLS = 256,
         /// <summary>Automatically select multiple pricing (primal simplex)</summary>
         PRICE_AUTOMULTIPLE = 512,
-        [Obsolete("This enum value will be removed in LpSolveDotNet 4.0, the same enum value is PRICE_AUTOMULTIPLE.")]
-        PRICE_AUTOPARTIALROWS = 512,
         /// <summary>Scan entering/leaving columns left rather than right</summary>
         PRICE_LOOPLEFT = 1024,
         /// <summary>Scan entering/leaving columns alternatingly left/right</summary>
