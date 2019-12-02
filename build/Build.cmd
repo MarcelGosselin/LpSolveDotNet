@@ -44,7 +44,8 @@ pushd %~dp0
 ::
 echo.
 echo Build project
-msbuild "%THIS_DIR%..\src\LpSolveDotNet\LpSolveDotNet.csproj" /p:Configuration=Release /p:NoWarn=1591 /t:Restore;Pack || goto :error
+msbuild "%THIS_DIR%..\src\LpSolveDotNet\LpSolveDotNet.csproj" /p:Configuration=Release /p:NoWarn=1591 /t:Restore || goto :error
+msbuild "%THIS_DIR%..\src\LpSolveDotNet\LpSolveDotNet.csproj" /p:Configuration=Release /p:NoWarn=1591 /t:Pack || goto :error
 ::
 ::echo.
 ::echo Build NuGet package
