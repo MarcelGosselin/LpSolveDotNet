@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Threading;
 
 namespace LpSolveDotNet.Demo
 {
@@ -9,13 +8,10 @@ namespace LpSolveDotNet.Demo
         [STAThread]
         public static void Main()
         {
-            Debug.WriteLine(Environment.CurrentDirectory);
-
             LpSolve.Init();
 
-            Test();
-
-            //TestMultiThreads();
+            //Test();
+            FormulateSample.Main2();
         }
 
         /* unsafe is needed to make sure that these function are not relocated in memory by the CLR. If that would happen, a crash occurs */
@@ -45,19 +41,6 @@ namespace LpSolveDotNet.Demo
                 double o = lp.get_objective();
                 Debug.Assert(ret == lpsolve_return.OPTIMAL && Math.Round(o, 13) == 1779.4810350637485);
             }
-        }
-
-        private static void TestMultiThreads()
-        {
-            Version version = LpSolve.LpSolveVersion;
-
-            for (int i = 1; i <= 5000; i++)
-            {
-                Thread myThread = new Thread(ThreadProc);
-                myThread.Start("ex4.lp");
-            }
-
-            Thread.Sleep(5000);
         }
 
         private static void Test()
