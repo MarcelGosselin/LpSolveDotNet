@@ -29,12 +29,13 @@
     <PackageReleaseNotes>
       Complete release notes can be found at https://github.com/MarcelGosselin/LpSolveDotNet/blob/master/ReleaseNotes.md
       This release contains:
-      - TODO
+      - Support for .NET Core and .NET Standard
+      - Add missing enum values to be equal to those in lpsolve's source code.
+      - (Breaking changes) Fix all enum values to be equal to those in lpsolve's source code.
     </PackageReleaseNotes>
     <PackageOutputPath>..\..\build\output</PackageOutputPath>
     <RepositoryUrl>https://github.com/MarcelGosselin/LpSolveDotNet.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <!--<GeneratePackageOnBuild>true</GeneratePackageOnBuild>-->
   </PropertyGroup>
   <!-- Assembly-Only Properties -->
   <PropertyGroup>
