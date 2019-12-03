@@ -9,17 +9,34 @@ using System.IO;
 
 namespace LpSolveDotNet
 {
+    /// <summary>
+    /// Class that represents a Linear Programming (LP) model and methods to solve it.
+    /// <para>
+    /// This class represents the <c>lprec</c> structure in the <see href="http://lpsolve.sourceforge.net/">C API of LP Solve</see>.
+    /// The instance methods of this class are all the methods from the C API of LP Solve but the first parameter
+    /// is implicitly referring to current model.
+    /// The static methods in this class are factory methods to create a new model.
+    /// </para>
+    /// <remarks>
+    /// You must call the method <see cref="Init"/> once before calling any other method
+    /// in order to make sure the native lpsolve library will be loaded from the right location.
+    /// </remarks>
+    /// </summary>
     public sealed class LpSolve
         : IDisposable
     {
         #region Library initialization
 
-        public static bool Init()
-        {
-            return Init(null);
-        }
-
-        public static bool Init(string dllFolderPath)
+        /// <summary>
+        /// Initializes the library by making sure the correct <c>lpsolve55.dll</c> native library
+        /// will be loaded.
+        /// </summary>
+        /// <param name="dllFolderPath">The (optional) folder where the native library is located.
+        /// When <paramref name="dllFolderPath"/> is <c>null</c>, it will use either <c>basedir/NativeBinaries/win64</c> or <c>basedir/NativeBinaries/win32</c>
+        /// based on whether application running is 32 or 64-bits. This will work for any application built on Windows platform
+        /// using the NuGet package because the package because the NuGet</param>
+        /// <returns><c>true</c>, if it found the native library, <c>false</c> otherwise</returns>
+        public static bool Init(string dllFolderPath = null)
         {
             if (string.IsNullOrEmpty(dllFolderPath))
             {
@@ -58,15 +75,33 @@ namespace LpSolveDotNet
         }
         private static bool _hasAlreadyChangedPathEnvironmentVariable;
 
-#endregion
+        private static string GetPathEnvironmentVariable()
+        {
+            return Environment.GetEnvironmentVariable("PATH"
+#if SUPPORTS_ENVIRONMENT_VARIABLE_TARGET
+                , EnvironmentVariableTarget.Process
+#endif
+                );
+        }
 
-#region Fields
+        private static void SetPathEnvironmentVariable(string value)
+        {
+            Environment.SetEnvironmentVariable("PATH", value
+#if SUPPORTS_ENVIRONMENT_VARIABLE_TARGET
+                , EnvironmentVariableTarget.Process
+#endif
+                );
+        }
+
+        #endregion
+
+        #region Fields
 
         private IntPtr _lp;
 
-#endregion
+        #endregion
 
-#region Create/destroy model
+        #region Create/destroy model
 
         /// <summary>
         /// Constructor, to be called from <see cref="CreateFromLpRecStructurePointer"/> only.
@@ -89,42 +124,89 @@ namespace LpSolveDotNet
             return new LpSolve(lp);
         }
 
+        /// <summary>
+        /// Creates and initialises a new <see cref="LpSolve"/> model.
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/make_lp.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="rows">Initial number of rows. Can be <c>0</c> as new rows can be added via 
+        /// <see cref="add_constraint"/>, <see cref="add_constraintex"/>, <see cref="str_add_constraint"/>.</param>
+        /// <param name="columns">Initial number of columns. Can be <c>0</c> as new columns can be added via
+        /// <see cref="add_column"/>, <see cref="add_columnex"/>, <see cref="str_add_column"/>.</param>
+        /// <returns>A new <see cref="LpSolve"/> model with <paramref name="rows"/> rows and <paramref name="columns"/> columns.
+        /// A <c>null</c> return value indicates an error. Specifically not enough memory available to setup an lprec structure.</returns>
         public static LpSolve make_lp(int rows, int columns)
         {
             IntPtr lp = Interop.make_lp(rows, columns);
             return CreateFromLpRecStructurePointer(lp);
         }
 
-        public static LpSolve read_LP(string fileName, int verbose, string lpName)
+        /// <summary>
+        /// Creates and initialises a new <see cref="LpSolve"/> model from a LP model file.
+        /// <remarks>The model in the file must be in <see href="http://lpsolve.sourceforge.net/5.5/lp-format.htm">lp-format</see>.</remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/read_LP.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="fileName">Filename to read the LP model from.</param>
+        /// <param name="verbose">The verbose level. See also <see cref="set_verbose"/> and <see cref="get_verbose"/>.</param>
+        /// <param name="lpName">Initial name of the model. May be <c>null</c> if the model has no name. See also <see cref="set_lp_name"/> and <see cref="get_lp_name"/>.</param>
+        /// <returns>A new <see cref="LpSolve"/> model matching the one in the file.
+        /// A <c>null</c> return value indicates an error. Specifically file could not be opened, has wrong structure or not enough memory is available.</returns>
+        public static LpSolve read_LP(string fileName, lp_solve_verbosity verbose, string lpName)
         {
             IntPtr lp = Interop.read_LP(fileName, verbose, lpName);
             return CreateFromLpRecStructurePointer(lp);
         }
 
-        public static LpSolve read_freeMPS(string fileName, int options)
-        {
-            IntPtr lp = Interop.read_freeMPS(fileName, options);
-            return CreateFromLpRecStructurePointer(lp);
-        }
-
-        public static LpSolve read_MPS(string fileName, int options)
+        /// <summary>
+        /// Creates and initialises a new <see cref="LpSolve"/> model from an MPS model file.
+        /// <remarks>The model in the file must be in <see href="http://lpsolve.sourceforge.net/5.5/mps-format.htm">mps-format</see>.</remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/read_mps.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="fileName">Filename to read the MPS model from.</param>
+        /// <param name="options">Specifies the verbose level and how to interprete the MPS layout. The verbose level. See also <see cref="set_verbose"/> and <see cref="get_verbose"/>.</param>
+        /// <returns>A new <see cref="LpSolve"/> model matching the one in the file.
+        /// A <c>null</c> return value indicates an error. Specifically file could not be opened, has wrong structure or not enough memory is available.</returns>
+        public static LpSolve read_MPS(string fileName, lp_solve_mps_options options)
         {
             IntPtr lp = Interop.read_MPS(fileName, options);
             return CreateFromLpRecStructurePointer(lp);
         }
 
-        public static LpSolve read_XLI(string xliName, string modelName, string dataName, string options, int verbose)
+        /// <summary>
+        /// Creates and initialises a new <see cref="LpSolve"/> model via the eXternal Language Interface.
+        /// <remarks>The method constructs a new <see cref="LpSolve"/> model by reading model from <paramref name="modelName"/> via the specified XLI.
+        /// See <see href="http://lpsolve.sourceforge.net/5.5/XLI.htm">Extnernal Language Interfaces</see>for a complete description on XLIs.</remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/read_XLI.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="xliName">Filename of the XLI package.</param>
+        /// <param name="modelName">Filename to read the model from.</param>
+        /// <param name="dataName">Filename to read the data from. This may be optional. In that case, set the parameter to <c>null</c>.</param>
+        /// <param name="options">Extra options that can be used by the reader.</param>
+        /// <param name="verbose">The verbose level. See also <see cref="set_verbose"/> and <see cref="get_verbose"/>.</param>
+        /// <returns>A new <see cref="LpSolve"/> model matching the one in the file.
+        /// A <c>null</c> return value indicates an error.</returns>
+        public static LpSolve read_XLI(string xliName, string modelName, string dataName, string options, lp_solve_verbosity verbose)
         {
             IntPtr lp = Interop.read_XLI(xliName, modelName, dataName, options, verbose);
             return CreateFromLpRecStructurePointer(lp);
         }
 
+        /// <summary>
+        /// Copies current model to a new one.
+        /// <remarks>The new model is independent from the original one.</remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/copy_lp.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <returns>A new model with the same values as current one or <c>null</c> if an error occurs (not enough memory).</returns>
         public LpSolve copy_lp()
         {
             IntPtr lp = Interop.copy_lp(_lp);
             return CreateFromLpRecStructurePointer(lp);
         }
 
+        /// <summary>
+        /// Frees all memory allocated to the model.
+        /// <remarks>You don't need to call this method, the <see cref="IDisposable"/> implementation does it for you.</remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/delete_lp.htm">Full C API documentation.</seealso>
+        /// </summary>
         public void delete_lp()
         {
             // implement Dispose pattern according to https://msdn.microsoft.com/en-us/library/b1yfkh5e.aspx
@@ -155,160 +237,482 @@ namespace LpSolveDotNet
             }
         }
 
+        /// <summary>
+        /// Finalizer
+        /// </summary>
         ~LpSolve()
         {
             Dispose(false);
         }
 
-#endregion
+        #endregion
 
-#region Build model
+        #region Build model
 
-#region Column
+        #region Column
 
-        // http://lpsolve.sourceforge.net/5.5/add_column.htm
-
+        /// <summary>
+        /// Adds a column to the model.
+        /// <remarks><para>The method adds a column to the model (at the end) and sets all values of the column at once.</para>
+        /// <para>Note that element 0 of the array is the value of the objective function for that column. Column 1 is element 1, column 2 is element 2, ...</para>
+        /// <para>It is almost always better to use <see cref="add_columnex"/> instead of <see cref="add_column"/>. <see cref="add_columnex"/> is always at least as performant as <see cref="add_column"/>.</para>
+        /// <para>Note that if you have to add many columns, performance can be improved by a call to <see cref="resize_lp"/>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_column.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="column">An array with 1+<see cref="get_Nrows"/> elements that contains the values of the column.</param>
+        /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
         public bool add_column(double[] column)
         {
             return Interop.add_column(_lp, column);
         }
 
+        /// <summary>
+        /// Adds a column to the model.
+        /// <remarks><para>The method adds a column to the model (at the end) and sets all values of the column at once.</para>
+        /// <para>Note that when <paramref name="rowno"/> is <c>null</c>, element 0 of the array is the value of the objective function for that column. Column 1 is element 1, column 2 is element 2, ...</para>
+        /// <para>This method has the possibility to specify only the non-zero elements. In that case <paramref name="rowno"/> specifies the row numbers 
+        /// of the non-zero elements. Both <paramref name="column"/> and <paramref name="rowno"/> are then zero-based arrays. 
+        /// This will speed up building the model considerably if there are a lot of zero values. In most cases the matrix is sparse and has many zero values.
+        /// Note that <see cref="add_columnex"/> behaves the same as <see cref="add_column"/> when <paramref name="rowno"/> is <c>null</c>.
+        /// It is almost always better to use<see cref="add_columnex"/> instead of<see cref="add_column"/>. <see cref = "add_columnex" /> is always at least as performant as <see cref = "add_column" />.
+        /// </para>
+        /// <para><paramref name="column"/> and <paramref name="rowno"/> can both be <c>null</c>. In that case an empty column is added.</para>
+        /// <para>Note that if you have to add many columns, performance can be improved by a call to <see cref="resize_lp"/>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_column.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="count">Number of elements in <paramref name="column"/> and <paramref name="rowno"/>.</param>
+        /// <param name="column">An array with <paramref name="count"/> elements that contains the values of the column.</param>
+        /// <param name="rowno">A zero-based array with <paramref name="count"/> elements that contains the row numbers of the column. 
+        /// However this variable can also be <c>null</c>. In that case element i in the variable <paramref name="column"/> is row i.</param>
+        /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
         public bool add_columnex(int count, double[] column, int[] rowno)
         {
             return Interop.add_columnex(_lp, count, column, rowno);
         }
 
+        /// <summary>
+        /// Adds a column to the model.
+        /// <remarks>This should only be used in small or demo code since it is not performant and uses more memory.
+        /// Instead use <see cref="add_columnex"/> or <see cref="add_column"/>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_column.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="col_string">A string with row elements that contains the values of the column. Each element must be separated by space(s).</param>
+        /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
         public bool str_add_column(string col_string)
         {
             return Interop.str_add_column(_lp, col_string);
         }
 
-        // http://lpsolve.sourceforge.net/5.5/del_column.htm
-
+        /// <summary>
+        /// Deletes a column from the model.
+        /// <remarks>
+        /// <para>Note that row entry mode must be off, else this method fails. <see cref="set_add_rowmode"/>.</para>
+        /// <para>The column is effectively deleted from the model, so all columns after this column shift one left.</para>
+        /// <para>Note that column 0 (the right hand side (RHS)) cannot be deleted. There is always a RHS.</para>
+        /// <para>Note that if you can also delete multiple columns by a call to <see cref="resize_lp"/>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/del_column.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="column">The column to delete. Must be between <c>1</c> and the number of columns in the model.</param>
+        /// <returns><c>true</c> if successful, <c>false</c> otherwise. An error occurs if <paramref name="column"/> 
+        /// is not between <c>1</c> and the number of columns in the model</returns>
         public bool del_column(int column)
         {
             return Interop.del_column(_lp, column);
         }
 
-        // http://lpsolve.sourceforge.net/5.5/set_column.htm
 
+        /// <summary>
+        /// Sets a column in the model.
+        /// <remarks>
+        /// <para>The method changes the values of an existing column in the model at once.</para>
+        /// <para>Note that element 0 of the array is row 0 (objective function). element 1 is row 1, ...</para>
+        /// <para>It is almost always better to use <see cref="set_columnex"/> instead of <see cref="set_column"/>. <see cref="set_columnex"/> is always at least as performant as <see cref="set_column"/>.</para>
+        /// <para>It is more performant to call this method than call <see cref="set_mat"/>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_column.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="col_no">The column number that must be changed.</param>
+        /// <param name="column">An array with 1+<see cref="get_Nrows"/> elements that contains the values of the column.</param>
+        /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
         public bool set_column(int col_no, double[] column)
         {
             return Interop.set_column(_lp, col_no, column);
         }
 
+        /// <summary>
+        /// Sets a column in the model.
+        /// <remarks>
+        /// <para>The method changes the values of an existing column in the model at once.</para>
+        /// <para>Note that when <paramref name="rowno"/> is <c>null</c>, element 0 of the array is row 0 (objective function). element 1 is row 1, ...</para>
+        /// <para>This method has the possibility to specify only the non-zero elements. In that case <paramref name="rowno"/> specifies the row numbers 
+        /// of the non-zero elements. And in contrary to <see cref="set_column"/>, it reads the arrays starting at element 0.
+        /// This will speed up building the model considerably if there are a lot of zero values. In most cases the matrix is sparse and has many zero values.
+        /// Note that <see cref="set_columnex"/> behaves the same as <see cref="set_column"/> when <paramref name="rowno"/> is <c>null</c>.
+        /// It is almost always better to use<see cref="set_columnex"/> instead of<see cref="set_column"/>. <see cref = "set_columnex" /> is always at least as performant as <see cref = "set_column" />.
+        /// </para>
+        /// <para>It is more performant to call this method than call <see cref="set_mat"/>.</para>
+        /// <para>Note that unspecified values are set to zero.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_column.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="col_no">The column number that must be changed.</param>
+        /// <param name="count">Number of elements in <paramref name="column"/> and <paramref name="rowno"/>.</param>
+        /// <param name="column">An array with <paramref name="count"/> elements that contains the values of the column.</param>
+        /// <param name="rowno">A zero-based array with <paramref name="count"/> elements that contains the row numbers of the column. 
+        /// However this variable can also be <c>null</c>. In that case element i in the variable <paramref name="column"/> is row i.</param>
+        /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
         public bool set_columnex(int col_no, int count, double[] column, int[] rowno)
         {
             return Interop.set_columnex(_lp, col_no, count, column, rowno);
         }
 
-        // http://lpsolve.sourceforge.net/5.5/get_column.htm
-
+        /// <summary>
+        /// Gets all column elements from the model for the given <paramref name="col_nr"/>.
+        /// <remarks>
+        /// <para>Note that row entry mode must be off, else this method fails. <see cref="set_add_rowmode"/>.</para>
+        /// <para>Note that element 0 of the array is row 0 (objective function). element 1 is row 1, ...</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_column.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="col_nr">The column number of the matrix. Must be between 1 and number of columns in the model.</param>
+        /// <param name="column">Array in which the values are returned. The array must be dimensioned with at least 1+<see cref="get_Nrows"/> elements.</param>
+        /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
         public bool get_column(int col_nr, double[] column)
         {
             return Interop.get_column(_lp, col_nr, column);
         }
 
+        /// <summary>
+        /// Gets the non-zero column elements from the model for the given <paramref name="col_nr"/>.
+        /// <remarks>
+        /// <para>Note that row entry mode must be off, else this method fails. <see cref="set_add_rowmode"/>.</para>
+        /// <para>Returned values in <paramref name="column"/> and <paramref name="nzrow"/> start from element 0.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_column.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="col_nr">The column number of the matrix. Must be between 1 and number of columns in the model.</param>
+        /// <param name="column">Array in which the values are returned. The array must be dimensioned with at least the number of non-zero elements in the column.
+        /// If that is unknown, then use 1+<see cref="get_Nrows"/>.</param>
+        /// <param name="nzrow">Array in which the row numbers  are returned. The array must be dimensioned with at least the number of non-zero elements in the column.
+        /// If that is unknown, then use 1+<see cref="get_Nrows"/>.</param>
+        /// <returns>The number of non-zero elements returned in <paramref name="column"/> and <paramref name="nzrow"/>.</returns>
         public int get_columnex(int col_nr, double[] column, int[] nzrow)
         {
             return Interop.get_columnex(_lp, col_nr, column, nzrow);
         }
 
-        // http://lpsolve.sourceforge.net/5.5/set_col_name.htm
-
+        /// <summary>
+        /// Sets the name of a column in the model.
+        /// <remarks>
+        /// The column must already exist.
+        /// Column names are optional.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_col_name.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="column">The column for which the name must be set. Must be between 1 and the number of columns in the lp.</param>
+        /// <param name="new_name">The name for the column.</param>
+        /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
         public bool set_col_name(int column, string new_name)
         {
             return Interop.set_col_name(_lp, column, new_name);
         }
 
-        // http://lpsolve.sourceforge.net/5.5/get_col_name.htm
-
+        /// <summary>
+        /// Gets the name of a column in the model.
+        /// <remarks>
+        /// <para>Column names are optional.
+        /// If no column name was specified, the function returns Cx with x the column number.
+        /// </para>
+        /// <para>
+        /// The difference between <see cref="get_col_name"/> and <see cref="get_origcol_name"/> is only visible when a presolve (<see cref="set_presolve"/>) was done. 
+        /// Presolve can result in deletion of columns in the model. In <see cref="get_col_name"/>, column specifies the column number after presolve was done.
+        /// In <see cref="get_origcol_name"/>, column specifies the column number before presolve was done, ie the original column number. 
+        /// If presolve is not active then both functions are equal.
+        /// </para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_col_name.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="column">The column for which the name must be set. Must be between 1 and the number of columns in the lp.</param>
+        /// <returns>The name of the specified column if it was specified, Cx with x the column number otherwise or <c>null</c> on error.</returns>
         public string get_col_name(int column)
         {
             return Interop.get_col_name(_lp, column);
         }
 
+        /// <summary>
+        /// Gets the name of a column in the model.
+        /// <remarks>
+        /// <para>Column names are optional.
+        /// If no column name was specified, the function returns Cx with x the column number.
+        /// </para>
+        /// <para>
+        /// The difference between <see cref="get_col_name"/> and <see cref="get_origcol_name"/> is only visible when a presolve (<see cref="set_presolve"/>) was done. 
+        /// Presolve can result in deletion of columns in the model. In <see cref="get_col_name"/>, column specifies the column number after presolve was done.
+        /// In <see cref="get_origcol_name"/>, column specifies the column number before presolve was done, ie the original column number. 
+        /// If presolve is not active then both functions are equal.
+        /// </para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_col_name.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="column">The column for which the name must be set. Must be between 1 and the number of columns in the lp.</param>
+        /// <returns>The name of the specified column if it was specified, Cx with x the column number otherwise or <c>null</c> on error.</returns>
         public string get_origcol_name(int column)
         {
             return Interop.get_origcol_name(_lp, column);
         }
 
+        /// <summary>
+        /// Returns whether the variable is negative or not.
+        /// <remarks>
+        /// Negative means a lower and upper bound that are both negative. Default a variable is not free because default it has a lower bound of 0 (and an upper bound of +infinity).
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_negative.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="column">The column number of the variable to check. Must be between 1 and the number of columns in the lp.</param>
+        /// <returns><c>true</c> if variable is defined as negative, <c>false</c> otherwise.</returns>
         public bool is_negative(int column)
         {
             return Interop.is_negative(_lp, column);
         }
 
-        // http://lpsolve.sourceforge.net/5.5/is_add_rowmode.htm
-
+        /// <summary>
+        /// Returns whether the variable is of type Integer or not.
+        /// <remarks>
+        /// Default a variable is not integer. From the moment there is at least one integer variable in the model,
+        /// the Branch and Bound algorithm is used to make these variables integer.
+        /// Note that solving times can be considerably larger when there are integer variables.
+        /// See <see href="http://lpsolve.sourceforge.net/5.5/integer.htm">integer variables</see> for a description about integer variables.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_int.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="column">The column number of the variable to check. Must be between 1 and the number of columns in the lp.</param>
+        /// <returns><c>true</c> if variable is defined as integer, <c>false</c> otherwise.</returns>
         public bool is_int(int column)
         {
             return Interop.is_int(_lp, column);
         }
 
+        /// <summary>
+        /// Sets the type of the variable to type Integer or floating point.
+        /// <remarks>
+        /// Default a variable is not integer. The argument <paramref name="must_be_int"/> defines what the status of the variable becomes.
+        /// From the moment there is at least one integer variable in the model,
+        /// the Branch and Bound algorithm is used to make these variables integer.
+        /// Note that solving times can be considerably larger when there are integer variables.
+        /// See <see href="http://lpsolve.sourceforge.net/5.5/integer.htm">integer variables</see> for a description about integer variables.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_int.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="column">The column number of the variable that must be set. Must be between 1 and the number of columns in the lp.</param>
+        /// <param name="must_be_int"><c>true</c> if variable must be an integer, <c>false</c> otherwise.</param>
+        /// <returns><c>true</c> if variable is operation was successful, <c>false</c> otherwise.</returns>
         public bool set_int(int column, bool must_be_int)
         {
             return Interop.set_int(_lp, column, must_be_int);
         }
 
+        /// <summary>
+        /// Returns whether the variable is of type Binary or not.
+        /// <remarks>
+        /// Default a variable is not binary. A binary variable is an integer variable with lower bound 0 and upper bound 1.
+        /// From the moment there is at least one integer variable in the model,
+        /// the Branch and Bound algorithm is used to make these variables integer.
+        /// Note that solving times can be considerably larger when there are integer variables.
+        /// See <see href="http://lpsolve.sourceforge.net/5.5/integer.htm">integer variables</see> for a description about integer variables.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_binary.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="column">The column number of the variable to check. Must be between 1 and the number of columns in the lp.</param>
+        /// <returns><c>true</c> if variable is defined as binary, <c>false</c> otherwise.</returns>
         public bool is_binary(int column)
         {
             return Interop.is_binary(_lp, column);
         }
 
+        /// <summary>
+        /// Sets the type of the variable to type Binary or floating point.
+        /// <remarks>
+        /// Default a variable is not binary. A binary variable is an integer variable with lower bound 0 and upper bound 1.
+        /// This function also sets these bounds.
+        /// The argument <paramref name="must_be_bin"/> defines what the status of the variable becomes.
+        /// From the moment there is at least one integer variable in the model,
+        /// the Branch and Bound algorithm is used to make these variables integer.
+        /// Note that solving times can be considerably larger when there are integer variables.
+        /// See <see href="http://lpsolve.sourceforge.net/5.5/integer.htm">integer variables</see> for a description about integer variables.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_binary.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="column">The column number of the variable that must be set. Must be between 1 and the number of columns in the lp.</param>
+        /// <param name="must_be_bin"><c>true</c> if variable must be a binary, <c>false</c> otherwise.</param>
+        /// <returns><c>true</c> if variable is operation was successful, <c>false</c> otherwise.</returns>
         public bool set_binary(int column, bool must_be_bin)
         {
             return Interop.set_binary(_lp, column, must_be_bin);
         }
 
-
+        /// <summary>
+        /// Returns whether the variable is of type semi-continuous or not.
+        /// <remarks>
+        /// Default a variable is not semi-continuous.
+        /// See <see href="http://lpsolve.sourceforge.net/5.5/semi-cont.htm">semi-continuous variables</see> for a description about semi-continuous variables.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_semicont.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="column">The column number of the variable to check. Must be between 1 and the number of columns in the lp.</param>
+        /// <returns><c>true</c> if variable is defined as semi-continuous, <c>false</c> otherwise.</returns>
         public bool is_semicont(int column)
         {
             return Interop.is_semicont(_lp, column);
         }
 
+        /// <summary>
+        /// Sets the type of the variable to type semi-continuous or not.
+        /// <remarks>
+        /// By default, a variable is not semi-continuous. The argument <paramref name="must_be_sc"/> defines what the status of the variable becomes.
+        /// Note that a semi-continuous variable must also have a lower bound to have effect.
+        /// This because the default lower bound on variables is zero, also when defined as semi-continuous, and without
+        /// a lower bound it has no point to define a variable as such.
+        /// The lower bound may be set before or after setting the semi-continuous status.
+        /// See <see href="http://lpsolve.sourceforge.net/5.5/semi-cont.htm">semi-continuous variables</see> for a description about semi-continuous variables.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_semicont.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="column">The column number of the variable that must be set. Must be between 1 and the number of columns in the lp.</param>
+        /// <param name="must_be_sc"><c>true</c> if variable must be a semi-continuous, <c>false</c> otherwise.</param>
+        /// <returns><c>true</c> if variable is operation was successful, <c>false</c> otherwise.</returns>
         public bool set_semicont(int column, bool must_be_sc)
         {
             return Interop.set_semicont(_lp, column, must_be_sc);
         }
 
+        /// <summary>
+        /// Sets the lower and upper bound of a variable.
+        /// <remarks>
+        /// Setting a bound on a variable is the way to go instead of adding an extra constraint (row) to the model.
+        /// Setting a bound doesn't increase the model size that means that the model stays smaller and will be solved faster.
+        /// Note that the default lower bound of each variable is 0.
+        /// So variables will never take negative values if no negative lower bound is set.
+        /// The default upper bound of a variable is infinity(well not quite.It is a very big number, the value of <see cref="get_infinite"/>).
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_bounds.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="column">The column number of the variable on which the bounds must be set. Must be between 1 and the number of columns in the lp.</param>
+        /// <param name="lower">The lower bound on the variable identified by <paramref name="column"/>.</param>
+        /// <param name="upper">The upper bound on the variable identified by <paramref name="column"/>.</param>
+        /// <returns><c>true</c> if variable is operation was successful, <c>false</c> otherwise.</returns>
         public bool set_bounds(int column, double lower, double upper)
         {
             return Interop.set_bounds(_lp, column, lower, upper);
         }
 
+        /// <summary>
+        /// Sets if the variable is free.
+        /// <remarks>
+        /// Free means a lower bound of -infinity and an upper bound of +infinity.
+        /// Default a variable is not free because default it has a lower bound of 0 (and an upper bound of +infinity).
+        /// See <see href="http://lpsolve.sourceforge.net/5.5/free.htm">free variables</see> for a description about free variables.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_unbounded.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="column">The column number of the variable that must be set. Must be between 1 and the number of columns in the lp.</param>
+        /// <returns><c>true</c> if variable is operation was successful, <c>false</c> otherwise.</returns>
         public bool set_unbounded(int column)
         {
             return Interop.set_unbounded(_lp, column);
         }
 
+        /// <summary>
+        /// Returns whether the variable is free or not.
+        /// <remarks>
+        /// Free means a lower bound of -infinity and an upper bound of +infinity.
+        /// Default a variable is not free because default it has a lower bound of 0 (and an upper bound of +infinity).
+        /// See <see href="http://lpsolve.sourceforge.net/5.5/free.htm">free variables</see> for a description about free variables.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_unbounded.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="column">The column number of the variable to check. Must be between 1 and the number of columns in the lp.</param>
+        /// <returns><c>true</c> if variable is defined as free, <c>false</c> otherwise.</returns>
         public bool is_unbounded(int column)
         {
             return Interop.is_unbounded(_lp, column);
         }
 
+        /// <summary>
+        /// Gets the upper bound of a variable.
+        /// <remarks>
+        /// Setting a bound on a variable is the way to go instead of adding an extra constraint (row) to the model.
+        /// Setting a bound doesn't increase the model size that means that the model stays smaller and will be solved faster.
+        /// The default upper bound of a variable is infinity(well not quite.It is a very big number, the value of <see cref="get_infinite"/>).
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_upbo.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="column">The column number of the variable. Must be between 1 and the number of columns in the lp.</param>
+        /// <returns>The upper bound on the specified variable. If no bound was set, it returns a very big number, 
+        /// the value of <see cref="get_infinite"/>, the default upper bound</returns>
         public double get_upbo(int column)
         {
             return Interop.get_upbo(_lp, column);
         }
 
+        /// <summary>
+        /// Sets the upper bound of a variable.
+        /// <remarks>
+        /// Setting a bound on a variable is the way to go instead of adding an extra constraint (row) to the model.
+        /// Setting a bound doesn't increase the model size that means that the model stays smaller and will be solved faster.
+        /// The default upper bound of a variable is infinity(well not quite.It is a very big number, the value of <see cref="get_infinite"/>).
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_upbo.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="column">The column number of the variable on which the bound must be set. Must be between 1 and the number of columns in the lp.</param>
+        /// <param name="value">The upper bound on the variable identified by <paramref name="column"/>.</param>
+        /// <returns><c>true</c> if variable is operation was successful, <c>false</c> otherwise.</returns>
         public bool set_upbo(int column, double value)
         {
             return Interop.set_upbo(_lp, column, value);
         }
 
+        /// <summary>
+        /// Gets the lower bound of a variable.
+        /// <remarks>
+        /// Setting a bound on a variable is the way to go instead of adding an extra constraint (row) to the model.
+        /// Setting a bound doesn't increase the model size that means that the model stays smaller and will be solved faster.
+        /// Note that the default lower bound of each variable is 0.
+        /// So variables will never take negative values if no negative lower bound is set.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_lowbo.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="column">The column number of the variable. Must be between 1 and the number of columns in the lp.</param>
+        /// <returns>The lower bound on the specified variable. If no bound was set, it returns 0, the default lower bound.</returns>
         public double get_lowbo(int column)
         {
             return Interop.get_lowbo(_lp, column);
         }
 
+        /// <summary>
+        /// Sets the lower bound of a variable.
+        /// <remarks>
+        /// Setting a bound on a variable is the way to go instead of adding an extra constraint (row) to the model.
+        /// Setting a bound doesn't increase the model size that means that the model stays smaller and will be solved faster.
+        /// Note that the default lower bound of each variable is 0.
+        /// So variables will never take negative values if no negative lower bound is set.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_lowbo.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="column">The column number of the variable on which the bound must be set. Must be between 1 and the number of columns in the lp.</param>
+        /// <param name="value">The lower bound on the variable identified by <paramref name="column"/>.</param>
+        /// <returns><c>true</c> if variable is operation was successful, <c>false</c> otherwise.</returns>
         public bool set_lowbo(int column, double value)
         {
             return Interop.set_lowbo(_lp, column, value);
         }
 
-#endregion // Build model /  Column
+        #endregion // Build model /  Column
 
-#region Constraint / Row
+        #region Constraint / Row
 
         public bool add_constraint(double[] row, lpsolve_constr_types constr_type, double rh)
         {
@@ -421,9 +825,9 @@ namespace LpSolveDotNet
 
         // http://lpsolve.sourceforge.net/5.5/get_row.htm
 
-#endregion
+        #endregion
 
-#region Objective
+        #region Objective
 
         public bool set_obj(int Column, double Value)
         {
@@ -470,7 +874,7 @@ namespace LpSolveDotNet
             Interop.set_minim(_lp);
         }
 
-#endregion
+        #endregion
 
         public string get_lp_name()
         {
@@ -575,11 +979,11 @@ namespace LpSolveDotNet
         }
 
 
-#endregion
+        #endregion
 
-#region Solver settings
+        #region Solver settings
 
-#region Epsilon / Tolerance
+        #region Epsilon / Tolerance
 
         public double get_epsb()
         {
@@ -646,9 +1050,9 @@ namespace LpSolveDotNet
             return Interop.set_epslevel(_lp, level);
         }
 
-#endregion
+        #endregion
 
-#region Basis
+        #region Basis
 
         public void reset_basis()
         {
@@ -710,9 +1114,9 @@ namespace LpSolveDotNet
             return Interop.set_BFP(_lp, filename);
         }
 
-#endregion
+        #endregion
 
-#region Pivoting
+        #region Pivoting
 
         public int get_maxpivot()
         {
@@ -744,9 +1148,9 @@ namespace LpSolveDotNet
             return Interop.is_piv_mode(_lp, testmask);
         }
 
-#endregion
+        #endregion
 
-#region Scaling
+        #region Scaling
 
         public double get_scalelimit()
         {
@@ -788,9 +1192,9 @@ namespace LpSolveDotNet
             Interop.unscale(_lp);
         }
 
-#endregion
+        #endregion
 
-#region Branching
+        #region Branching
 
         public bool is_break_at_first()
         {
@@ -842,7 +1246,7 @@ namespace LpSolveDotNet
             Interop.set_bb_floorfirst(_lp, bb_floorfirst);
         }
 
-#endregion
+        #endregion
 
         public lpsolve_improves get_improve()
         {
@@ -975,9 +1379,9 @@ namespace LpSolveDotNet
             Interop.set_presolve(_lp, do_presolve, maxloops);
         }
 
-#endregion
+        #endregion
 
-#region Callback routines
+        #region Callback routines
 
         public void put_abortfunc(ctrlcfunc newctrlc, IntPtr ctrlchandle)
         {
@@ -994,18 +1398,18 @@ namespace LpSolveDotNet
             Interop.put_msgfunc(_lp, newmsg, msghandle, mask);
         }
 
-#endregion
+        #endregion
 
-#region Solve
+        #region Solve
 
         public lpsolve_return solve()
         {
             return Interop.solve(_lp);
         }
 
-#endregion
+        #endregion
 
-#region Solution
+        #region Solution
 
         public double get_constr_value(int row, int count, double[] primsolution, int[] nzindex)
         {
@@ -1093,9 +1497,9 @@ namespace LpSolveDotNet
             return Interop.is_feasible(_lp, values, threshold);
         }
 
-#endregion
+        #endregion
 
-#region Debug/print settings
+        #region Debug/print settings
 
         public bool set_outputfile(string filename)
         {
@@ -1112,12 +1516,12 @@ namespace LpSolveDotNet
             Interop.set_print_sol(_lp, print_sol);
         }
 
-        public int get_verbose()
+        public lp_solve_verbosity get_verbose()
         {
             return Interop.get_verbose(_lp);
         }
 
-        public void set_verbose(int verbose)
+        public void set_verbose(lp_solve_verbosity verbose)
         {
             Interop.set_verbose(_lp, verbose);
         }
@@ -1142,9 +1546,9 @@ namespace LpSolveDotNet
             Interop.set_trace(_lp, trace);
         }
 
-#endregion
+        #endregion
 
-#region Debug/print
+        #region Debug/print
 
         public void print_constraints(int columns)
         {
@@ -1191,9 +1595,9 @@ namespace LpSolveDotNet
             Interop.print_tableau(_lp);
         }
 
-#endregion
+        #endregion
 
-#region Write model to file
+        #region Write model to file
 
         public bool write_lp(string filename)
         {
@@ -1230,9 +1634,9 @@ namespace LpSolveDotNet
             return Interop.write_XLI(_lp, filename, options, results);
         }
 
-#endregion
+        #endregion
 
-#region Miscellaneous routines
+        #region Miscellaneous routines
 
         public static Version LpSolveVersion
         {
@@ -1312,24 +1716,6 @@ namespace LpSolveDotNet
             return Interop.get_orig_index(_lp, lp_index);
         }
 
-#endregion
-
-        private static string GetPathEnvironmentVariable()
-        {
-            return Environment.GetEnvironmentVariable("PATH"
-#if SUPPORTS_ENVIRONMENT_VARIABLE_TARGET
-                , EnvironmentVariableTarget.Process
-#endif
-                );
-        }
-        private static void SetPathEnvironmentVariable(string value)
-        {
-            Environment.SetEnvironmentVariable("PATH", value
-#if SUPPORTS_ENVIRONMENT_VARIABLE_TARGET
-                , EnvironmentVariableTarget.Process
-#endif
-                );
-        }
-
+        #endregion
     }
 }

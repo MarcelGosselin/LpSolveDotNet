@@ -506,6 +506,63 @@ namespace LpSolveDotNet
         //MSG_INITPSEUDOCOSR = 8192,
     }
 
+    /// <summary>
+    /// Defines the amount of information that is reported back to the user.
+    /// </summary>
+    public enum lp_solve_verbosity
+    {
+        /// <summary>Only some specific debug messages in de debug print routines are reported. (Value = 0)</summary>
+        NEUTRAL = 0,
+        /// <summary>Only critical messages are reported. Hard errors like instability, out of memory, ... (Value = 1)</summary>
+        CRITICAL = 1,
+        /// <summary>Only severe messages are reported. Errors. (Value = 2)</summary>
+        SEVERE = 2,
+        /// <summary>Only important messages are reported. Warnings and Errors. (Value = 3)</summary>
+        IMPORTANT = 3,
+        /// <summary>Normal messages are reported. This is the default. (Value = 4)</summary>
+        NORMAL = 4,
+        /// <summary>Detailed messages are reported. Like model size, continuing B&amp;B improvements, ... (Value = 5)</summary>
+        DETAILED = 5,
+        /// <summary>All messages are reported. Useful for debugging purposes and small models. (Value = 6)</summary>
+        FULL = 6,
+    }
+
+    /// <summary>
+    /// Combination of verbosity and options used when reading MPS files. You can combine one <c>VERBOSE_</c> value with any number of <c>MPS_</c> values.
+    /// </summary>
+    [Flags]
+    public enum lp_solve_mps_options
+    {
+        /// <summary>Only some specific debug messages in de debug print routines are reported. (Value = 0)</summary>
+        VERBOSE_NEUTRAL = 0,
+        /// <summary>Only critical messages are reported. Hard errors like instability, out of memory, ... (Value = 1)</summary>
+        VERBOSE_CRITICAL = 1,
+        /// <summary>Only severe messages are reported. Errors. (Value = 2)</summary>
+        VERBOSE_SEVERE = 2,
+        /// <summary>Only important messages are reported. Warnings and Errors. (Value = 3)</summary>
+        VERBOSE_IMPORTANT = 3,
+        /// <summary>Normal messages are reported. This is the default. (Value = 4)</summary>
+        VERBOSE_NORMAL = 4,
+        /// <summary>Detailed messages are reported. Like model size, continuing B&amp;B improvements, ... (Value = 5)</summary>
+        VERBOSE_DETAILED = 5,
+        /// <summary>All messages are reported. Useful for debugging purposes and small models. (Value = 6)</summary>
+        VERBOSE_FULL = 6,
+        /// <summary>Fixed MPS Format [Default] (Value = 0)
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/mps-format.htm">MPS file format</seealso></summary>
+        MPS_FIXED = 0,
+        /// <summary>Free MPS Format (Value = 8)
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/mps-format.htm">MPS file format</seealso></summary>
+        MPS_FREE = 8,
+        /// <summary>Interprete integer variables without bounds as binary variables. That is the original IBM standard.
+        /// By default lp_solve interpretes variables without bounds as having no upperbound as for real variables. (Value = 16)
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/mps-format.htm">MPS file format (section G)</seealso></summary>
+        MPS_IBM = 16,
+        /// <summary>Interprete the objective constant with an oposite sign. Some solvers interprete the objective constant
+        /// as a value in the RHS and negate it when brought at the LHS. This option allows to let lp_solve do this also. (Value = 32)
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/mps-format.htm">MPS file format</seealso></summary>
+        MPS_NEGOBJCONST = 32,
+    }
+
     public delegate bool ctrlcfunc(IntPtr lp, IntPtr userhandle);
     public delegate void msgfunc(IntPtr lp, IntPtr userhandle, lpsolve_msgmask message);
     public delegate void logfunc(IntPtr lp, IntPtr userhandle, [MarshalAs(UnmanagedType.LPStr)] string buf);
@@ -691,7 +748,7 @@ namespace LpSolveDotNet
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool get_variables(IntPtr lp, double[] var);
         [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern int get_verbose(IntPtr lp);
+        public static extern lp_solve_verbosity get_verbose(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern double get_working_objective(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -782,14 +839,14 @@ namespace LpSolveDotNet
         public static extern void put_msgfunc(IntPtr lp, msgfunc newmsg, IntPtr msghandle, int mask);
         [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
         public static extern bool read_basis(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string filename, [MarshalAs(UnmanagedType.LPStr)] string info);
+        //[DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
+        //public static extern IntPtr read_freeMPS([MarshalAs(UnmanagedType.LPStr)] string filename, int options);
         [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
-        public static extern IntPtr read_freeMPS([MarshalAs(UnmanagedType.LPStr)] string filename, int options);
+        public static extern IntPtr read_LP([MarshalAs(UnmanagedType.LPStr)] string filename, lp_solve_verbosity verbose, [MarshalAs(UnmanagedType.LPStr)] string lp_name);
         [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
-        public static extern IntPtr read_LP([MarshalAs(UnmanagedType.LPStr)] string filename, int verbose, [MarshalAs(UnmanagedType.LPStr)] string lp_name);
+        public static extern IntPtr read_MPS([MarshalAs(UnmanagedType.LPStr)] string filename, lp_solve_mps_options options);
         [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
-        public static extern IntPtr read_MPS([MarshalAs(UnmanagedType.LPStr)] string filename, int options);
-        [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
-        public static extern IntPtr read_XLI([MarshalAs(UnmanagedType.LPStr)] string xliname, [MarshalAs(UnmanagedType.LPStr)] string modelname, [MarshalAs(UnmanagedType.LPStr)] string dataname, [MarshalAs(UnmanagedType.LPStr)] string options, int verbose);
+        public static extern IntPtr read_XLI([MarshalAs(UnmanagedType.LPStr)] string xliname, [MarshalAs(UnmanagedType.LPStr)] string modelname, [MarshalAs(UnmanagedType.LPStr)] string dataname, [MarshalAs(UnmanagedType.LPStr)] string options, lp_solve_verbosity verbose);
         [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
         public static extern bool read_params(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string filename, [MarshalAs(UnmanagedType.LPStr)] string options);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -929,7 +986,7 @@ namespace LpSolveDotNet
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool set_var_weights(IntPtr lp, double[] weights);
         [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern void set_verbose(IntPtr lp, int verbose);
+        public static extern void set_verbose(IntPtr lp, lp_solve_verbosity verbose);
         [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
         public static extern bool set_XLI(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string filename);
         [DllImport("lpsolve55.dll", SetLastError = true)]

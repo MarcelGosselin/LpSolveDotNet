@@ -105,7 +105,7 @@ namespace LpSolveDotNet.Demo
                 lp.write_lp("model.lp");
 
                 // I only want to see important messages on screen while solving
-                lp.set_verbose(3);
+                lp.set_verbose(lp_solve_verbosity.IMPORTANT);
 
                 // Now let lpsolve calculate a solution
                 lpsolve_return s = lp.solve();
