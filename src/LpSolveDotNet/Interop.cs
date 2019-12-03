@@ -230,7 +230,7 @@ namespace LpSolveDotNet
         PRESOLVE_ROWDOMINATE = 8192,
         /// <summary>Deletes variables (mainly binary), that are dominated by others (only one can be non-zero)</summary>
         PRESOLVE_COLDOMINATE = 16384,
-        /// <summary>Merges neighboring >= or <= constraints when the vectors are otherwise relatively identical into a single ranged constraint</summary>
+        /// <summary>Merges neighboring >= or &lt;= constraints when the vectors are otherwise relatively identical into a single ranged constraint</summary>
         PRESOLVE_MERGEROWS = 32768,
         /// <summary>Converts qualifying equalities to inequalities by converting a column singleton variable to slack.
         /// The routine also detects implicit duplicate slacks from inequality constraints, fixes and removes the redundant variable.
@@ -389,7 +389,7 @@ namespace LpSolveDotNet
         /// <item><description>set_break_at_first was called so that the first found integer solution is found (-f option in lp_solve)</description></item>
         /// <item><description>set_break_at_value was called so that when integer solution is found that is better than the specified value that it stops (-o option in lp_solve)</description></item>
         /// <item><description>set_mip_gap was called (-g/-ga/-gr options in lp_solve) to specify a MIP gap</description></item>
-        /// <item><description>An abort function is installed (<see cref="put_abortfunc"/>) and this function returned TRUE</description></item>
+        /// <item><description>An abort function is installed (<see cref="LpSolve.put_abortfunc"/>) and this function returned TRUE</description></item>
         /// <item><description>At some point not enough memory could not be allocated</description></item>
         /// </list>
         /// </summary>
@@ -416,17 +416,17 @@ namespace LpSolveDotNet
         NUMFAILURE = 5,
 
         /// <summary>
-        /// The abort routine returned TRUE. <see cref="put_abortfunc"/>
+        /// The abort routine returned TRUE. <see cref="LpSolve.put_abortfunc"/>
         /// </summary>
         USERABORT = 6,
 
         /// <summary>
-        /// A timeout occurred. A timeout was set via <see cref="set_timeout"/>
+        /// A timeout occurred. A timeout was set via <see cref="LpSolve.set_timeout"/>
         /// </summary>
         TIMEOUT = 7,
 
         /// <summary>
-        /// The model could be solved by presolve. This can only happen if presolve is active via <see cref="set_presolve"/>
+        /// The model could be solved by presolve. This can only happen if presolve is active via <see cref="LpSolve.set_presolve"/>
         /// </summary>
         PRESOLVED = 9,
 
@@ -481,19 +481,19 @@ namespace LpSolveDotNet
         /// <summary>Feasible solution found.</summary>
         MSG_LPFEASIBLE = 8,
 
-        /// <summary>Real optimal solution found. Only fired when there are integer variables at the start of B&B</summary>
+        /// <summary>Real optimal solution found. Only fired when there are integer variables at the start of B&amp;B</summary>
         MSG_LPOPTIMAL = 16,
 
         //MSG_LPEQUAL = 32, //not used in lpsolve code
         //MSG_LPBETTER = 64, //not used in lpsolve code
 
-        /// <summary>First MILPsolution found. Only fired when there are integer variables during B&B</summary>
+        /// <summary>First MILPsolution found. Only fired when there are integer variables during B&amp;B</summary>
         MSG_MILPFEASIBLE = 128,
 
-        /// <summary>Equal MILP solution found. Only fired when there are integer variables during B&B</summary>
+        /// <summary>Equal MILP solution found. Only fired when there are integer variables during B&amp;B</summary>
         MSG_MILPEQUAL = 256,
 
-        /// <summary>Better MILPsolution found. Only fired when there are integer variables during B&B</summary>
+        /// <summary>Better MILPsolution found. Only fired when there are integer variables during B&amp;B</summary>
         MSG_MILPBETTER = 512,
 
         ///// <summary>?? Only used on user abort.</summary>

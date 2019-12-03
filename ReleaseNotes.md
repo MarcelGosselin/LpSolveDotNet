@@ -3,6 +3,7 @@
 ## vNext -- not released yet
 
 ### New Features/Improvements
+* Support for .NET Core and more (.NET Standard 1.3 and 2.0)
 * Document enum values
 * Add missing enum values to be equal to those in lpsolve's source code.
 

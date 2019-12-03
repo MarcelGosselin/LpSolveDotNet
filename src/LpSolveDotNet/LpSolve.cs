@@ -1,6 +1,11 @@
-﻿using System;
+﻿#if NET20 || NETSTANDARD2_0
+#define SUPPORTS_ENVIRONMENT_VARIABLE_TARGET
+#endif
+#if NETSTANDARD2_0 || NETSTANDARD1_3
+#define SUPPORTS_APPCONTEXT
+#endif
+using System;
 using System.IO;
-using System.Reflection;
 
 namespace LpSolveDotNet
 {
@@ -18,27 +23,33 @@ namespace LpSolveDotNet
         {
             if (string.IsNullOrEmpty(dllFolderPath))
             {
-                string exePath = Assembly.GetExecutingAssembly().Location;
                 bool is64Bit = IntPtr.Size == 8;
-                dllFolderPath = Path.GetDirectoryName(exePath) + (is64Bit ? @"\NativeBinaries\win64\" : @"\NativeBinaries\win32\");
+                string baseDirectory =
+#if SUPPORTS_APPCONTEXT
+                    AppContext.BaseDirectory;
+#else
+                    Path.GetDirectoryName(new Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath);
+#endif
+                dllFolderPath = Path.Combine(Path.Combine(baseDirectory, "NativeBinaries"), is64Bit ? "win64" : "win32");
             }
-            var dllFilePath = dllFolderPath;
-            if (dllFilePath.Substring(dllFilePath.Length - 1, 1) != "\\")
+            if (dllFolderPath.EndsWith(Path.DirectorySeparatorChar.ToString())
+                || dllFolderPath.EndsWith(Path.AltDirectorySeparatorChar.ToString()))
             {
-                dllFilePath += "\\";
+                // remove trailing slash for use in PATH environment variable
+                dllFolderPath = dllFolderPath.Substring(0, dllFolderPath.Length - 1);
             }
-            dllFilePath += "lpsolve55.dll";
+            var dllFilePath = Path.Combine(dllFolderPath + Path.DirectorySeparatorChar, "lpsolve55.dll");
 
             bool returnValue = File.Exists(dllFilePath);
             if (returnValue)
             {
                 if (!_hasAlreadyChangedPathEnvironmentVariable)
                 {
-                    string pathEnvironmentVariable = Environment.GetEnvironmentVariable("PATH");
-                    string pathWithSemiColon = pathEnvironmentVariable + ";";
-                    if (pathWithSemiColon.IndexOf(dllFolderPath + ";", StringComparison.InvariantCultureIgnoreCase) < 0)
+                    string pathEnvironmentVariable = GetPathEnvironmentVariable();
+                    string pathWithSemiColon = pathEnvironmentVariable + Path.PathSeparator;
+                    if (pathWithSemiColon.IndexOf(dllFolderPath + Path.PathSeparator) < 0)
                     {
-                        Environment.SetEnvironmentVariable("PATH", dllFolderPath + ";" + pathEnvironmentVariable, EnvironmentVariableTarget.Process);
+                        SetPathEnvironmentVariable(dllFolderPath + Path.PathSeparator + pathEnvironmentVariable);
                     }
                     _hasAlreadyChangedPathEnvironmentVariable = true;
                 }
@@ -47,15 +58,15 @@ namespace LpSolveDotNet
         }
         private static bool _hasAlreadyChangedPathEnvironmentVariable;
 
-        #endregion
+#endregion
 
-        #region Fields
+#region Fields
 
         private IntPtr _lp;
 
-        #endregion
+#endregion
 
-        #region Create/destroy model
+#region Create/destroy model
 
         /// <summary>
         /// Constructor, to be called from <see cref="CreateFromLpRecStructurePointer"/> only.
@@ -149,11 +160,11 @@ namespace LpSolveDotNet
             Dispose(false);
         }
 
-        #endregion
+#endregion
 
-        #region Build model
+#region Build model
 
-        #region Column
+#region Column
 
         // http://lpsolve.sourceforge.net/5.5/add_column.htm
 
@@ -295,9 +306,9 @@ namespace LpSolveDotNet
             return Interop.set_lowbo(_lp, column, value);
         }
 
-        #endregion // Build model /  Column
+#endregion // Build model /  Column
 
-        #region Constraint / Row
+#region Constraint / Row
 
         public bool add_constraint(double[] row, lpsolve_constr_types constr_type, double rh)
         {
@@ -410,9 +421,9 @@ namespace LpSolveDotNet
 
         // http://lpsolve.sourceforge.net/5.5/get_row.htm
 
-        #endregion
+#endregion
 
-        #region Objective
+#region Objective
 
         public bool set_obj(int Column, double Value)
         {
@@ -459,7 +470,7 @@ namespace LpSolveDotNet
             Interop.set_minim(_lp);
         }
 
-        #endregion
+#endregion
 
         public string get_lp_name()
         {
@@ -564,11 +575,11 @@ namespace LpSolveDotNet
         }
 
 
-        #endregion
+#endregion
 
-        #region Solver settings
+#region Solver settings
 
-        #region Epsilon / Tolerance
+#region Epsilon / Tolerance
 
         public double get_epsb()
         {
@@ -635,9 +646,9 @@ namespace LpSolveDotNet
             return Interop.set_epslevel(_lp, level);
         }
 
-        #endregion
+#endregion
 
-        #region Basis
+#region Basis
 
         public void reset_basis()
         {
@@ -699,9 +710,9 @@ namespace LpSolveDotNet
             return Interop.set_BFP(_lp, filename);
         }
 
-        #endregion
+#endregion
 
-        #region Pivoting
+#region Pivoting
 
         public int get_maxpivot()
         {
@@ -733,9 +744,9 @@ namespace LpSolveDotNet
             return Interop.is_piv_mode(_lp, testmask);
         }
 
-        #endregion
+#endregion
 
-        #region Scaling
+#region Scaling
 
         public double get_scalelimit()
         {
@@ -777,9 +788,9 @@ namespace LpSolveDotNet
             Interop.unscale(_lp);
         }
 
-        #endregion
+#endregion
 
-        #region Branching
+#region Branching
 
         public bool is_break_at_first()
         {
@@ -831,7 +842,7 @@ namespace LpSolveDotNet
             Interop.set_bb_floorfirst(_lp, bb_floorfirst);
         }
 
-        #endregion
+#endregion
 
         public lpsolve_improves get_improve()
         {
@@ -964,9 +975,9 @@ namespace LpSolveDotNet
             Interop.set_presolve(_lp, do_presolve, maxloops);
         }
 
-        #endregion
+#endregion
 
-        #region Callback routines
+#region Callback routines
 
         public void put_abortfunc(ctrlcfunc newctrlc, IntPtr ctrlchandle)
         {
@@ -983,18 +994,18 @@ namespace LpSolveDotNet
             Interop.put_msgfunc(_lp, newmsg, msghandle, mask);
         }
 
-        #endregion
+#endregion
 
-        #region Solve
+#region Solve
 
         public lpsolve_return solve()
         {
             return Interop.solve(_lp);
         }
 
-        #endregion
+#endregion
 
-        #region Solution
+#region Solution
 
         public double get_constr_value(int row, int count, double[] primsolution, int[] nzindex)
         {
@@ -1082,9 +1093,9 @@ namespace LpSolveDotNet
             return Interop.is_feasible(_lp, values, threshold);
         }
 
-        #endregion
+#endregion
 
-        #region Debug/print settings
+#region Debug/print settings
 
         public bool set_outputfile(string filename)
         {
@@ -1131,9 +1142,9 @@ namespace LpSolveDotNet
             Interop.set_trace(_lp, trace);
         }
 
-        #endregion
+#endregion
 
-        #region Debug/print
+#region Debug/print
 
         public void print_constraints(int columns)
         {
@@ -1180,9 +1191,9 @@ namespace LpSolveDotNet
             Interop.print_tableau(_lp);
         }
 
-        #endregion
+#endregion
 
-        #region Write model to file
+#region Write model to file
 
         public bool write_lp(string filename)
         {
@@ -1219,9 +1230,9 @@ namespace LpSolveDotNet
             return Interop.write_XLI(_lp, filename, options, results);
         }
 
-        #endregion
+#endregion
 
-        #region Miscellaneous routines
+#region Miscellaneous routines
 
         public static Version LpSolveVersion
         {
@@ -1301,8 +1312,24 @@ namespace LpSolveDotNet
             return Interop.get_orig_index(_lp, lp_index);
         }
 
-        #endregion
+#endregion
 
+        private static string GetPathEnvironmentVariable()
+        {
+            return Environment.GetEnvironmentVariable("PATH"
+#if SUPPORTS_ENVIRONMENT_VARIABLE_TARGET
+                , EnvironmentVariableTarget.Process
+#endif
+                );
+        }
+        private static void SetPathEnvironmentVariable(string value)
+        {
+            Environment.SetEnvironmentVariable("PATH", value
+#if SUPPORTS_ENVIRONMENT_VARIABLE_TARGET
+                , EnvironmentVariableTarget.Process
+#endif
+                );
+        }
 
     }
 }
