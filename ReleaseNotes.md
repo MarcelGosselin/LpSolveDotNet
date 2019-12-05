@@ -16,9 +16,10 @@
 * Changes to the pivot modes in the `lpsolve_piv_rules` enum to follow lp_solve's source code:
   * `PRICE_AUTOPARTIALCOLS` and `PRICE_AUTOPARTIALROWS` now replaced by `PRICE_AUTOPARTIAL` and  `PRICE_AUTOMULTIPLE` respectively.
   * **The behaviour of `PRICE_AUTOPARTIAL` has changed**. The previous definition of `PRICE_AUTOPARTIAL` was `PRICE_AUTOPARTIALCOLS | PRICE_AUTOPARTIALROWS` but now only has the first component.  If you used this previously and want to retain same behaviour, you must use `lpsolve_piv_rules.PRICE_AUTOPARTIAL | lpsolve_piv_rules.PRICE_AUTOMULTIPLE`.
-* All `verbose` parameters and return values are now of type `lp_solve_verbosity`.
-* Method `read_freeMPS` removed, use `read_MPS` and add `lp_solve_mps_options.MPS_FREE` to the methods `option` argument.
-* Method `read_MPS`'s `option` parameter is now of type `lp_solve_mps_options`.
+* All `verbose` parameters and return values are now of type `lpsolve_verbosity`.
+* Method `read_freeMPS` removed, use `read_MPS` and add `lpsolve_mps_options.MPS_FREE` to the methods `option` argument.
+* Method `read_MPS`'s `option` parameter is now split into two parameters of types `lpsolve_verbosity` and `lpsolve_mps_options`.
+* Method `is_constr_type`'s `mask` parameter is now of type `lpsolve_constr_types`
 
 ## 3.1.0
 
