@@ -1603,66 +1603,231 @@ namespace LpSolveDotNet
 
         #region Epsilon / Tolerance
 
+        /// <summary>
+        /// Returns the value that is used as a tolerance for the Right Hand Side (RHS) to determine whether a value should be considered as 0.
+        /// <remarks>
+        /// The default value for <c>epsb</c> is <c>1e-10</c>.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_epsb.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <returns>Returns the value that is used as a tolerance for the Right Hand Side (RHS) to determine whether a value should be considered as 0.</returns>
         public double get_epsb()
         {
             return Interop.get_epsb(_lp);
         }
 
+        /// <summary>
+        /// Specifies the value that is used as a tolerance for the Right Hand Side (RHS) to determine whether a value should be considered as 0.
+        /// <remarks>
+        /// <para>Floating-point calculations always result in loss of precision and rounding errors.
+        /// Therefore a very small value (example <c>1e-99</c>) could be the result of such errors and should be considered as 0 for the algorithm. epsb specifies the tolerance to determine if a RHS value should be considered as 0. If abs(value) is less than this epsb value in the RHS, it is considered as 0.</para>
+        /// <para>The default <c>epsb</c> value is <c>1e-10</c></para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_epsb.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="epsb">The value that is used as a tolerance for the Right Hand Side (RHS) to determine whether a value should be considered as 0.</param>
         public void set_epsb(double epsb)
         {
             Interop.set_epsb(_lp, epsb);
         }
 
+        /// <summary>
+        /// Returns the value that is used as a tolerance for the reduced costs to determine whether a value should be considered as 0.
+        /// <remarks>
+        /// The default value for <c>epsd</c> is <c>1e-9</c>.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_epsd.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <returns>Returns the value that is used as a tolerance for the reduced costs to determine whether a value should be considered as 0.</returns>
         public double get_epsd()
         {
             return Interop.get_epsd(_lp);
         }
 
+        /// <summary>
+        /// Specifies the value that is used as a tolerance for reduced costs to determine whether a value should be considered as 0.
+        /// <remarks>
+        /// <para>Floating-point calculations always result in loss of precision and rounding errors.
+        /// Therefore a very small value (example <c>1e-99</c>) could be the result of such errors and should be considered as 0 for the algorithm. epsd specifies the tolerance to determine if a reducedcost value should be considered as 0. If abs(value) is less than this epsd value, it is considered as 0.</para>
+        /// <para>The default <c>epsd</c> value is <c>1e-9</c></para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_epsd.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="epsd">The value that is used as a tolerance for reduced costs to determine whether a value should be considered as 0.</param>
         public void set_epsd(double epsd)
         {
             Interop.set_epsd(_lp, epsd);
         }
 
+        /// <summary>
+        /// Returns the value that is used as a tolerance for rounding values to zero.
+        /// <remarks>
+        /// <para><c>epsel</c> is used on all other places where <c>epsint</c>, <c>epsb</c>, <c>epsd</c>, <c>epspivot</c>, <c>epsperturb</c> are not used.</para>
+        /// <para>The default value for <c>epsel</c> is <c>1e-12</c></para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_epsel.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <returns>Returns the value that is used as a tolerance for rounding values to zero.</returns>
         public double get_epsel()
         {
             return Interop.get_epsel(_lp);
         }
 
+        /// <summary>
+        /// Specifies the value that is used as a tolerance for rounding values to zero.
+        /// <remarks>
+        /// <para>Floating-point calculations always result in loss of precision and rounding errors. Therefore a very small value (example 1e-99) could be the result of such errors and should be considered as 0 for the algorithm. epsel specifies the tolerance to determine if a value should be considered as 0. If abs(value) is less than this epsel value, it is considered as 0.</para>
+        /// <para><c>epsel</c> is used on all other places where <c>epsint</c>, <c>epsb</c>, <c>epsd</c>, <c>epspivot</c>, <c>epsperturb</c> are not used.</para>
+        /// <para>The default value for <c>epsel</c> is <c>1e-12</c></para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_epsel.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="epsel">The value that is used as a tolerance for rounding values to zero.</param>
         public void set_epsel(double epsel)
         {
             Interop.set_epsel(_lp, epsel);
         }
 
+        /// <summary>
+        /// Returns the tolerance that is used to determine whether a floating-point number is in fact an integer.
+        /// <remarks>
+        /// The default value for <c>epsint</c> is <c>1e-7</c>.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_epsint.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <returns>Returns the tolerance that is used to determine whether a floating-point number is in fact an integer.</returns>
         public double get_epsint()
         {
             return Interop.get_epsint(_lp);
         }
 
+        /// <summary>
+        /// Specifies the tolerance that is used to determine whether a floating-point number is in fact an integer.
+        /// <remarks>
+        /// <para>This is only used when there is at least one integer variable and the branch and bound algorithm is used to make variables integer.</para>
+        /// <para>Integer variables are internally in the algorithm also stored as floating point.
+        /// Therefore a tolerance is needed to determine if a value is to be considered as integer or not.
+        /// If the absolute value of the variable minus the closed integer value is less than <c>epsint</c>, it is considered as integer.
+        /// For example if a variable has the value 0.9999999 and epsint is 0.000001 then it is considered integer because abs(0.9999999 - 1) = 0.0000001 and this is less than 0.000001</para>
+        /// <para>The default value for epsint is 1e-7</para>
+        /// <para>So by changing epsint you determine how close a value must approximate the nearest integer.
+        /// Changing this tolerance value to for example 0.001 will generally result in faster solving times, but your solution is less integer.</para>
+        /// <para>So it is a compromise.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_epsint.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="epsint">The tolerance that is used to determine whether a floating-point number is in fact an integer.</param>
         public void set_epsint(double epsint)
         {
             Interop.set_epsint(_lp, epsint);
         }
 
+        /// <summary>
+        /// Returns the value that is used as perturbation scalar for degenerative problems.
+        /// <remarks>The default epsperturb value is 1e-5</remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_epsperturb.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <returns>Returns the perturbation scalar.</returns>
         public double get_epsperturb()
         {
             return Interop.get_epsperturb(_lp);
         }
 
+        /// <summary>
+        /// Specifies the value that is used as perturbation scalar for degenerative problems.
+        /// <remarks>The default epsperturb value is 1e-5</remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_epsperturb.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="epsperturb">The perturbation scalar.</param>
         public void set_epsperturb(double epsperturb)
         {
             Interop.set_epsperturb(_lp, epsperturb);
         }
 
+        /// <summary>
+        /// Returns the value that is used as a tolerance for the pivot element to determine whether a value should be considered as 0.
+        /// <remarks>
+        /// <para>Floating-point calculations always result in loss of precision and rounding errors.
+        /// Therefore a very small value (example 1e-99) could be the result of such errors and should be considered as 0 
+        /// for the algorithm. epspivot specifies the tolerance to determine if a pivot element should be considered as 0.
+        /// If abs(value) is less than this epspivot value it is considered as 0 and at first instance rejected as pivot element.
+        /// Only when no larger other pivot element can be found and the value is different from 0 it will be used as pivot element.</para>
+        /// <para>The default epspivot value is 2e-7</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_epspivot.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <returns>Returns the value that is used as a tolerance for the pivot element to determine whether a value should be considered as 0.</returns>
         public double get_epspivot()
         {
             return Interop.get_epspivot(_lp);
         }
 
+        /// <summary>
+        /// Specifies the value that is used as a tolerance pivot element to determine whether a value should be considered as 0.
+        /// <remarks>
+        /// <para>Floating-point calculations always result in loss of precision and rounding errors.
+        /// Therefore a very small value (example 1e-99) could be the result of such errors and should be considered as 0 
+        /// for the algorithm. epspivot specifies the tolerance to determine if a pivot element should be considered as 0.
+        /// If abs(value) is less than this epspivot value it is considered as 0 and at first instance rejected as pivot element.
+        /// Only when no larger other pivot element can be found and the value is different from 0 it will be used as pivot element.</para>
+        /// <para>The default epspivot value is 2e-7</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_epspivot.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="epspivot">The value that is used as a tolerance for the pivot element to determine whether a value should be considered as 0.</param>
         public void set_epspivot(double epspivot)
         {
             Interop.set_epspivot(_lp, epspivot);
         }
 
+        /// <summary>
+        /// Specifies the MIP gap value.
+        /// <remarks>
+        /// <para>The set_mip_gap function sets the MIP gap that specifies a tolerance for the branch and bound algorithm.
+        /// This tolerance is the difference between the best-found solution yet and the current solution.
+        /// If the difference is smaller than this tolerance then the solution (and all the sub-solutions) is rejected.
+        /// This can result in faster solving times, but results in a solution which is not the perfect solution.
+        /// So be careful with this tolerance.</para>
+        /// <para>The default is 1e-11.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_mip_gap.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="absolute">If <c>true</c> then the absolute MIP gap is set, else the relative MIP gap.</param>
+        /// <param name="mip_gap">The MIP gap.</param>
+        public void set_mip_gap(bool absolute, double mip_gap)
+        {
+            Interop.set_mip_gap(_lp, absolute, mip_gap);
+        }
+
+        /// <summary>
+        /// Returns the MIP gap value.
+        /// <remarks>
+        /// <para>The get_mip_gap function returns the MIP gap that specifies a tolerance for the branch and bound algorithm.
+        /// This tolerance is the difference between the best-found solution yet and the current solution.
+        /// If the difference is smaller than this tolerance then the solution (and all the sub-solutions) is rejected.
+        /// This can result in faster solving times, but results in a solution which is not the perfect solution.
+        /// So be careful with this tolerance.</para>
+        /// <para>The default is 1e-11.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_mip_gap.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="absolute">If <c>true</c> then the absolute MIP gap is returned, else the relative MIP gap.</param>
+        /// <returns></returns>
+        public double get_mip_gap(bool absolute)
+        {
+            return Interop.get_mip_gap(_lp, absolute);
+        }
+
+        /// <summary>
+        /// This is a simplified way of specifying multiple eps thresholds that are "logically" consistent.
+        /// <remarks>
+        /// <para>It sets the following values: <see cref="set_epsel"/>, <see cref="set_epsb"/>, <see cref="set_epsd"/>, <see cref="set_epspivot"/>, <see cref="set_epsint"/>, <see cref="set_mip_gap"/>.</para>
+        /// <para>The default is <see cref="lpsolve_epsilon_level.EPS_TIGHT"/>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_epslevel.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="level">The level to set.</param>
+        /// <returns><c>true</c> if level is accepted and <c>false</c> if an invalid epsilon level was provided.</returns>
         public bool set_epslevel(lpsolve_epsilon_level level)
         {
             return Interop.set_epslevel(_lp, level);
@@ -1736,32 +1901,100 @@ namespace LpSolveDotNet
 
         #region Pivoting
 
+        /// <summary>
+        /// Returns the maximum number of pivots between a re-inversion of the matrix.
+        /// <remarks>
+        /// <para>For stability reasons, lp_solve re-inverts the matrix on regular times. max_num_inv determines how frequently this inversion is done. This can influence numerical stability. However, the more often this is done, the slower the solver becomes.</para>
+        /// <para>The default is 250 for the LUSOL bfp and 42 for the other BFPs.</para></remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_maxpivot.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <returns>Returns the maximum number of pivots between a re-inversion of the matrix.</returns>
         public int get_maxpivot()
         {
             return Interop.get_maxpivot(_lp);
         }
 
+        /// <summary>
+        /// Sets the maximum number of pivots between a re-inversion of the matrix.
+        /// <remarks>
+        /// <para>For stability reasons, lp_solve re-inverts the matrix on regular times. max_num_inv determines how frequently this inversion is done. This can influence numerical stability. However, the more often this is done, the slower the solver becomes.</para>
+        /// <para>The default is 250 for the LUSOL bfp and 42 for the other BFPs.</para></remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_maxpivot.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="max_num_inv">The maximum number of pivots between a re-inversion of the matrix.</param>
         public void set_maxpivot(int max_num_inv)
         {
             Interop.set_maxpivot(_lp, max_num_inv);
         }
 
-        public lpsolve_piv_rules get_pivoting()
+        /// <summary>
+        /// Returns the pivot rule and modes. See <see cref="lpsolve_pivot_rule"/> and <see cref="lpsolve_pivot_modes"/> for possible values.
+        /// <remarks>
+        /// <para>The rule is an exclusive option and the mode is a modifier to the rule.
+        /// This rule/mode can influence solving times considerably.
+        /// Depending on the model one rule/mode can be best and for another model another rule/mode.</para>
+        /// <para>The default rule is <see cref="lpsolve_pivot_rule.PRICER_DEVEX"/> and the default mode is <see cref="lpsolve_pivot_modes.PRICE_ADAPTIVE"/>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_pivoting.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <returns>The pivot rule (rule for selecting row and column entering/leaving) and mode.</returns>
+        public PivotRuleAndModes get_pivoting()
         {
-            return Interop.get_pivoting(_lp);
+            int pivoting = Interop.get_pivoting(_lp);
+            int mask = (int)lpsolve_pivot_rule.PRICER_STEEPESTEDGE;
+            int rule = pivoting & mask;
+            int modes = pivoting & ~mask;
+            return new PivotRuleAndModes(
+                (lpsolve_pivot_rule)rule,
+                (lpsolve_pivot_modes)modes
+                );
         }
 
-        public void set_pivoting(lpsolve_piv_rules piv_rule)
+        /// <summary>
+        /// Sets the pivot rule and modes.
+        /// <remarks>
+        /// <para>The rule is an exclusive option and the mode is a modifier to the rule.
+        /// This rule/mode can influence solving times considerably.
+        /// Depending on the model one rule/mode can be best and for another model another rule/mode.</para>
+        /// <para>The default rule is <see cref="lpsolve_pivot_rule.PRICER_DEVEX"/> and the default mode is <see cref="lpsolve_pivot_modes.PRICE_ADAPTIVE"/>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_pivoting.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="rule">The pivot <see cref="lpsolve_pivot_rule">rule</see> (rule for selecting row and column entering/leaving).</param>
+        /// <param name="modes">The <see cref="lpsolve_pivot_modes">modes</see> modifying the <see cref="lpsolve_pivot_rule">rule</see>.</param>
+        public void set_pivoting(lpsolve_pivot_rule rule, lpsolve_pivot_modes modes)
         {
-            Interop.set_pivoting(_lp, piv_rule);
+            Interop.set_pivoting(_lp, ((int)rule)| ((int)modes));
         }
 
-        public bool is_piv_rule(lpsolve_piv_rules rule)
+        /// <summary>
+        /// Checks if the specified pivot rule is active.
+        /// <remarks>
+        /// <para>
+        /// This rule/mode can influence solving times considerably.
+        /// Depending on the model one rule can be best and for another model another rule.</para>
+        /// <para>The default is <see cref="lpsolve_pivot_rule.PRICER_DEVEX"/>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_piv_rule.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="rule">Rule to check.</param>
+        /// <returns><c>true</c> if the specified pivot rule is active, <c>false</c> otherwise.</returns>
+        public bool is_piv_rule(lpsolve_pivot_rule rule)
         {
             return Interop.is_piv_rule(_lp, rule);
         }
 
-        public bool is_piv_mode(lpsolve_piv_rules testmask)
+
+        /// <summary>
+        /// Checks if the pivot mode specified in <paramref name="testmask"/> is active.
+        /// <remarks>
+        /// The pivot mode is an extra modifier to the pivot rule. Any combination (OR) of the defined values is possible.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_piv_mode.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="testmask">Any combination of <see cref="lpsolve_pivot_modes"/> to check if they are active.</param>
+        /// <returns><c>true</c> if all the specified modes are active, <c>false</c> otherwise.</returns>
+        public bool is_piv_mode(lpsolve_pivot_modes testmask)
         {
             return Interop.is_piv_mode(_lp, testmask);
         }
@@ -2038,16 +2271,6 @@ namespace LpSolveDotNet
         public void set_improve(lpsolve_improves improve)
         {
             Interop.set_improve(_lp, improve);
-        }
-
-        public void set_mip_gap(bool absolute, double mip_gap)
-        {
-            Interop.set_mip_gap(_lp, absolute, mip_gap);
-        }
-
-        public double get_mip_gap(bool absolute)
-        {
-            return Interop.get_mip_gap(_lp, absolute);
         }
 
         public double get_negrange()

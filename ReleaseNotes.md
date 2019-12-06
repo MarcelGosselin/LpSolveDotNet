@@ -13,9 +13,12 @@
 
 ### API changes
 * Changed value of `lpsolve_msgmask.MSG_MILPEQUAL` from `32` to `256` which is the value expected from lp_solve.
-* Changes to the pivot modes in the `lpsolve_piv_rules` enum to follow lp_solve's source code:
-  * `PRICE_AUTOPARTIALCOLS` and `PRICE_AUTOPARTIALROWS` now replaced by `PRICE_AUTOPARTIAL` and  `PRICE_AUTOMULTIPLE` respectively.
-  * **The behaviour of `PRICE_AUTOPARTIAL` has changed**. The previous definition of `PRICE_AUTOPARTIAL` was `PRICE_AUTOPARTIALCOLS | PRICE_AUTOPARTIALROWS` but now only has the first component.  If you used this previously and want to retain same behaviour, you must use `lpsolve_piv_rules.PRICE_AUTOPARTIAL | lpsolve_piv_rules.PRICE_AUTOMULTIPLE`.
+* Changes to the pivot rules and modes:
+  * `lpsolve_piv_rules` enum split into `lpsolve_pivot_rule` and `lpsolve_pivot_modes`
+  * The value returned from `get_pivoting` is now of the new struct `PivotRuleAndModes` which split the rule and modes in two.
+  * Modified the modes to follow lp_solve's source code:
+    * `PRICE_AUTOPARTIALCOLS` and `PRICE_AUTOPARTIALROWS` now replaced by `PRICE_AUTOPARTIAL` and  `PRICE_AUTOMULTIPLE` respectively.
+    * **The behaviour of `PRICE_AUTOPARTIAL` has changed**. The previous definition of `PRICE_AUTOPARTIAL` was `PRICE_AUTOPARTIALCOLS | PRICE_AUTOPARTIALROWS` but now only has the first component.  If you used this previously and want to retain same behaviour, you must use `lpsolve_pivot_modes.PRICE_AUTOPARTIAL | lpsolve_pivot_modes.PRICE_AUTOMULTIPLE`.
 * All `verbose` parameters and return values are now of type `lpsolve_verbosity`.
 * Method `read_freeMPS` removed, use `read_MPS` and add `lpsolve_mps_options.MPS_FREE` to the methods `option` argument.
 * Method `read_MPS`'s `option` parameter is now split into two parameters of types `lpsolve_verbosity` and `lpsolve_mps_options`.

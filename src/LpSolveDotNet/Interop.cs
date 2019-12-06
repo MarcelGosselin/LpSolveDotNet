@@ -147,11 +147,9 @@ namespace LpSolveDotNet
     }
 
     /// <summary>
-    /// Pivot Rule and Mode. Can be <em>one</em> of the rules below <see cref="PRICE_PRIMALFALLBACK"/> combined with any
-    /// modes above <see cref="PRICER_STEEPESTEDGE"/>;
+    /// Pivot Rule
     /// </summary>
-    [Flags]
-    public enum lpsolve_piv_rules
+    public enum lpsolve_pivot_rule
     {
         /// <summary>Select first</summary>
         PRICER_FIRSTINDEX = 0,
@@ -161,6 +159,14 @@ namespace LpSolveDotNet
         PRICER_DEVEX = 2,
         /// <summary>Steepest Edge</summary>
         PRICER_STEEPESTEDGE = 3,
+    }
+
+    /// <summary>
+    /// Pivot Mode. Can be a combination of many values.
+    /// </summary>
+    [Flags]
+    public enum lpsolve_pivot_modes
+    {
         /// <summary>In case of Steepest Edge, fall back to DEVEX in primal</summary>
         PRICE_PRIMALFALLBACK = 4,
         /// <summary>Preliminary implementation of the multiple pricing scheme.This means that attractive candidate entering columns from one iteration may be used in the subsequent iteration, avoiding full updating of reduced costs.In the current implementation, lp_solve only reuses the 2nd best entering column alternative</summary>
@@ -680,7 +686,7 @@ namespace LpSolveDotNet
         [DllImport("lpsolve55.dll", EntryPoint = "get_origrow_name", SetLastError = true)]
         private static extern IntPtr get_origrow_name_c(IntPtr lp, int row);
         [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern lpsolve_piv_rules get_pivoting(IntPtr lp);
+        public static extern int get_pivoting(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern lpsolve_presolve get_presolve(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -780,9 +786,9 @@ namespace LpSolveDotNet
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool is_negative(IntPtr lp, int column);
         [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool is_piv_mode(IntPtr lp, lpsolve_piv_rules testmask);
+        public static extern bool is_piv_mode(IntPtr lp, lpsolve_pivot_modes testmask);
         [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool is_piv_rule(IntPtr lp, lpsolve_piv_rules rule);
+        public static extern bool is_piv_rule(IntPtr lp, lpsolve_pivot_rule rule);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool is_presolve(IntPtr lp, lpsolve_presolve testmask);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -932,7 +938,7 @@ namespace LpSolveDotNet
         [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
         public static extern bool set_outputfile(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string filename);
         [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern void set_pivoting(IntPtr lp, lpsolve_piv_rules piv_rule);
+        public static extern void set_pivoting(IntPtr lp, int piv_rule);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern void set_preferdual(IntPtr lp, bool dodual);
         [DllImport("lpsolve55.dll", SetLastError = true)]
