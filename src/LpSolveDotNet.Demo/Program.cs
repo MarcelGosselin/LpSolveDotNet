@@ -201,8 +201,8 @@ namespace LpSolveDotNet.Demo
                 lp.print_lp();
 
                 lp.print_str("We can use automatic scaling with:" + NewLine);
-                lp.print_str("lp.set_scaling(lpsolve_scales.SCALE_MEAN);" + NewLine);
-                lp.set_scaling(lpsolve_scales.SCALE_MEAN);
+                lp.print_str("lp.set_scaling(lpsolve_scale_algorithm.SCALE_MEAN, lpsolve_scale_parameters.SCALE_NONE);" + NewLine);
+                lp.set_scaling(lpsolve_scale_algorithm.SCALE_MEAN, lpsolve_scale_parameters.SCALE_NONE);
                 lp.print_lp();
 
                 lp.print_str("The function lp.get_mat(row, column); returns a single" + NewLine);

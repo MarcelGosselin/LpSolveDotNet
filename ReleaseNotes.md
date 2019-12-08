@@ -19,6 +19,11 @@
   * Modified the modes to follow lp_solve's source code:
     * `PRICE_AUTOPARTIALCOLS` and `PRICE_AUTOPARTIALROWS` now replaced by `PRICE_AUTOPARTIAL` and  `PRICE_AUTOMULTIPLE` respectively.
     * **The behaviour of `PRICE_AUTOPARTIAL` has changed**. The previous definition of `PRICE_AUTOPARTIAL` was `PRICE_AUTOPARTIALCOLS | PRICE_AUTOPARTIALROWS` but now only has the first component.  If you used this previously and want to retain same behaviour, you must use `lpsolve_pivot_modes.PRICE_AUTOPARTIAL | lpsolve_pivot_modes.PRICE_AUTOMULTIPLE`.
+* Changes to the scaling rules and modes:
+  * `lpsolve_scales` enum split into `lpsolve_scale_algorithm` and `lpsolve_scale_parameters`
+  * The value returned from `get_scaling` is now of the new struct `ScalingModeAndTypes` which split the algorithm and parameters in two.
+  * `set_scaling` now takes both enums as parameters.
+  * `is_scalemode` now takes both enums as parameters, with defaults to `lpsolve_scale_algorithm.SCALE_NONE` and `lpsolve_scale_parameters.SCALE_NONE` to allow comparing either enum at a time like before.
 * All `verbose` parameters and return values are now of type `lpsolve_verbosity`.
 * Method `read_freeMPS` removed, use `read_MPS` and add `lpsolve_mps_options.MPS_FREE` to the methods `option` argument.
 * Method `read_MPS`'s `option` parameter is now split into two parameters of types `lpsolve_verbosity` and `lpsolve_mps_options`.

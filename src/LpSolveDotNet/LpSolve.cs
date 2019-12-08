@@ -2002,42 +2002,126 @@ namespace LpSolveDotNet
         #endregion
 
         #region Scaling
-
+        /// <summary>
+        /// Gets the relative scaling convergence criterion for the active scaling mode.
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_scalelimit.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <returns>The relative scaling convergence criterion for the active scaling mode;
+        /// the integer part specifies the maximum number of iterations.</returns>
         public double get_scalelimit()
         {
             return Interop.get_scalelimit(_lp);
         }
 
+        /// <summary>
+        /// Sets the relative scaling convergence criterion for the active scaling mode;
+        /// the integer part specifies the maximum number of iterations.
+        /// <remarks>
+        /// Default is 5.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_scalelimit.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="scalelimit">The relative scaling convergence criterion for the active scaling mode;
+        /// the integer part specifies the maximum number of iterations.</param>
         public void set_scalelimit(double scalelimit)
         {
             Interop.set_scalelimit(_lp, scalelimit);
         }
 
-        public lpsolve_scales get_scaling()
+        /// <summary>
+        /// Specifies which scaling algorithm and parameters are used.
+        /// <remarks>
+        /// <para>
+        /// This can influence numerical stability considerably.
+        /// It is advisable to always use some sort of scaling.</para>
+        /// <para><see cref="set_scaling"/> must be called before solve is called.</para>
+        /// See <see cref="ScalingAlgorithmAndParameters" /> for more information on scaling.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_scaling.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <returns>The scaling algorithm and parameters that are used.</returns>
+        public ScalingAlgorithmAndParameters get_scaling()
         {
-            return Interop.get_scaling(_lp);
+            int scaling = Interop.get_scaling(_lp);
+            int mask = (int)lpsolve_scale_algorithm.SCALE_CURTISREID;
+            int algorithm = scaling & mask;
+            int parameters = scaling & ~mask;
+            return new ScalingAlgorithmAndParameters(
+                (lpsolve_scale_algorithm)algorithm,
+                (lpsolve_scale_parameters)parameters
+                );
         }
 
-        public void set_scaling(lpsolve_scales scalemode)
+        /// <summary>
+        /// Specifies which scaling algorithm and parameters must be used.
+        /// <remarks>
+        /// <para>
+        /// This can influence numerical stability considerably.
+        /// It is advisable to always use some sort of scaling.</para>
+        /// <para><see cref="set_scaling"/> must be called before solve is called.</para>
+        /// See <see cref="ScalingAlgorithmAndParameters" /> for more information on scaling.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_scaling.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="algorithm">Specifies which scaling algorithm must be used.</param>
+        /// <param name="parameters">Specifies which parameters to apply to scaling <paramref name="algorithm"/>.</param>
+        public void set_scaling(lpsolve_scale_algorithm algorithm, lpsolve_scale_parameters parameters)
         {
-            Interop.set_scaling(_lp, scalemode);
+            Interop.set_scaling(_lp, ((int)algorithm)|((int)parameters));
         }
 
-        public bool is_scalemode(lpsolve_scales testmask)
+        /// <summary>
+        /// Returns if scaling algorithm and parameters specified are active.
+        /// <remarks>
+        /// See <see cref="ScalingAlgorithmAndParameters" /> for more information on scaling.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_scaling.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="algorithmMask">Specifies which scaling algorithm to verify.</param>
+        /// <param name="parameterMask">Specifies which parameters must be verified.</param>
+        public bool is_scalemode(
+            lpsolve_scale_algorithm algorithmMask = lpsolve_scale_algorithm.SCALE_NONE,
+            lpsolve_scale_parameters parameterMask = lpsolve_scale_parameters.SCALE_NONE)
         {
-            return Interop.is_scalemode(_lp, testmask);
+            return Interop.is_scalemode(_lp, ((int)algorithmMask) | ((int)parameterMask));
         }
 
-        public bool is_scaletype(lpsolve_scales scaletype)
+        /// <summary>
+        /// Returns if scaling algorithm specified is active.
+        /// <remarks>
+        /// See <see cref="ScalingAlgorithmAndParameters" /> for more information on scaling.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_scaling.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="algorithm">Specifies which scaling algorithm to verify.</param>
+        public bool is_scaletype(lpsolve_scale_algorithm algorithm)
         {
-            return Interop.is_scaletype(_lp, scaletype);
+            return Interop.is_scaletype(_lp, algorithm);
         }
 
+        /// <summary>
+        /// Returns if integer scaling is active.
+        /// <remarks>
+        /// By default, integers are not scaled, you mus call <see cref="set_scaling"/>
+        /// with <see cref="lpsolve_scale_parameters.SCALE_INTEGERS"/> to activate this feature.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_integerscaling.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <returns><c>true</c> if <see cref="lpsolve_scale_parameters.SCALE_INTEGERS"/> was set with <see cref="set_scaling"/>.</returns>
         public bool is_integerscaling()
         {
             return Interop.is_integerscaling(_lp);
         }
 
+        /// <summary>
+        /// Unscales the model.
+        /// <remarks>
+        /// The unscale function unscales the model.
+        /// Scaling can influence numerical stability considerably.
+        /// It is advisable to always use some sort of scaling.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/unscale.htm">Full C API documentation.</seealso>
+        /// </summary>
         public void unscale()
         {
             Interop.unscale(_lp);
@@ -2317,8 +2401,6 @@ namespace LpSolveDotNet
         {
             return Interop.write_params(_lp, filename, options);
         }
-
-
 
         public lpsolve_simplextypes get_simplextype()
         {
@@ -2639,6 +2721,9 @@ namespace LpSolveDotNet
 
         #region Miscellaneous routines
 
+        /// <summary>
+        /// Returns the version of the lpsolve library loaded ar runtime.
+        /// </summary>
         public static Version LpSolveVersion
         {
             get

@@ -85,11 +85,10 @@ namespace LpSolveDotNet
     }
 
     /// <summary>
-    /// Defines scaling algorithm to use. Can be any of the values from <see cref="SCALE_NONE">SCALE_NONE (0)</see> to <see cref="SCALE_CURTISREID">SCALE_CURTISREID (7)</see>
+    /// Defines scaling algorithm to use. You can Can be any of the values from <see cref="SCALE_NONE">SCALE_NONE (0)</see> to <see cref="SCALE_CURTISREID">SCALE_CURTISREID (7)</see>
     /// that can be OR-ed with values above <see cref="SCALE_CURTISREID">SCALE_CURTISREID (7)</see>.
     /// </summary>
-    [Flags]
-    public enum lpsolve_scales
+    public enum lpsolve_scale_algorithm
     {
         /// <summary>No scaling</summary>
         SCALE_NONE = 0,
@@ -103,7 +102,16 @@ namespace LpSolveDotNet
         SCALE_GEOMETRIC = 4,
         /// <summary>Curtis-reid scaling</summary>
         SCALE_CURTISREID = 7,
+    }
 
+    /// <summary>
+    /// Defines scaling parameters to add to scaling algorithms. You can combine more than one.
+    /// </summary>
+    [Flags]
+    public enum lpsolve_scale_parameters
+    {
+        /// <summary>No parameters</summary>
+        SCALE_NONE = 0,
         /// <summary></summary>
         SCALE_QUADRATIC = 8,
         /// <summary>Scale to convergence using logarithmic mean of all values</summary>
@@ -709,7 +717,7 @@ namespace LpSolveDotNet
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern double get_scalelimit(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern lpsolve_scales get_scaling(IntPtr lp);
+        public static extern int get_scaling(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool get_sensitivity_obj(IntPtr lp, double[] objfrom, double[] objtill);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -792,9 +800,9 @@ namespace LpSolveDotNet
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool is_presolve(IntPtr lp, lpsolve_presolve testmask);
         [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool is_scalemode(IntPtr lp, lpsolve_scales testmask);
+        public static extern bool is_scalemode(IntPtr lp, int testmask);
         [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern bool is_scaletype(IntPtr lp, lpsolve_scales scaletype);
+        public static extern bool is_scaletype(IntPtr lp, lpsolve_scale_algorithm scaletype);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool is_semicont(IntPtr lp, int column);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -960,7 +968,7 @@ namespace LpSolveDotNet
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern void set_scalelimit(IntPtr lp, double scalelimit);
         [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern void set_scaling(IntPtr lp, lpsolve_scales scalemode);
+        public static extern void set_scaling(IntPtr lp, int scalemode);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool set_semicont(IntPtr lp, int column, bool must_be_sc);
         [DllImport("lpsolve55.dll", SetLastError = true)]
