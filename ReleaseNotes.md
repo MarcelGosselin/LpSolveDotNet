@@ -28,6 +28,8 @@
 * Method `read_freeMPS` removed, use `read_MPS` and add `lpsolve_mps_options.MPS_FREE` to the methods `option` argument.
 * Method `read_MPS`'s `option` parameter is now split into two parameters of types `lpsolve_verbosity` and `lpsolve_mps_options`.
 * Method `is_constr_type`'s `mask` parameter is now of type `lpsolve_constr_types`
+* Enum value `lpsolve_basiscrash.CRASH_NOTHING` renamed `lpsolve_basiscrash.CRASH_NONE` to follow C code.
+
 
 ## 3.1.0
 

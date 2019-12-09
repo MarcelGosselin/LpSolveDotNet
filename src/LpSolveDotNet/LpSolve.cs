@@ -1836,62 +1836,265 @@ namespace LpSolveDotNet
         #endregion
 
         #region Basis
-
+        /// <summary>
+        /// Causes reinversion at next opportunity.
+        /// <remarks>
+        /// <para>
+        /// This routine is ment for internal use and development.
+        /// It causes a reinversion of the matrix at a next opportunity.
+        /// The routine should only be used by people deeply understanding the code.
+        /// </para>
+        /// <para>
+        /// In the past, this routine was documented as the routine to set an initial base.
+        /// <strong>This is incorrect.</strong>
+        /// <see cref="default_basis"/> must be used for this purpose.
+        /// It is very unlikely that you must call this routine.
+        /// </para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/reset_basis.htm">Full C API documentation.</seealso>
+        /// </summary>
         public void reset_basis()
         {
             Interop.reset_basis(_lp);
         }
 
+        /// <summary>
+        /// Sets the starting base to an all slack basis (the default simplex starting basis).
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/default_basis.htm">Full C API documentation.</seealso>
+        /// </summary>
         public void default_basis()
         {
             Interop.default_basis(_lp);
         }
 
+        /// <summary>
+        /// Read basis from a file and set as default basis.
+        /// <remarks>
+        /// <para>Setting an initial basis can speed up the solver considerably.
+        /// It is the starting point from where the algorithm continues to find an optimal solution.</para>
+        /// <para>When a restart is done, lp_solve continues at the last basis, except if <see cref="set_basis"/>,
+        /// <see cref="default_basis"/>, <see cref="guess_basis"/> or <see cref="read_basis"/> is called.</para>
+        /// <para>The basis in the file must be in <see href="http://lpsolve.sourceforge.net/5.5/bas-format.htm">MPS bas file format</see>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/read_basis.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="filename">Name of file containing the basis to read.</param>
+        /// <param name="info">When not <c>null</c>, returns the information of the INFO card in <paramref name="filename"/>.
+        /// When <c>null</c>, the information is ignored.
+        /// Note that when not <c>null</c>, that you must make sure that this variable is long enough,
+        /// else a memory overrun could occur.</param>
+        /// <returns><c>true</c> if basis could be read from <paramref name="filename"/> and <c>false</c> if not.
+        /// A <c>false</c> return value indicates an error.
+        /// Specifically file could not be opened or file has wrong structure or wrong number/names rows/variables or invalid basis.</returns>
         public bool read_basis(string filename, string info)
         {
             return Interop.read_basis(_lp, filename, info);
         }
 
+        /// <summary>
+        /// Writes current basis to a file.
+        /// <remarks>
+        /// <para>This method writes current basis to a file which can later be reused by <see cref="read_basis"/> to reset the basis.</para>
+        /// <para>Setting an initial basis can speed up the solver considerably.
+        /// It is the starting point from where the algorithm continues to find an optimal solution.</para>
+        /// <para>When a restart is done, lp_solve continues at the last basis, except if <see cref="set_basis"/>,
+        /// <see cref="default_basis"/>, <see cref="guess_basis"/> or <see cref="read_basis"/> is called.</para>
+        /// <para>The basis in the file is written in <see href="http://lpsolve.sourceforge.net/5.5/bas-format.htm">MPS bas file format</see>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/write_basis.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="filename">Name of file to write the basis to.</param>
+        /// <returns><c>true</c> if basis could be written from <paramref name="filename"/> and <c>false</c> if not.
+        /// A <c>false</c> return value indicates an error.
+        /// Specifically file could not be opened or written to.</returns>
         public bool write_basis(string filename)
         {
             return Interop.write_basis(_lp, filename);
         }
 
+        /// <summary>
+        /// Sets an initial basis of the model.
+        /// <remarks>
+        /// <para>The array receives the basic variables and if <paramref name="nonbasic"/> is <c>true</c>,
+        /// then also the non-basic variables.
+        /// If an element is less then zero then it means on lower bound, else on upper bound.</para>
+        /// <para>Element 0 of the array is unused.</para>
+        /// <para>The default initial basis is bascolumn[x] = -x.</para>
+        /// <para>Each element represents a basis variable.
+        /// If the absolute value is between 1 and <see cref="get_Nrows"/>, it represents a slack variable 
+        /// and if it is between <see cref="get_Nrows"/>+1 and <see cref="get_Nrows"/>+<see cref="get_Ncolumns"/>
+        /// then it represents a regular variable.
+        /// If the value is negative, then the variable is on its lower bound.
+        /// If positive it is on its upper bound.</para>
+        /// <para>Setting an initial basis can speed up the solver considerably.
+        /// It is the starting point from where the algorithm continues to find an optimal solution.</para>
+        /// <para>When a restart is done, lp_solve continues at the last basis, except if except if <see cref="set_basis"/>,
+        /// <see cref="default_basis"/>, <see cref="guess_basis"/> or <see cref="read_basis"/> is called.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_basis.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="bascolumn">An array with 1+<see cref="get_Nrows"/> or
+        /// 1+<see cref="get_Nrows"/>+<see cref="get_Ncolumns"/> elements that specifies the basis.</param>
+        /// <param name="nonbasic">If <c>false</c>, then <paramref name="bascolumn"/> must have 
+        /// 1+<see cref="get_Nrows"/> elements and only contains the basic variables. 
+        /// If <c>true</c>, then <paramref name="bascolumn"/> must have 1+<see cref="get_Nrows"/>+<see cref="get_Ncolumns"/> 
+        /// elements and will also contain the non-basic variables.</param>
+        /// <returns><c>true</c> if provided basis was set. <c>false</c> if not.
+        /// If <c>false</c> then provided data was invalid.</returns>
         public bool set_basis(int[] bascolumn, bool nonbasic)
         {
             return Interop.set_basis(_lp, bascolumn, nonbasic);
         }
 
+        /// <summary>
+        /// Returns the basis of the model.
+        /// <remarks>
+        /// <para>This can only be done after a successful solve.
+        /// If the model is not successively solved then the function will return <c>false</c>.</para>
+        /// <para>The array receives the basic variables and if <paramref name="nonbasic"/> is <c>true</c>,
+        /// then also the non-basic variables.
+        /// If an element is less then zero then it means on lower bound, else on upper bound.</para>
+        /// <para>Element 0 of the array is set to 0.</para>
+        /// <para>The default initial basis is bascolumn[x] = -x.</para>
+        /// <para>Each element represents a basis variable.
+        /// If the absolute value is between 1 and <see cref="get_Nrows"/>, it represents a slack variable 
+        /// and if it is between <see cref="get_Nrows"/>+1 and <see cref="get_Nrows"/>+<see cref="get_Ncolumns"/>
+        /// then it represents a regular variable.
+        /// If the value is negative, then the variable is on its lower bound.
+        /// If positive it is on its upper bound.</para>
+        /// <para>Setting an initial basis can speed up the solver considerably.
+        /// It is the starting point from where the algorithm continues to find an optimal solution.</para>
+        /// <para>When a restart is done, lp_solve continues at the last basis, except if except if <see cref="set_basis"/>,
+        /// <see cref="default_basis"/>, <see cref="guess_basis"/> or <see cref="read_basis"/> is called.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_basis.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="bascolumn">An array with 1+<see cref="get_Nrows"/> or
+        /// 1+<see cref="get_Nrows"/>+<see cref="get_Ncolumns"/> elements that will contain the basis after the call.</param>
+        /// <param name="nonbasic">If <c>false</c>, then <paramref name="bascolumn"/> must have 
+        /// 1+<see cref="get_Nrows"/> elements and only contains the basic variables. 
+        /// If <c>true</c>, then <paramref name="bascolumn"/> must have 1+<see cref="get_Nrows"/>+<see cref="get_Ncolumns"/> 
+        /// elements and will also contain the non-basic variables.</param>
+        /// <returns><c>true</c> if a basis could be returned, <c>false</c> otherwise.</returns>
         public bool get_basis(int[] bascolumn, bool nonbasic)
         {
             return Interop.get_basis(_lp, bascolumn, nonbasic);
         }
 
+        /// <summary>
+        /// Create a starting base from the provided guess vector.
+        /// <remarks>
+        /// <para>This routine is ment to find a basis based on provided variable values.
+        /// This basis can be provided to lp_solve via <see cref="set_basis"/>.
+        /// This can result in getting faster to an optimal solution.
+        /// However the simplex algorithm doesn't guarantee you that.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/guess_basis.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="guessvector">A vector that must contain a feasible solution vector.
+        /// It must contain at least 1+<see cref="get_Ncolumns"/> elements.
+        /// Element 0 is not used.</param>
+        /// <param name="basisvector">When successful, this vector contains a feasible basis corresponding to guessvector.
+        /// The array must already be dimensioned for at least 1+<see cref="get_Nrows"/>+<see cref="get_Ncolumns"/> elements.
+        /// When the routine returns successfully, <paramref name="basisvector"/> is filled with the basis.
+        /// This array can be provided to <see cref="set_basis"/>.</param>
+        /// <returns><c>true</c> if a valid base could be determined, <c>false</c> otherwise.</returns>
         public bool guess_basis(double[] guessvector, int[] basisvector)
         {
             return Interop.guess_basis(_lp, guessvector, basisvector);
         }
 
+        /// <summary>
+        /// Returns which basis crash mode must be used.
+        /// <remarks>
+        /// <para>Default is <see cref="lpsolve_basiscrash.CRASH_NONE"/></para>
+        /// <para>When no base crash is done (the default), the initial basis from which lp_solve 
+        /// starts to solve the model is the basis containing all slack or artificial variables that 
+        /// is automatically associated with each constraint.</para>
+        /// <para>When base crash is enabled, a heuristic "crash procedure" is executed before the 
+        /// first simplex iteration to quickly choose a basis matrix that has fewer artificial variables.
+        /// This procedure tends to reduce the number of iterations to optimality since a number of 
+        /// iterations are skipped.
+        /// lp_solve starts iterating from this basis until optimality.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_basiscrash.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <returns><c>true</c> if a valid base could be determined, <c>false</c> otherwise.</returns>
         public lpsolve_basiscrash get_basiscrash()
         {
             return Interop.get_basiscrash(_lp);
         }
 
+        /// <summary>
+        /// Returns which basis crash mode must be used.
+        /// <remarks>
+        /// <para>Default is <see cref="lpsolve_basiscrash.CRASH_NONE"/></para>
+        /// <para>When no base crash is done (the default), the initial basis from which lp_solve 
+        /// starts to solve the model is the basis containing all slack or artificial variables that 
+        /// is automatically associated with each constraint.</para>
+        /// <para>When base crash is enabled, a heuristic "crash procedure" is executed before the 
+        /// first simplex iteration to quickly choose a basis matrix that has fewer artificial variables.
+        /// This procedure tends to reduce the number of iterations to optimality since a number of 
+        /// iterations are skipped.
+        /// lp_solve starts iterating from this basis until optimality.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_basiscrash.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="mode">Specifies which basis crash mode must be used.</param>
         public void set_basiscrash(lpsolve_basiscrash mode)
         {
             Interop.set_basiscrash(_lp, mode);
         }
 
+        /// <summary>
+        /// Returns if there is a basis factorization package (BFP) available.
+        /// <remarks>
+        /// <para>There should always be a BFP available, else lpsolve can not solve.
+        /// Normally lpsolve is compiled with a default BFP.
+        /// See <see href="http://lpsolve.sourceforge.net/5.5/BFP.htm">Basis Factorization Packages</see> for a complete description on BFPs.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/has_BFP.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <returns><c>true</c> if there is a BFP available, <c>false</c> otherwise.</returns>
         public bool has_BFP()
         {
             return Interop.has_BFP(_lp);
         }
 
+        /// <summary>
+        /// Returns if the native (build-in) basis factorization package (BFP) is used, or an external package.
+        /// <remarks>
+        /// <para>This method checks if an external basis factorization package (BFP) is set or not.
+        /// See <see href="http://lpsolve.sourceforge.net/5.5/BFP.htm">Basis Factorization Packages</see> for a complete description on BFPs.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_nativeBFP.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <returns><c>true</c> if the native (build-in) BFP is used, <c>false</c> otherwise.</returns>
         public bool is_nativeBFP()
         {
             return Interop.is_nativeBFP(_lp);
         }
 
+        /// <summary>
+        /// Sets the basis factorization package.
+        /// <remarks>
+        /// <para>This method sets the basis factorization package (BFP).
+        /// See <see href="http://lpsolve.sourceforge.net/5.5/BFP.htm">Basis Factorization Packages</see> for a complete description on BFPs.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_BFP.htm">Full C API documentation.</seealso>
+        /// </summary>
+        /// <param name="filename">The name of the BFP package. Currently following BFPs are implemented:
+        /// <list type="table">
+        /// <item>
+        /// <term>"bfp_etaPFI"</term><description>original lp_solve product form of the inverse.</description>
+        /// <term>"bfp_LUSOL"</term><description>LU decomposition.</description>
+        /// <term>"bfp_GLPK"</term><description>GLPK LU decomposition.</description>
+        /// <term><c>null</c></term><description>The default BFP package.</description>
+        /// </item>
+        /// </list>
+        /// However the user can also build his own BFP packages ...
+        /// </param>
+        /// <returns><c>true</c> if the call succeeded, <c>false</c> otherwise.</returns>
         public bool set_BFP(string filename)
         {
             return Interop.set_BFP(_lp, filename);
@@ -2347,11 +2550,27 @@ namespace LpSolveDotNet
 
         #endregion
 
+        /// <summary>
+        /// Returns the iterative improvement level.
+        /// </summary>
+        /// <remarks>
+        /// The default is <see cref="lpsolve_improves.IMPROVE_DUALFEAS"/> + <see cref="lpsolve_improves.IMPROVE_THETAGAP"/>.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_improve.htm">Full C API documentation.</seealso>
+        /// <returns>The iterative improvement level</returns>
         public lpsolve_improves get_improve()
         {
             return Interop.get_improve(_lp);
         }
 
+        /// <summary>
+        /// Specifies the iterative improvement level.
+        /// </summary>
+        /// <remarks>
+        /// The default is <see cref="lpsolve_improves.IMPROVE_DUALFEAS"/> + <see cref="lpsolve_improves.IMPROVE_THETAGAP"/>.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_improve.htm">Full C API documentation.</seealso>
+        /// <param name="improve">The iterative improvement level.</param>
         public void set_improve(lpsolve_improves improve)
         {
             Interop.set_improve(_lp, improve);

@@ -299,10 +299,16 @@ namespace LpSolveDotNet
         ANTIDEGEN_BOUNDFLIP = 512
     }
 
-
+    /// <summary>
+    /// Define a heuristic "crash procedure" to execute before the first simplex iteration
+    /// to quickly choose a basis matrix that has fewer artificial variables.
+    /// </summary>
     public enum lpsolve_basiscrash
     {
         /// <summary>No basis crash</summary>
+        CRASH_NONE = 0,
+        /// <summary/>
+        [Obsolete("Renamed to lpsolve_basiscrash.NONE. Will be removed in LpSolveDotNet 5.0.", true)]
         CRASH_NOTHING = 0,
         /// <summary>Most feasible basis</summary>
         CRASH_MOSTFEASIBLE = 2,
@@ -1054,4 +1060,75 @@ namespace LpSolveDotNet
             return (Marshal.PtrToStringAnsi(get_statustext_c(lp, statuscode)));
         }
     }
+
+    #pragma warning disable 1591
+    [Obsolete("Replaced by lpsolve_pivot_rule and lpsolve_pivot_modes. Will be removed completely in LpSolveDotNet 5.0.", true)]
+    public enum lpsolve_piv_rules
+    {
+        [Obsolete("Replaced by lpsolve_pivot_rule.PRICER_FIRSTINDEX. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        PRICER_FIRSTINDEX = 0,
+        [Obsolete("Replaced by lpsolve_pivot_rule.PRICER_DANTZIG. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        PRICER_DANTZIG = 1,
+        [Obsolete("Replaced by lpsolve_pivot_rule.PRICER_DEVEX. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        PRICER_DEVEX = 2,
+        [Obsolete("Replaced by lpsolve_pivot_rule.PRICER_STEEPESTEDGE. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        PRICER_STEEPESTEDGE = 3,
+
+        [Obsolete("Replaced by lpsolve_pivot_modes.PRICE_PRIMALFALLBACK. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        PRICE_PRIMALFALLBACK = 4,
+        [Obsolete("Replaced by lpsolve_pivot_modes.PRICE_MULTIPLE. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        PRICE_MULTIPLE = 8,
+        [Obsolete("Replaced by lpsolve_pivot_modes.PRICE_PARTIAL. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        PRICE_PARTIAL = 16,
+        [Obsolete("Replaced by lpsolve_pivot_modes.PRICE_ADAPTIVE. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        PRICE_ADAPTIVE = 32,
+        [Obsolete("Removed as this is not implemented in lp_solve. This enum will be removed completely in LpSolveDotNet 5.0.", true)]
+        PRICE_HYBRID = 64,
+        [Obsolete("Replaced by lpsolve_pivot_modes.PRICE_RANDOMIZE. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        PRICE_RANDOMIZE = 128,
+        [Obsolete("Replaced by lpsolve_pivot_modes.PRICE_AUTOPARTIAL. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        PRICE_AUTOPARTIALCOLS = 256,
+        [Obsolete("Replaced by lpsolve_pivot_modes.PRICE_AUTOMULTIPLE. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        PRICE_AUTOPARTIALROWS = 512,
+        [Obsolete("Replaced by lpsolve_pivot_modes.PRICE_LOOPLEFT. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        PRICE_LOOPLEFT = 1024,
+        [Obsolete("Replaced by lpsolve_pivot_modes.PRICE_LOOPALTERNATE. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        PRICE_LOOPALTERNATE = 2048,
+        [Obsolete("Behaviour changed, see release notes for 4.0.0. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        PRICE_AUTOPARTIAL = PRICE_AUTOPARTIALCOLS | PRICE_AUTOPARTIALROWS,
+    }
+
+    [Obsolete("Replaced by lpsolve_scale_algorithm and lpsolve_scale_parameters. Will be removed completely in LpSolveDotNet 5.0.", true)]
+    public enum lpsolve_scales
+    {
+        [Obsolete("Replaced by lpsolve_scale_algorithm.SCALE_EXTREME. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        SCALE_EXTREME = 1,
+        [Obsolete("Replaced by lpsolve_scale_algorithm.SCALE_RANGE. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        SCALE_RANGE = 2,
+        [Obsolete("Replaced by lpsolve_scale_algorithm.SCALE_MEAN. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        SCALE_MEAN = 3,
+        [Obsolete("Replaced by lpsolve_scale_algorithm.SCALE_GEOMETRIC. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        SCALE_GEOMETRIC = 4,
+        [Obsolete("Replaced by lpsolve_scale_algorithm.SCALE_CURTISREID. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        SCALE_CURTISREID = 7,
+        [Obsolete("Replaced by lpsolve_scale_parameters.SCALE_QUADRATIC. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        SCALE_QUADRATIC = 8,
+        [Obsolete("Replaced by lpsolve_scale_parameters.SCALE_LOGARITHMIC. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        SCALE_LOGARITHMIC = 16,
+        [Obsolete("Replaced by lpsolve_scale_parameters.SCALE_USERWEIGHT. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        SCALE_USERWEIGHT = 31,
+        [Obsolete("Replaced by lpsolve_scale_parameters.SCALE_POWER2. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        SCALE_POWER2 = 32,
+        [Obsolete("Replaced by lpsolve_scale_parameters.SCALE_EQUILIBRATE. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        SCALE_EQUILIBRATE = 64,
+        [Obsolete("Replaced by lpsolve_scale_parameters.SCALE_INTEGERS. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        SCALE_INTEGERS = 128,
+        [Obsolete("Replaced by lpsolve_scale_parameters.SCALE_DYNUPDATE. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        SCALE_DYNUPDATE = 256,
+        [Obsolete("Replaced by lpsolve_scale_parameters.SCALE_ROWSONLY. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        SCALE_ROWSONLY = 512,
+        [Obsolete("Replaced by lpsolve_scale_parameters.SCALE_COLSONLY. Will be removed completely in LpSolveDotNet 5.0.", true)]
+        SCALE_COLSONLY = 1024,
+    }
+    #pragma warning restore 1591
 }
