@@ -2576,59 +2576,280 @@ namespace LpSolveDotNet
             Interop.set_improve(_lp, improve);
         }
 
+        //TODO: above need to move documentation tag order
+        /// <summary>
+        /// Returns the negative value below which variables are split into a negative and a positive part.
+        /// </summary>
+        /// <return>The negative value below which variables are split into a negative and a positive part.</return>
+        /// <remarks>
+        ///  <para>This value is always zero or negative.</para>
+        ///  <para>In some cases, negative variables must be split in a positive part and a negative part.
+        ///  This is when a negative lower or upper bound is set on a variable.
+        ///  If a bound is less than this value, it is <strong>possibly</strong> split.</para>
+        ///  <para>The default is -1e6.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_negrange.htm">Full C API documentation.</seealso>
         public double get_negrange()
         {
             return Interop.get_negrange(_lp);
         }
 
+        /// <summary>
+        /// Sets the negative value below which variables are split into a negative and a positive part.
+        /// </summary>
+        /// <param name="negrange">The negative value below which variables are split into a negative and a positive part.</param>
+        /// <remarks>
+        ///  <para>This value must always be zero or negative. If a positive value is specified, then 0 is taken.</para>
+        ///  <para>In some cases, negative variables must be split in a positive part and a negative part.
+        ///  This is when a negative lower or upper bound is set on a variable.
+        ///  If a bound is less than this value, it is possibly split.</para>
+        ///  <para>The default is -1e6.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_negrange.htm">Full C API documentation.</seealso>
         public void set_negrange(double negrange)
         {
             Interop.set_negrange(_lp, negrange);
         }
 
-        public void set_preferdual(bool dodual)
-        {
-            Interop.set_preferdual(_lp, dodual);
-        }
-
+        /// <summary>
+        /// Returns the used degeneracy rule.
+        /// </summary>
+        /// <returns>The used degeneracy rule (can be any combination of <see cref="lpsolve_anti_degen"/>).</returns>
+        /// <remarks>
+        ///  <para>The default is <see cref="lpsolve_anti_degen.ANTIDEGEN_INFEASIBLE"/>
+        ///  + <see cref="lpsolve_anti_degen.ANTIDEGEN_STALLING"/>
+        ///  + <see cref="lpsolve_anti_degen.ANTIDEGEN_FIXEDVARS"/>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_anti_degen.htm">Full C API documentation.</seealso>
         public lpsolve_anti_degen get_anti_degen()
         {
             return Interop.get_anti_degen(_lp);
         }
 
+        /// <summary>
+        /// Returns if the degeneracy rules specified in <paramref name="testmask"/> are active.
+        /// </summary>
+        /// <param name="testmask">Any combination of <see cref="lpsolve_anti_degen"/> to check if they are active.</param>
+        /// <returns><c>true</c> if all rules specified in <paramref name="testmask"/> are active, <c>false</c> otherwise.</returns>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_anti_degen.htm">Full C API documentation.</seealso>
         public bool is_anti_degen(lpsolve_anti_degen testmask)
         {
             return Interop.is_anti_degen(_lp, testmask);
         }
 
+        /// <summary>
+        /// Specifies if special handling must be done to reduce degeneracy/cycling while solving.
+        /// </summary>
+        /// <param name="anti_degen">The degeneracy rule that must be used (can be any combination of <see cref="lpsolve_anti_degen"/>).</param>
+        /// <remarks>
+        ///  <para>Setting this flag can avoid cycling, but can also increase numerical instability.</para>
+        ///  <para>The default is <see cref="lpsolve_anti_degen.ANTIDEGEN_INFEASIBLE"/>
+        ///  + <see cref="lpsolve_anti_degen.ANTIDEGEN_STALLING"/>
+        ///  + <see cref="lpsolve_anti_degen.ANTIDEGEN_FIXEDVARS"/>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_anti_degen.htm">Full C API documentation.</seealso>
         public void set_anti_degen(lpsolve_anti_degen anti_degen)
         {
             Interop.set_anti_degen(_lp, anti_degen);
         }
 
+        /// <summary>
+        /// Resets parameters back to their default values.
+        /// </summary>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/reset_params.htm">Full C API documentation.</seealso>
         public void reset_params()
         {
             Interop.reset_params(_lp);
         }
 
+        /// <summary>
+        /// Read settings from a parameter file.
+        /// </summary>
+        /// <param name="filename">Name of file from which to read parameters.</param>
+        /// <param name="options">Optional options. Can be:
+        /// <c>-h header</c>: Read parameters at specified header.
+        /// By default this is header named <c>Default</c></param>
+        /// <returns><c>true</c> if parameters could be read, <c>false</c> otherwise.</returns>
+        /// <remarks>
+        ///  <para>This file has an ini-format as used by Windows applications.
+        ///  All parameters are read from a header.
+        ///  This is by default <c>[Default]</c>.
+        ///  The header can be specified in the options parameter.
+        ///  Other headers are ignored.</para>
+        ///  <para>Example parameter file:</para>
+        ///  <c>
+        ///  [Default]
+        ///  ; lp_solve version 5.5 settings
+        ///  
+        ///  anti_degen = ANTIDEGEN_FIXEDVARS + ANTIDEGEN_STALLING + ANTIDEGEN_INFEASIBLE
+        ///  basiscrash=CRASH_NONE
+        ///  improve = IMPROVE_DUALFEAS + IMPROVE_THETAGAP
+        ///  maxpivot=250
+        ///  negrange=-1e+006
+        ///  pivoting=PRICER_DEVEX + PRICE_ADAPTIVE
+        ///  presolve = PRESOLVE_NONE
+        ///  presolveloops=2147483647
+        ///  scalelimit=5
+        ///  scaling=SCALE_GEOMETRIC + SCALE_EQUILIBRATE + SCALE_INTEGERS
+        ///  simplextype = SIMPLEX_DUAL_PRIMAL
+        ///  bb_depthlimit=-50
+        ///  bb_floorfirst=BRANCH_AUTOMATIC
+        ///  bb_rule = NODE_PSEUDONONINTSELECT + NODE_GREEDYMODE + NODE_DYNAMICMODE + NODE_RCOSTFIXING
+        ///  ; break_at_first=0
+        ///  ;break_at_value=-1e+030
+        ///  mip_gap_abs=1e-011
+        ///  mip_gap_rel=1e-011
+        ///  epsint=1e-007
+        ///  epsb=1e-010
+        ///  epsd=1e-009
+        ///  epsel=1e-012
+        ///  epsperturb=1e-005
+        ///  epspivot=2e-007
+        ///  infinite=1e+030
+        ///  ;debug=0
+        ///  ;obj_bound=1e+030
+        ///  ;print_sol=0
+        ///  ;timeout=0
+        ///  ;trace=0
+        ///  ;verbose=NORMAL
+        ///  </c>
+        ///  <para>
+        ///  Note that there are some options commented out (;).
+        ///  This is done because these options can not be used in general for all models or because they are debug/trace/print options.
+        ///  These options can be made active and will be read by <see cref="read_params"/> but note again that they are possible 
+        ///  dangerous to be used in general (except for the debug/trace/print options). Note that there are two kind of entries:
+        ///  <list type="bullet">
+        ///  <item>Numerical values</item>
+        ///  <item>Options</item>
+        ///  </list>
+        ///  Numerical values can be integer values like <c>maxpivot</c> or floating point values like <c>epsel</c></para>
+        ///  <para>Options are a combination of constants as defined in the manual.
+        ///  Multiple options are added with +. 
+        ///  For example option <c>anti_degen</c>.</para>
+        /// </remarks>
+        /// <example>
+        /// </example>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_anti_degen.htm">Full C API documentation.</seealso>
         public bool read_params(string filename, string options)
         {
             return Interop.read_params(_lp, filename, options);
         }
 
+        /// <summary>
+        /// Write settings from a parameter file.
+        /// </summary>
+        /// <param name="filename">Name of file into which to write parameters.</param>
+        /// <param name="options">Optional options. Can be:
+        /// <c>-h header</c>: Write parameters at specified header.
+        /// By default this is header named <c>Default</c></param>
+        /// <returns><c>true</c> if parameters could be written, <c>false</c> otherwise.</returns>
+        /// <remarks>
+        ///  <para>This file has an ini-format as used by Windows applications.
+        ///  All parameters are written under a header.
+        ///  This is by default <c>[Default]</c>.
+        ///  The header can be specified in the options parameter.
+        ///  Other headers are preserved.</para>
+        ///  <para>Example parameter file:</para>
+        ///  <c>
+        ///  [Default]
+        ///  ; lp_solve version 5.5 settings
+        ///  
+        ///  anti_degen = ANTIDEGEN_FIXEDVARS + ANTIDEGEN_STALLING + ANTIDEGEN_INFEASIBLE
+        ///  basiscrash=CRASH_NONE
+        ///  improve = IMPROVE_DUALFEAS + IMPROVE_THETAGAP
+        ///  maxpivot=250
+        ///  negrange=-1e+006
+        ///  pivoting=PRICER_DEVEX + PRICE_ADAPTIVE
+        ///  presolve = PRESOLVE_NONE
+        ///  presolveloops=2147483647
+        ///  scalelimit=5
+        ///  scaling=SCALE_GEOMETRIC + SCALE_EQUILIBRATE + SCALE_INTEGERS
+        ///  simplextype = SIMPLEX_DUAL_PRIMAL
+        ///  bb_depthlimit=-50
+        ///  bb_floorfirst=BRANCH_AUTOMATIC
+        ///  bb_rule = NODE_PSEUDONONINTSELECT + NODE_GREEDYMODE + NODE_DYNAMICMODE + NODE_RCOSTFIXING
+        ///  ; break_at_first=0
+        ///  ;break_at_value=-1e+030
+        ///  mip_gap_abs=1e-011
+        ///  mip_gap_rel=1e-011
+        ///  epsint=1e-007
+        ///  epsb=1e-010
+        ///  epsd=1e-009
+        ///  epsel=1e-012
+        ///  epsperturb=1e-005
+        ///  epspivot=2e-007
+        ///  infinite=1e+030
+        ///  ;debug=0
+        ///  ;obj_bound=1e+030
+        ///  ;print_sol=0
+        ///  ;timeout=0
+        ///  ;trace=0
+        ///  ;verbose=NORMAL
+        ///  </c>
+        ///  <para>
+        ///  Note that there are some options commented out (;).
+        ///  This is done because these options can not be used in general for all models or because they are debug/trace/print options.
+        ///  These options can be made active and will be read by <see cref="read_params"/> but note again that they are possible 
+        ///  dangerous to be used in general (except for the debug/trace/print options). Note that there are two kind of entries:
+        ///  <list type="bullet">
+        ///  <item>Numerical values</item>
+        ///  <item>Options</item>
+        ///  </list>
+        ///  Numerical values can be integer values like <c>maxpivot</c> or floating point values like <c>epsel</c></para>
+        ///  <para>Options are a combination of constants as defined in the manual.
+        ///  Multiple options are added with +. 
+        ///  For example option <c>anti_degen</c>.</para>
+        /// </remarks>
+        /// <example>
+        /// </example>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_anti_degen.htm">Full C API documentation.</seealso>
         public bool write_params(string filename, string options)
         {
             return Interop.write_params(_lp, filename, options);
         }
 
+        /// <summary>
+        /// Returns the desired combination of primal and dual simplex algorithms.
+        /// </summary>
+        /// <returns>The desired combination of primal and dual simplex algorithms.</returns>
+        /// <remarks>
+        ///  The default is <see cref="lpsolve_simplextypes.SIMPLEX_DUAL_PRIMAL"/>.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_simplextype.htm">Full C API documentation.</seealso>
         public lpsolve_simplextypes get_simplextype()
         {
             return Interop.get_simplextype(_lp);
         }
 
+        /// <summary>
+        /// Sets the desired combination of primal and dual simplex algorithms.
+        /// </summary>
+        /// <param name="simplextype">The desired combination of primal and dual simplex algorithms.</param>
+        /// <remarks>
+        ///  The default is <see cref="lpsolve_simplextypes.SIMPLEX_DUAL_PRIMAL"/>.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_simplextype.htm">Full C API documentation.</seealso>
         public void set_simplextype(lpsolve_simplextypes simplextype)
         {
             Interop.set_simplextype(_lp, simplextype);
+        }
+
+        /// <summary>
+        /// Sets the desired combination of primal and dual simplex algorithms.
+        /// </summary>
+        /// <param name="dodual">
+        ///  <para>When <c>true</c>, the simplex strategy is set to <see cref="lpsolve_simplextypes.SIMPLEX_DUAL_DUAL"/>.</para>
+        ///  <para>When <c>false</c>, the simplex strategy is set to <see cref="lpsolve_simplextypes.SIMPLEX_PRIMAL_PRIMAL"/>.</para>
+        /// </param>
+        /// <remarks>
+        ///  <para>The method <see cref="set_preferdual"/> with <paramref name="dodual"/> = <c>true</c> is a shortcut for <c>set_simplextype(lpsolve_simplextypes.SIMPLEX_DUAL_DUAL)</c></para>
+        ///  <para>The method <see cref="set_preferdual"/> with <paramref name="dodual"/> = <c>false</c> is a shortcut for <c>set_simplextype(lpsolve_simplextypes.SIMPLEX_PRIMAL_PRIMAL)</c></para>
+        ///  <para>The default is <see cref="lpsolve_simplextypes.SIMPLEX_DUAL_PRIMAL"/></para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_preferdual.htm">Full C API documentation.</seealso>
+        public void set_preferdual(bool dodual)
+        {
+            Interop.set_preferdual(_lp, dodual);
         }
 
         public int get_solutionlimit()
