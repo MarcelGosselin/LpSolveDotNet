@@ -1,11 +1,9 @@
 ﻿#if NET20 || NETSTANDARD2_0
 #define SUPPORTS_ENVIRONMENT_VARIABLE_TARGET
 #endif
-#if NETSTANDARD2_0 || NETSTANDARD1_3
-#define SUPPORTS_APPCONTEXT
-#endif
 using System;
 using System.IO;
+using System.Reflection;
 
 namespace LpSolveDotNet
 {
@@ -41,12 +39,13 @@ namespace LpSolveDotNet
             if (string.IsNullOrEmpty(dllFolderPath))
             {
                 bool is64Bit = IntPtr.Size == 8;
-                string baseDirectory =
-#if SUPPORTS_APPCONTEXT
-                    AppContext.BaseDirectory;
-#else
-                    Path.GetDirectoryName(new Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath);
+                Assembly thisAssembly = typeof(LpSolve)
+#if NETSTANDARD1_5
+                    .GetTypeInfo()
 #endif
+                    .Assembly
+                    ;
+                string baseDirectory = Path.GetDirectoryName(new Uri(thisAssembly.CodeBase).LocalPath);
                 dllFolderPath = Path.Combine(Path.Combine(baseDirectory, "NativeBinaries"), is64Bit ? "win64" : "win32");
             }
             if (dllFolderPath.EndsWith(Path.DirectorySeparatorChar.ToString())
@@ -93,15 +92,15 @@ namespace LpSolveDotNet
                 );
         }
 
-        #endregion
+#endregion
 
-        #region Fields
+#region Fields
 
         private IntPtr _lp;
 
-        #endregion
+#endregion
 
-        #region Create/destroy model
+#region Create/destroy model
 
         /// <summary>
         /// Constructor, to be called from <see cref="CreateFromLpRecStructurePointer"/> only.
@@ -247,11 +246,11 @@ namespace LpSolveDotNet
             Dispose(false);
         }
 
-        #endregion
+#endregion
 
-        #region Build model
+#region Build model
 
-        #region Column
+#region Column
 
         /// <summary>
         /// Adds a column to the model.
@@ -712,9 +711,9 @@ namespace LpSolveDotNet
             return Interop.set_lowbo(_lp, column, value);
         }
 
-        #endregion // Build model /  Column
+#endregion // Build model /  Column
 
-        #region Constraint / Row
+#region Constraint / Row
 
         /// <summary>
         /// Adds a constraint to the model.
@@ -1091,9 +1090,9 @@ namespace LpSolveDotNet
             return Interop.str_set_rh_vec(_lp, rh_string);
         }
 
-        #endregion
+#endregion
 
-        #region Objective
+#region Objective
 
         /// <summary>
         /// Sets the objective function (row 0) of the matrix.
@@ -1251,7 +1250,7 @@ namespace LpSolveDotNet
             Interop.set_sense(_lp, maximize);
         }
 
-        #endregion
+#endregion
 
         /// <summary>
         /// Gets the name of the model.
@@ -1597,11 +1596,11 @@ namespace LpSolveDotNet
             return Interop.is_SOS_var(_lp, column);
         }
 
-        #endregion
+#endregion
 
-        #region Solver settings
+#region Solver settings
 
-        #region Epsilon / Tolerance
+#region Epsilon / Tolerance
 
         /// <summary>
         /// Returns the value that is used as a tolerance for the Right Hand Side (RHS) to determine whether a value should be considered as 0.
@@ -1833,9 +1832,9 @@ namespace LpSolveDotNet
             return Interop.set_epslevel(_lp, level);
         }
 
-        #endregion
+#endregion
 
-        #region Basis
+#region Basis
         /// <summary>
         /// Causes reinversion at next opportunity.
         /// </summary>
@@ -2100,9 +2099,9 @@ namespace LpSolveDotNet
             return Interop.set_BFP(_lp, filename);
         }
 
-        #endregion
+#endregion
 
-        #region Pivoting
+#region Pivoting
 
         /// <summary>
         /// Returns the maximum number of pivots between a re-inversion of the matrix.
@@ -2202,9 +2201,9 @@ namespace LpSolveDotNet
             return Interop.is_piv_mode(_lp, testmask);
         }
 
-        #endregion
+#endregion
 
-        #region Scaling
+#region Scaling
         /// <summary>
         /// Gets the relative scaling convergence criterion for the active scaling mode.
         /// </summary>
@@ -2330,9 +2329,9 @@ namespace LpSolveDotNet
             Interop.unscale(_lp);
         }
 
-        #endregion
+#endregion
 
-        #region Branching
+#region Branching
 
         /// <summary>
         /// Returns, for the specified variable, which branch to take first in branch-and-bound algorithm.
@@ -2548,7 +2547,7 @@ namespace LpSolveDotNet
             Interop.set_bb_floorfirst(_lp, bb_floorfirst);
         }
 
-        #endregion
+#endregion
 
         /// <summary>
         /// Returns the iterative improvement level.
@@ -2902,9 +2901,9 @@ namespace LpSolveDotNet
             Interop.set_presolve(_lp, do_presolve, maxloops);
         }
 
-        #endregion
+#endregion
 
-        #region Callback routines
+#region Callback routines
 
         public void put_abortfunc(ctrlcfunc newctrlc, IntPtr ctrlchandle)
         {
@@ -2921,18 +2920,18 @@ namespace LpSolveDotNet
             Interop.put_msgfunc(_lp, newmsg, msghandle, mask);
         }
 
-        #endregion
+#endregion
 
-        #region Solve
+#region Solve
 
         public lpsolve_return solve()
         {
             return Interop.solve(_lp);
         }
 
-        #endregion
+#endregion
 
-        #region Solution
+#region Solution
 
         public double get_constr_value(int row, int count, double[] primsolution, int[] nzindex)
         {
@@ -3020,9 +3019,9 @@ namespace LpSolveDotNet
             return Interop.is_feasible(_lp, values, threshold);
         }
 
-        #endregion
+#endregion
 
-        #region Debug/print settings
+#region Debug/print settings
 
         public bool set_outputfile(string filename)
         {
@@ -3069,9 +3068,9 @@ namespace LpSolveDotNet
             Interop.set_trace(_lp, trace);
         }
 
-        #endregion
+#endregion
 
-        #region Debug/print
+#region Debug/print
 
         public void print_constraints(int columns)
         {
@@ -3118,9 +3117,9 @@ namespace LpSolveDotNet
             Interop.print_tableau(_lp);
         }
 
-        #endregion
+#endregion
 
-        #region Write model to file
+#region Write model to file
 
         public bool write_lp(string filename)
         {
@@ -3157,9 +3156,9 @@ namespace LpSolveDotNet
             return Interop.write_XLI(_lp, filename, options, results);
         }
 
-        #endregion
+#endregion
 
-        #region Miscellaneous routines
+#region Miscellaneous routines
 
         /// <summary>
         /// Returns the version of the lpsolve library loaded ar runtime.
@@ -3242,6 +3241,6 @@ namespace LpSolveDotNet
             return Interop.get_orig_index(_lp, lp_index);
         }
 
-        #endregion
+#endregion
     }
 }
