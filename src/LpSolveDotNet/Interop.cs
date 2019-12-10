@@ -559,20 +559,33 @@ namespace LpSolveDotNet
     [Flags]
     public enum lpsolve_mps_options
     {
-        /// <summary>Fixed MPS Format [Default] (Value = 0)
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/mps-format.htm">MPS file format</seealso></summary>
+        /// <summary>Fixed MPS Format [Default] (Value = 0)</summary>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/mps-format.htm">MPS file format</seealso>
         MPS_FIXED = 0,
-        /// <summary>Free MPS Format (Value = 8)
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/mps-format.htm">MPS file format</seealso></summary>
+        /// <summary>Free MPS Format (Value = 8)</summary>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/mps-format.htm">MPS file format</seealso>
         MPS_FREE = 8,
         /// <summary>Interprete integer variables without bounds as binary variables. That is the original IBM standard.
-        /// By default lp_solve interpretes variables without bounds as having no upperbound as for real variables. (Value = 16)
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/mps-format.htm">MPS file format (section G)</seealso></summary>
+        /// By default lp_solve interpretes variables without bounds as having no upperbound as for real variables. (Value = 16)</summary>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/mps-format.htm">MPS file format (section G)</seealso>
         MPS_IBM = 16,
         /// <summary>Interprete the objective constant with an oposite sign. Some solvers interprete the objective constant
-        /// as a value in the RHS and negate it when brought at the LHS. This option allows to let lp_solve do this also. (Value = 32)
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/mps-format.htm">MPS file format</seealso></summary>
+        /// as a value in the RHS and negate it when brought at the LHS. This option allows to let lp_solve do this also. (Value = 32)</summary>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/mps-format.htm">MPS file format</seealso>
         MPS_NEGOBJCONST = 32,
+    }
+
+    /// <summary>
+    /// Defines if all intermediate valid solutions must be printed while solving.
+    /// </summary>
+    public enum lpsolve_print_sol_option
+    {
+        /// <summary>No printing [Default] (Value = 0)</summary>
+        FALSE = 0,
+        /// <summary>Print all values (Value = 1)</summary>
+        TRUE = 1,
+        /// <summary>Print only non-zero values (Value = 2)</summary>
+        AUTOMATIC = 2,
     }
 
     public delegate bool ctrlcfunc(IntPtr lp, IntPtr userhandle);
@@ -663,8 +676,8 @@ namespace LpSolveDotNet
         //[DllImport("lpsolve55.dll", SetLastError=true)] public static extern string get_lp_name(IntPtr lp);
         [DllImport("lpsolve55.dll", EntryPoint = "get_lp_name", SetLastError = true)]
         private static extern IntPtr get_lp_name_c(IntPtr lp);
-        [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern int get_Lrows(IntPtr lp);
+        //[DllImport("lpsolve55.dll", SetLastError = true)]
+        //public static extern int get_Lrows(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern double get_mat(IntPtr lp, int row, int column);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -708,7 +721,7 @@ namespace LpSolveDotNet
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool get_primal_solution(IntPtr lp, double[] pv);
         [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern int get_print_sol(IntPtr lp);
+        public static extern lpsolve_print_sol_option get_print_sol(IntPtr lp);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern double get_rh(IntPtr lp, int row);
         [DllImport("lpsolve55.dll", SetLastError = true)]
@@ -958,7 +971,7 @@ namespace LpSolveDotNet
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern void set_presolve(IntPtr lp, lpsolve_presolve do_presolve, int maxloops);
         [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern void set_print_sol(IntPtr lp, int print_sol);
+        public static extern void set_print_sol(IntPtr lp, lpsolve_print_sol_option print_sol);
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern bool set_rh(IntPtr lp, int row, double value);
         [DllImport("lpsolve55.dll", SetLastError = true)]

@@ -1837,7 +1837,7 @@ namespace LpSolveDotNet
         /// </summary>
         /// <remarks>
         /// <para>
-        /// This routine is ment for internal use and development.
+        /// This routine is meant for internal use and development.
         /// It causes a reinversion of the matrix at a next opportunity.
         /// The routine should only be used by people deeply understanding the code.
         /// </para>
@@ -1989,7 +1989,7 @@ namespace LpSolveDotNet
         /// This array can be provided to <see cref="set_basis"/>.</param>
         /// <returns><c>true</c> if a valid base could be determined, <c>false</c> otherwise.</returns>
         /// <remarks>
-        /// <para>This routine is ment to find a basis based on provided variable values.
+        /// <para>This routine is meant to find a basis based on provided variable values.
         /// This basis can be provided to lp_solve via <see cref="set_basis"/>.
         /// This can result in getting faster to an optimal solution.
         /// However the simplex algorithm doesn't guarantee you that.</para>
@@ -3026,46 +3026,145 @@ namespace LpSolveDotNet
 
         #region Debug/print settings
 
+        /// <summary>
+        /// Defines the output when lp_solve has something to report.
+        /// </summary>
+        /// <param name="filename">The file to print the results to.
+        /// If <c>null</c>, then output is stdout again.
+        /// If "", then output is ignored.
+        /// It doesn't go to the console or to a file then.
+        /// This is useful in combination with <see cref="put_logfunc"/> to redirect output to somewhere completely different.</param>
+        /// <returns><c>true</c> if the file could be opened, else <c>false</c>.</returns>
+        /// <remarks>
+        /// <para>This is done at the same time as something is reported via <see cref="put_logfunc"/>.
+        /// The default reporting output is screen (stdout). 
+        /// If <see cref="set_outputfile"/> is called to change output to the specified file, then the file is automatically closed when <see cref="LpSolve"/> is disposed.
+        /// Note that this was not the case in previous versions of lp_solve.
+        /// If filename is "", then output is ignored.
+        /// It doesn't go to the console or to a file then.
+        /// This is useful in combination with put_logfunc to redirect output to somewhere completely different.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_outputfile.htm">Full C API documentation.</seealso>
         public bool set_outputfile(string filename)
         {
             return Interop.set_outputfile(_lp, filename);
         }
 
-        public int get_print_sol()
+        /// <summary>
+        /// Returns  a flag if all intermediate valid solutions must be printed while solving.
+        /// </summary>
+        /// <returns>A <see cref="lpsolve_print_sol_option"/>, default is to not print.</returns>
+        /// <remarks>
+        /// This function is meant for debugging purposes. The default is not to print <see cref="lpsolve_print_sol_option.FALSE"/>.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_print_sol.htm">Full C API documentation.</seealso>
+        public lpsolve_print_sol_option get_print_sol()
         {
             return Interop.get_print_sol(_lp);
         }
 
-        public void set_print_sol(int print_sol)
+        /// <summary>
+        /// Sets a flag if all intermediate valid solutions must be printed while solving.
+        /// </summary>
+        /// <param name="print_sol">A <see cref="lpsolve_print_sol_option"/>, default is to not print.</param>
+        /// <remarks>
+        /// This function is meant for debugging purposes. The default is not to print <see cref="lpsolve_print_sol_option.FALSE"/>.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_print_sol.htm">Full C API documentation.</seealso>
+        public void set_print_sol(lpsolve_print_sol_option print_sol)
         {
             Interop.set_print_sol(_lp, print_sol);
         }
 
+        /// <summary>
+        /// Returns the verbose level.
+        /// </summary>
+        /// <returns>The <see cref="lpsolve_verbosity"/> level.</returns>
+        /// <remarks>
+        /// <para>lp_solve reports information back to the user.
+        /// How much information is reported depends on the verbose level.
+        /// The default verbose level is <see cref="lpsolve_verbosity.NORMAL"/>.
+        /// lp_solve determines how verbose a given message is.
+        /// For example specifying a wrong row/column index values is considered as a <see cref="lpsolve_verbosity.SEVERE"/> error.
+        /// verbose determines how much of the lp_solve message are reported.
+        /// All messages equal to and below the set level are reported.</para>
+        /// <para>The default reporting device is the console screen.
+        /// It is possible to set a used defined reporting routine via <see cref="put_logfunc"/>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_verbose.htm">Full C API documentation.</seealso>
         public lpsolve_verbosity get_verbose()
         {
             return Interop.get_verbose(_lp);
         }
 
+        /// <summary>
+        /// Set the verbose level.
+        /// </summary>
+        /// <param name="verbose">The <see cref="lpsolve_verbosity"/> level.</param>
+        /// <remarks>
+        /// <para>lp_solve reports information back to the user.
+        /// How much information is reported depends on the verbose level.
+        /// The default verbose level is <see cref="lpsolve_verbosity.NORMAL"/>.
+        /// lp_solve determines how verbose a given message is.
+        /// For example specifying a wrong row/column index values is considered as a <see cref="lpsolve_verbosity.SEVERE"/> error.
+        /// <paramref name="verbose"/> determines how much of the lp_solve message are reported.
+        /// All messages equal to and below the set level are reported.</para>
+        /// <para>The default reporting device is the console screen.
+        /// It is possible to set a used defined reporting routine via <see cref="put_logfunc"/>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_verbose.htm">Full C API documentation.</seealso>
         public void set_verbose(lpsolve_verbosity verbose)
         {
             Interop.set_verbose(_lp, verbose);
         }
 
+        /// <summary>
+        /// Returns a flag if all intermediate results and the branch-and-bound decisions must be printed while solving.
+        /// </summary>
+        /// <returns><c>true</c> to print intermediate results, <c>false</c> to not print.</returns>
+        /// <remarks>
+        /// This function is meant for debugging purposes. The default is not to print (<c>false</c>).
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_debug.htm">Full C API documentation.</seealso>
         public bool is_debug()
         {
             return Interop.is_debug(_lp);
         }
 
+        /// <summary>
+        /// Sets a flag if all intermediate results and the branch-and-bound decisions must be printed while solving.
+        /// </summary>
+        /// <param name="debug"><c>true</c> to print intermediate results, <c>false</c> to not print.</param>
+        /// <remarks>
+        /// This function is meant for debugging purposes. The default is not to print (<c>false</c>).
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_debug.htm">Full C API documentation.</seealso>
         public void set_debug(bool debug)
         {
             Interop.set_debug(_lp, debug);
         }
 
+        /// <summary>
+        /// Returns a flag if pivot selection must be printed while solving.
+        /// </summary>
+        /// <returns><c>true</c> if pivot selection must be printed, <c>false</c> otherwise.</returns>
+        /// <remarks>
+        /// This function is meant for debugging purposes. The default is not to print (<c>false</c>).
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_trace.htm">Full C API documentation.</seealso>
         public bool is_trace()
         {
             return Interop.is_trace(_lp);
         }
 
+        /// <summary>
+        /// Sets a flag if pivot selection must be printed while solving.
+        /// </summary>
+        /// <param name="trace"><c>true</c> to set trace, <c>false</c> to remove it.</param>
+        /// <remarks>
+        /// This function is meant for debugging purposes. The default is not to print (<c>false</c>).
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_trace.htm">Full C API documentation.</seealso>
         public void set_trace(bool trace)
         {
             Interop.set_trace(_lp, trace);
@@ -3075,46 +3174,129 @@ namespace LpSolveDotNet
 
         #region Debug/print
 
+        /// <summary>
+        /// Prints the values of the constraints of the lp model.
+        /// </summary>
+        /// <param name="columns">Number of columns to print solution.</param>
+        /// <remarks>
+        /// <para>This function only works after a successful <see cref="solve"/>.</para>
+        /// <para>This function is meant for debugging purposes. By default, the output is stdout.
+        /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_constraints.htm">Full C API documentation.</seealso>
         public void print_constraints(int columns)
         {
             Interop.print_constraints(_lp, columns);
         }
 
+        /// <summary>
+        /// Do a generic readable data dump of key lp_solve model variables; principally for run difference and debugging purposes.
+        /// </summary>
+        /// <param name="filename">Name of file to write to.</param>
+        /// <returns><c>true</c> if data could be written, else <c>false</c>.</returns>
+        /// <remarks>
+        /// <para>This function is meant for debugging purposes.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_debugdump.htm">Full C API documentation.</seealso>
         public bool print_debugdump(string filename)
         {
             return Interop.print_debugdump(_lp, filename);
         }
 
+        /// <summary>
+        /// Prints the values of the duals of the lp model.
+        /// </summary>
+        /// <remarks>
+        /// <para>This function only works after a successful <see cref="solve"/>.</para>
+        /// <para>This function is meant for debugging purposes. By default, the output is stdout.
+        /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_duals.htm">Full C API documentation.</seealso>
         public void print_duals()
         {
             Interop.print_duals(_lp);
         }
 
+        /// <summary>
+        /// Prints the lp model.
+        /// </summary>
+        /// <remarks>
+        /// <para>This function is meant for debugging purposes. By default, the output is stdout.
+        /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_lp.htm">Full C API documentation.</seealso>
         public void print_lp()
         {
             Interop.print_lp(_lp);
         }
 
+        /// <summary>
+        /// Prints the objective value of the lp model.
+        /// </summary>
+        /// <remarks>
+        /// <para>This function only works after a successful <see cref="solve"/>.</para>
+        /// <para>This function is meant for debugging purposes. By default, the output is stdout.
+        /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_objective.htm">Full C API documentation.</seealso>
         public void print_objective()
         {
             Interop.print_objective(_lp);
         }
 
+        /// <summary>
+        /// Prints the scales of the lp model.
+        /// </summary>
+        /// <remarks>
+        /// <para>This function only works after a successful <see cref="solve"/>.</para>
+        /// <para>It will only output something when the model is scaled.</para>
+        /// <para>This function is meant for debugging purposes. By default, the output is stdout.
+        /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_scales.htm">Full C API documentation.</seealso>
         public void print_scales()
         {
             Interop.print_scales(_lp);
         }
 
+        /// <summary>
+        /// Prints the solution (variables) of the lp model.
+        /// </summary>
+        /// <param name="columns">Number of columns to print solution.</param>
+        /// <remarks>
+        /// <para>This function only works after a successful <see cref="solve"/>.</para>
+        /// <para>This function is meant for debugging purposes. By default, the output is stdout.
+        /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_solution.htm">Full C API documentation.</seealso>
         public void print_solution(int columns)
         {
             Interop.print_solution(_lp, columns);
         }
 
+        /// <summary>
+        /// Prints a string.
+        /// </summary>
+        /// <param name="str">The string to print</param>
+        /// <remarks>
+        /// <para>This function is meant for debugging purposes. By default, the output is stdout.
+        /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_str.htm">Full C API documentation.</seealso>
         public void print_str(string str)
         {
             Interop.print_str(_lp, str);
         }
 
+        /// <summary>
+        /// Prints the tableau.
+        /// </summary>
+        /// <remarks>
+        /// <para>This function only works after a successful <see cref="solve"/>.</para>
+        /// <para>This function is meant for debugging purposes. By default, the output is stdout.
+        /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_tableau.htm">Full C API documentation.</seealso>
         public void print_tableau()
         {
             Interop.print_tableau(_lp);
@@ -3124,36 +3306,116 @@ namespace LpSolveDotNet
 
         #region Write model to file
 
+        /// <summary>
+        /// Write the model in the lp format to <paramref name="filename"/>.
+        /// </summary>
+        /// <param name="filename">Filename to write the model to.</param>
+        /// <returns><c>true</c> if succeeded, <c>false</c> otherwise.</returns>
+        /// <remarks>
+        /// <para>Note that row entry mode must be off, else this method fails. See <see cref="set_add_rowmode"/>.</para>
+        /// <para>The model in the file will be in <seealso href="http://lpsolve.sourceforge.net/5.5/lp-format.htm">lp-format</seealso></para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/write_lp.htm">Full C API documentation.</seealso>
         public bool write_lp(string filename)
         {
             return Interop.write_lp(_lp, filename);
         }
 
+        /// <summary>
+        /// Write the model in the Free MPS format to <paramref name="filename"/> or 
+        /// if <paramref name="filename"/> is <c>null</c>, to default output.
+        /// </summary>
+        /// <param name="filename">Filename to write the model to or <c>null</c> to write to default output.</param>
+        /// <returns><c>true</c> if succeeded, <c>false</c> otherwise.</returns>
+        /// <remarks>
+        /// <para>Note that row entry mode must be off, else this method fails. See <see cref="set_add_rowmode"/>.</para>
+        /// <para>When <paramref name="filename"/> is <c>null</c>, then output is written to the output 
+        /// set by <see cref="set_outputfile"/>. By default this is stdout.</para>
+        /// <para>The model in the file will be in <seealso href="http://lpsolve.sourceforge.net/5.5/mps-format.htm">mps-format</seealso></para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/write_mps.htm">Full C API documentation.</seealso>
         public bool write_freemps(string filename)
         {
             return Interop.write_freemps(_lp, filename);
         }
 
+        /// <summary>
+        /// Write the model in the Fixed MPS format to <paramref name="filename"/> or 
+        /// if <paramref name="filename"/> is <c>null</c>, to default output.
+        /// </summary>
+        /// <param name="filename">Filename to write the model to or <c>null</c> to write to default output.</param>
+        /// <returns><c>true</c> if succeeded, <c>false</c> otherwise.</returns>
+        /// <remarks>
+        /// <para>Note that row entry mode must be off, else this method fails. See <see cref="set_add_rowmode"/>.</para>
+        /// <para>When <paramref name="filename"/> is <c>null</c>, then output is written to the output 
+        /// set by <see cref="set_outputfile"/>. By default this is stdout.</para>
+        /// <para>The model in the file will be in <seealso href="http://lpsolve.sourceforge.net/5.5/mps-format.htm">mps-format</seealso></para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/write_mps.htm">Full C API documentation.</seealso>
         public bool write_mps(string filename)
         {
             return Interop.write_mps(_lp, filename);
         }
 
+        /// <summary>
+        /// Returns if a built-in External Language Interfaces (XLI) is available or not.
+        /// </summary>
+        /// <returns><c>true</c> if there is a built-in XLI is available, <c>false</c> if not.</returns>
+        /// <remarks>
+        /// <para>At this moment, this routine always returns <c>false</c> since no built-in XLI is available.</para>
+        /// <para>See <seealso href="http://lpsolve.sourceforge.net/5.5/XLI.htm">External Language Interfaces</seealso>
+        /// for a complete description on XLIs.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_nativeXLI.htm">Full C API documentation.</seealso>
         public bool is_nativeXLI()
         {
             return Interop.is_nativeXLI(_lp);
         }
 
+        /// <summary>
+        /// Returns if there is an external language interface (XLI) set.
+        /// </summary>
+        /// <returns><c>true</c> if there is an XLI is set, else <c>false</c>.</returns>
+        /// <remarks>
+        /// <para>See <seealso href="http://lpsolve.sourceforge.net/5.5/XLI.htm">External Language Interfaces</seealso>
+        /// for a complete description on XLIs.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/has_XLI.htm">Full C API documentation.</seealso>
         public bool has_XLI()
         {
             return Interop.has_XLI(_lp);
         }
 
+        /// <summary>
+        /// Sets External Language Interfaces package.
+        /// </summary>
+        /// <param name="filename">The name of the XLI package.</param>
+        /// <returns><c>true</c> if succeeded, <c>false</c> otherwise.</returns>
+        /// <remarks>
+        /// <para>This call is normally only needed when <see cref="write_XLI"/> will be called. 
+        /// <see cref="read_XLI"/> automatically calls this routine</para>
+        /// <para>See <seealso href="http://lpsolve.sourceforge.net/5.5/XLI.htm">External Language Interfaces</seealso>
+        /// for a complete description on XLIs.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_XLI.htm">Full C API documentation.</seealso>
         public bool set_XLI(string filename)
         {
             return Interop.set_XLI(_lp, filename);
         }
 
+        /// <summary>
+        /// Writes a model to a file via the External Language Interface.
+        /// </summary>
+        /// <param name="filename">Filename to write the model to.</param>
+        /// <param name="options">Extra options that can be used by the writer.</param>
+        /// <param name="results"><c>false</c> to generate a model file, <c>true</c> to generate a solution file.</param>
+        /// <returns><c>true</c> if succeeded, <c>false</c> otherwise.</returns>
+        /// <remarks>
+        /// <para>Note that <see cref="set_XLI"/> must be called before this routine to set an XLI.</para>
+        /// <para>See <seealso href="http://lpsolve.sourceforge.net/5.5/XLI.htm">External Language Interfaces</seealso>
+        /// for a complete description on XLIs.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/write_XLI.htm">Full C API documentation.</seealso>
         public bool write_XLI(string filename, string options, bool results)
         {
             return Interop.write_XLI(_lp, filename, options, results);
@@ -3179,71 +3441,178 @@ namespace LpSolveDotNet
             }
         }
 
+        /// <summary>
+        /// Checks if a column is already present in the lp model.
+        /// </summary>
+        /// <param name="column">An array with 1+<see cref="get_Nrows"/> elements that are checked against the existing columns in the lp model.</param>
+        /// <returns>The (first) column number if the column is already in the lp model and 0 if not.</returns>
+        /// <remarks>
+        /// <para>It does not look at bounds and types, only at matrix values.</para>
+        /// <para>The first matched column is returned. If there is no column match, then 0 is returned.</para>
+        /// <para>Note that element 0 is the objective function value. Element 1 is column 1, and so on.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/column_in_lp.htm">Full C API documentation.</seealso>
         public int column_in_lp(double[] column)
         {
             return Interop.column_in_lp(_lp, column);
         }
 
+        /// <summary>
+        /// Creates the dual of the current model.
+        /// </summary>
+        /// <returns><c>true</c> if succeeded, <c>false</c> otherwise.</returns>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/dualize_lp.htm">Full C API documentation.</seealso>
         public bool dualize_lp()
         {
             return Interop.dualize_lp(_lp);
         }
 
+        /// <summary>
+        /// Returns the number of non-zero elements in the matrix.
+        /// </summary>
+        /// <returns>The number of non-zeros in the matrix.</returns>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_nonzeros.htm">Full C API documentation.</seealso>
         public int get_nonzeros()
         {
             return Interop.get_nonzeros(_lp);
         }
 
-        public int get_Lrows()
-        {
-            return Interop.get_Lrows(_lp);
-        }
-
+        /// <summary>
+        /// Returns the number of columns (variables) in the lp model.
+        /// </summary>
+        /// <returns>The number of columns (variables) in the lp model.</returns>
+        /// <remarks>
+        /// <para>Note that the number of columns can change when a presolve is done
+        /// or when negative variables are split in a positive and a negative part.</para>
+        /// <para>Therefore it is advisable to use this function to determine how many columns there are
+        /// in the lp model instead of relying on an own count.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_Ncolumns.htm">Full C API documentation.</seealso>
         public int get_Ncolumns()
         {
             return Interop.get_Ncolumns(_lp);
         }
 
+        /// <summary>
+        /// Returns the number of original columns (variables) in the lp model.
+        /// </summary>
+        /// <returns>The number of original columns (variables) in the lp model.</returns>
+        /// <remarks>
+        /// <para>Note that the number of columns (<see cref="get_Ncolumns"/>) can change when a presolve is done
+        /// or when negative variables are split in a positive and a negative part.</para>
+        /// <para><see cref="get_Norig_columns"/> does not change and thus returns the original number of columns in the lp model.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_Norig_columns.htm">Full C API documentation.</seealso>
         public int get_Norig_columns()
         {
             return Interop.get_Norig_columns(_lp);
         }
 
+        /// <summary>
+        /// Returns the number of original rows (constraints) in the lp model.
+        /// </summary>
+        /// <returns>The number of original rows (constraints) in the lp model.</returns>
+        /// <remarks>
+        /// <para>Note that the number of rows (<see cref="get_Nrows"/>) can change when a presolve is done.</para>
+        /// <para><see cref="get_Norig_rows"/> does not change and thus returns the original number of rows in the lp model.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_Norig_rows.htm">Full C API documentation.</seealso>
         public int get_Norig_rows()
         {
             return Interop.get_Norig_rows(_lp);
         }
 
+        /// <summary>
+        /// Returns the number of rows (constraints) in the lp model.
+        /// </summary>
+        /// <returns>The number of rows (constraints) in the lp model.</returns>
+        /// <remarks>
+        /// <para>Note that the number of rows can change when a presolve is done.</para>
+        /// <para>Therefore it is advisable to use this function to determine how many rows there are
+        /// in the lp model instead of relying on an own count.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_Nrows.htm">Full C API documentation.</seealso>
         public int get_Nrows()
         {
             return Interop.get_Nrows(_lp);
         }
 
+        /// <summary>
+        /// Returns an extra status after a call to a function.
+        /// </summary>
+        /// <returns>Extra status which indicates type of problem after call to function.</returns>
+        /// <remarks>
+        /// Some functions return <c>false</c> when they have failed.
+        /// To have more information on the reason of the failure, this method can be used to get an extended error code.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_status.htm">Full C API documentation.</seealso>
         public int get_status()
         {
             return Interop.get_status(_lp);
         }
 
+        /// <summary>
+        /// Returns the description of a returncode of the <see cref="solve"/> function.
+        /// </summary>
+        /// <param name="statuscode">Returncode of <see cref="solve"/></param>
+        /// <returns>The description of a returncode of the <see cref="solve"/> function</returns>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_statustext.htm">Full C API documentation.</seealso>
         public string get_statustext(int statuscode)
         {
             return Interop.get_statustext(_lp, statuscode);
         }
 
+        /// <summary>
+        /// Gets the time elapsed since start of solve.
+        /// </summary>
+        /// <returns>The number of seconds after <see cref="solve"/> has started.</returns>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/time_elapsed.htm">Full C API documentation.</seealso>
         public double time_elapsed()
         {
             return Interop.time_elapsed(_lp);
         }
 
+        /// <summary>
+        /// Returns the index in the lp of the original row/column.
+        /// </summary>
+        /// <param name="orig_index">Original constraint or column number. 
+        /// If <paramref name="orig_index"/> is between 1 and <see cref="get_Norig_rows"/> then the index is a constraint (row) number.
+        /// If <paramref name="orig_index"/> is between 1+<see cref="get_Norig_rows"/> and <see cref="get_Norig_rows"/> + <see cref="get_Norig_columns"/>
+        /// then the index is a column number.</param>
+        /// <returns>The index in the lp of the original row/column.</returns>
+        /// <remarks>
+        /// <para>Note that the number of constraints(<see cref="get_Nrows"/>) and columns(<see cref="get_Ncolumns"/>) can change when
+        /// a presolve is done or when negative variables are split in a positive and a negative part.
+        /// <see cref="get_lp_index"/> returns the position of the constraint/variable in the lp model.
+        /// If <paramref name="orig_index"/> is not a legal index  or the constraint/column is deleted,
+        /// the return value is <c>0</c>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_lp_index.htm">Full C API documentation.</seealso>
         public int get_lp_index(int orig_index)
         {
             return Interop.get_lp_index(_lp, orig_index);
         }
 
+        /// <summary>
+        /// Returns the original row/column where a constraint/variable was before presolve.
+        /// </summary>
+        /// <param name="lp_index">Constraint or column number.
+        /// If <paramref name="lp_index"/> is between 1 and <see cref="get_Nrows"/> then the index is a constraint (row) number.
+        /// If <paramref name="lp_index"/> is between 1+<see cref="get_Nrows"/> and <see cref="get_Nrows"/> + <see cref="get_Ncolumns"/>
+        /// then the index is a column number.</param>
+        /// <returns>The original row/column where a constraint/variable was before presolve.</returns>
+        /// <remarks>
+        /// <para>Note that the number of constraints(<see cref="get_Nrows"/>) and columns(<see cref="get_Ncolumns"/>) can change when
+        /// a presolve is done or when negative variables are split in a positive and a negative part.
+        /// <see cref="get_orig_index"/> returns the original position of the constraint/variable.
+        /// If <paramref name="lp_index"/> is not a legal index, the return value is <c>0</c>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_orig_index.htm">Full C API documentation.</seealso>
         public int get_orig_index(int lp_index)
         {
             return Interop.get_orig_index(_lp, lp_index);
         }
 
-#endregion
+        #endregion
     }
 }
