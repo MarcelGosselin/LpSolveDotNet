@@ -7,6 +7,8 @@ using System.Reflection;
 
 namespace LpSolveDotNet
 {
+    //TODO: Need to do everywhere: verify seealso, function=>method, ...
+
     /// <summary>
     /// Class that represents a Linear Programming (LP) model and methods to solve it.
     /// <para>
@@ -2853,52 +2855,191 @@ namespace LpSolveDotNet
         {
             Interop.set_preferdual(_lp, dodual);
         }
-//TODO: documentation tag order and completeness completed above, need to do below. Also need to do everywhere: verify seealso, function=>method, ...
+
+        /// <summary>
+        /// Returns the solution number that must be returned.
+        /// </summary>
+        /// <returns>The solution number that must be returned. This value gives the number of the solution that must be returned.</returns>
+        /// <remarks>
+        /// <para>This function is only valid if there are integer, semi-continious or SOS variables in the 
+        /// model so that the branch-and-bound algoritm is used.
+        /// If there are more solutions with the same objective value, then this number specifies 
+        /// which solution must be returned. This can be used to retrieve all possible solutions. 
+        /// Start with 1 till <see cref="get_solutioncount"/>.
+        /// </para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_solutionlimit.htm">Full C API documentation.</seealso>
         public int get_solutionlimit()
         {
             return Interop.get_solutionlimit(_lp);
         }
 
+        /// <summary>
+        /// Sets the solution number that must be returned.
+        /// </summary>
+        /// <param name="limit">The solution number that must be returned. This value gives the number of the solution that must be returned.</param>
+        /// <remarks>
+        /// <para>This function is only valid if there are integer, semi-continious or SOS variables in the 
+        /// model so that the branch-and-bound algoritm is used.
+        /// If there are more solutions with the same objective value, then this number specifies 
+        /// which solution must be returned. This can be used to retrieve all possible solutions. 
+        /// Start with 1 till <see cref="get_solutioncount"/>.
+        /// </para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_solutionlimit.htm">Full C API documentation.</seealso>
         public void set_solutionlimit(int limit)
         {
             Interop.set_solutionlimit(_lp, limit);
         }
 
+        /// <summary>
+        /// Gets the timeout.
+        /// </summary>
+        /// <returns>The number of seconds after which a timeout occurs.</returns>
+        /// <remarks>
+        /// <para>The <see cref="solve"/> function may not last longer than this time or
+        /// the method returns with a timeout. There is no valid solution at this time.
+        /// The default timeout is 0, resulting in no timeout.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_timeout.htm">Full C API documentation.</seealso>
         public int get_timeout()
         {
             return Interop.get_timeout(_lp);
         }
 
+        /// <summary>
+        /// Sets a timeout.
+        /// </summary>
+        /// <param name="sectimeout">The number of seconds after which a timeout occurs. If zero, then no timeout will occur.</param>
+        /// <remarks>
+        /// <para>The <see cref="solve"/> function may not last longer than this time or
+        /// the method returns with a timeout. The default timeout is 0, resulting in no timeout.</para>
+        /// <para>If a timout occurs, but there was already an integer solution found (that is possibly not the best),
+        /// then solve will return <see cref="lpsolve_return.SUBOPTIMAL"/>.
+        /// If there was no integer solution found yet or there are no integers or the solvers is still in the
+        /// first phase where a REAL optimal solution is searched for, then solve will return <see cref="lpsolve_return.TIMEOUT"/>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_timeout.htm">Full C API documentation.</seealso>
         public void set_timeout(int sectimeout)
         {
             Interop.set_timeout(_lp, sectimeout);
         }
 
+        /// <summary>
+        /// Returns if variable or constraint names are used.
+        /// </summary>
+        /// <param name="isrow">Set to <c>false</c> if column information is needed and <c>true</c> if row information is needed.</param>
+        /// <returns>A boolean value indicating if variable or constraint names are used.</returns>
+        /// <remarks>
+        /// <para>When a model is read from file or created via the API, variables and constraints can be named.
+        /// These names are used to report information or to save the model in a given format.
+        /// However, sometimes it is required to ignore these names and to use the internal names of lp_solve.
+        /// This is for example the case when the names do not comply to the syntax rules of the format
+        /// that will be used to write the model to.</para>
+        /// <para>Names are used by default.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_use_names.htm">Full C API documentation.</seealso>
         public bool is_use_names(bool isrow)
         {
             return Interop.is_use_names(_lp, isrow);
         }
 
+        /// <summary>
+        /// Sets if variable or constraint names are used.
+        /// </summary>
+        /// <param name="isrow">Set to <c>false</c> if column information is needed and <c>true</c> if row information is needed.</param>
+        /// <param name="use_names">If <c>false</c>, the names are not used, else they are.</param>
+        /// <remarks>
+        /// <para>When a model is read from file or created via the API, variables and constraints can be named.
+        /// These names are used to report information or to save the model in a given format.
+        /// However, sometimes it is required to ignore these names and to use the internal names of lp_solve.
+        /// This is for example the case when the names do not comply to the syntax rules of the format
+        /// that will be used to write the model to.</para>
+        /// <para>Names are used by default.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_use_names.htm">Full C API documentation.</seealso>
         public void set_use_names(bool isrow, bool use_names)
         {
             Interop.set_use_names(_lp, isrow, use_names);
         }
 
+        /// <summary>
+        /// Returns if presolve level specified in <paramref name="testmask"/> is active.
+        /// </summary>
+        /// <param name="testmask">The combination of any of the <see cref="lpsolve_presolve"/> values to check whether they are active or not.</param>
+        /// <returns><c>true</c>, if all levels specified in <paramref name="testmask"/> are active, <c>false</c> otherwise.</returns>
+        /// <remarks>
+        /// <para>Presolve looks at the model and tries to simplify it so that solving times are shorter.
+        /// For example a constraint on only one variable is converted to a bound on this variable
+        /// (and the constraint is deleted). Note that the model dimensions can change because of this,
+        /// so be careful with this. Both rows and columns can be deleted by the presolve.</para>
+        /// <para>The default is not (<see cref="lpsolve_presolve.PRESOLVE_NONE"/>) doing a presolve.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_presolve.htm">Full C API documentation.</seealso>
         public bool is_presolve(lpsolve_presolve testmask)
         {
             return Interop.is_presolve(_lp, testmask);
         }
 
+        /// <summary>
+        /// Returns the number of times presolve is done.
+        /// </summary>
+        /// <returns>The number of times presolve is done.</returns>
+        /// <remarks>
+        /// After a presolve is done, another presolve can again result in elimination of extra rows and/or columns.
+        /// This number specifies the maximum number of times this process is repeated.
+        /// By default this is until presolve has nothing to do anymore.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_presolveloops.htm">Full C API documentation.</seealso>
         public int get_presolveloops()
         {
             return Interop.get_presolveloops(_lp);
         }
 
+        /// <summary>
+        /// Returns if a presolve must be done before solving.
+        /// </summary>
+        /// <returns>Can be the combination of any of the <see cref="lpsolve_presolve"/> values.</returns>
+        /// <remarks>
+        /// <para>Presolve looks at the model and tries to simplify it so that solving times are shorter.
+        /// For example a constraint on only one variable is converted to a bound on this variable
+        /// (and the constraint is deleted). Note that the model dimensions can change because of this,
+        /// so be careful with this. Both rows and columns can be deleted by the presolve.</para>
+        /// <para>
+        /// The default is not (<see cref="lpsolve_presolve.PRESOLVE_NONE"/>) doing a presolve.
+        /// </para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_presolve.htm">Full C API documentation.</seealso>
         public lpsolve_presolve get_presolve()
         {
             return Interop.get_presolve(_lp);
         }
 
+        /// <summary>
+        /// Specifies if a presolve must be done before solving.
+        /// </summary>
+        /// <param name="do_presolve">Specifies presolve level. Can be the combination of any of the <see cref="lpsolve_presolve"/> values.</param>
+        /// <param name="maxloops">The maximum number of times presolve may be done.
+        /// Use <see cref="get_presolveloops"/> if you don't want to change this value.</param>
+        /// <remarks>
+        /// <para>Presolve looks at the model and tries to simplify it so that solving times are shorter.
+        /// For example a constraint on only one variable is converted to a bound on this variable
+        /// (and the constraint is deleted). Note that the model dimensions can change because of this,
+        /// so be careful with this. Both rows and columns can be deleted by the presolve.</para>
+        /// <para>The <paramref name="maxloops"/> variable specifies the maximum number of times presolve
+        /// is done. After a presolve is done, another presolve can again result in elimination of
+        /// extra rows and/or columns.
+        /// This number specifies the maximum number of times this process is repeated.
+        /// By default this is until presolve has nothing to do anymore.
+        /// Use <see cref="get_presolveloops"/> if you don't want to change this value.</para>
+        /// <para>Note that <see cref="lpsolve_presolve.PRESOLVE_LINDEP"/> can result in deletion of rows
+        /// (the linear dependent ones).
+        /// <see cref="get_constraints"/> will then return only the values of the rows that are
+        /// kept and the values of the deleted rows are not known anymore.
+        /// The default is not (<see cref="lpsolve_presolve.PRESOLVE_NONE"/>) doing a presolve.
+        /// </para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_presolve.htm">Full C API documentation.</seealso>
         public void set_presolve(lpsolve_presolve do_presolve, int maxloops)
         {
             Interop.set_presolve(_lp, do_presolve, maxloops);
@@ -2908,25 +3049,84 @@ namespace LpSolveDotNet
 
         #region Callback routines
 
+        /// <summary>
+        /// Sets a callback called regularly while solving the model to verify if solving should abort.
+        /// </summary>
+        /// <param name="newctrlc">The handler to call regularly while solving the model to verify if solving should abort.</param>
+        /// <param name="ctrlchandle">A parameter that will be provided back to the abort callback.</param>
+        /// <remarks>
+        /// <para>When set, the abort callback is called regularly.
+        /// The user can do whatever he wants in this callback.
+        /// For example check if the user pressed abort.
+        /// When the return value of this callback is <c>true</c>, then lp_solve aborts the solver and returns with an appropriate code.
+        /// The abort callback can be cleared by specifying <c>null</c> as <paramref name="newctrlc"/>.</para>
+        /// <para>The default is no abort callback (<c>null</c>).</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/put_abortfunc.htm">Full C API documentation.</seealso>
         public void put_abortfunc(ctrlcfunc newctrlc, IntPtr ctrlchandle)
         {
             Interop.put_abortfunc(_lp, newctrlc, ctrlchandle);
         }
 
+        /// <summary>
+        /// Sets a log callback.
+        /// </summary>
+        /// <param name="newlog">The log callback.</param>
+        /// <param name="loghandle">A parameter that will be provided back to the log callback.</param>
+        /// <remarks>
+        /// <para>When set, the log callback is called when lp_solve has someting to report.
+        /// The log callback can be cleared by specifying <c>null</c> as <paramref name="newlog"/>.</para>
+        /// <para>This function is called at the same time as something is written to the file set via <see cref="set_outputfile"/>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/put_logfunc.htm">Full C API documentation.</seealso>
         public void put_logfunc(logfunc newlog, IntPtr loghandle)
         {
             Interop.put_logfunc(_lp, newlog, loghandle);
         }
 
-        public void put_msgfunc(msgfunc newmsg, IntPtr msghandle, int mask)
+        /// <summary>
+        /// Sets a message callback called upon certain events.
+        /// </summary>
+        /// <param name="newmsg">A handler to call when events defined in <paramref name="mask"/> occur.</param>
+        /// <param name="msghandle">A parameter that will be provided back to the message handler.</param>
+        /// <param name="mask">The mask of event types that should trigger a call to the <paramref name="newmsg"/> handler.</param>
+        /// <remarks>
+        /// This callback is called when a situation specified in mask occurs.
+        /// Note that this callback is called while solving the model.
+        /// This can be useful to follow the solving progress.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/put_msgfunc.htm">Full C API documentation.</seealso>
+        public void put_msgfunc(msgfunc newmsg, IntPtr msghandle, lpsolve_msgmask mask)
         {
             Interop.put_msgfunc(_lp, newmsg, msghandle, mask);
         }
+
 
         #endregion
 
         #region Solve
 
+        /// <summary>
+        /// Solve the model.
+        /// </summary>
+        /// <returns>One of the <see cref="lpsolve_return"/> enum values.</returns>
+        /// <remarks>
+        /// <para><see cref="solve"/> can be called more than once.
+        /// Between calls, the model may be modified in every way.
+        /// Restrictions may be changed, matrix values may be changed and even rows and/or columns 
+        /// may be added or deleted.</para>
+        /// <para>If <see cref="set_timeout"/> was called before solve with a non-zero timeout and a timout occurs,
+        /// and there was already an integer solution found (that is possibly not the best), 
+        /// then solve will return <see cref="lpsolve_return.SUBOPTIMAL"/>.
+        /// If there was no integer solution found yet or there are no integers or the solvers is still 
+        /// in the first phase where a REAL optimal solution is searched for, then solve will return <see cref="lpsolve_return.TIMEOUT"/>.</para>
+        /// <para>If <see cref="set_presolve"/> was called before solve, then it can happen that presolve 
+        /// eliminates all rows and columns such that the solution is known by presolve.
+        /// In that case, no solve is done.
+        /// This also means that values of constraints and sensitivity are unknown.
+        /// solve will return <see cref="lpsolve_return.PRESOLVED"/> in this case.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/solve.htm">Full C API documentation.</seealso>
         public lpsolve_return solve()
         {
             return Interop.solve(_lp);
@@ -2936,87 +3136,341 @@ namespace LpSolveDotNet
 
         #region Solution
 
+        /// <summary>
+        /// Gets the value of a constraint according to provided variable values.
+        /// </summary>
+        /// <param name="row">The row for which the constraint value must be calculated. Must be between 1 and number of rows in the lp model.</param>
+        /// <param name="count">The number of items in <paramref name="primsolution"/> and <paramref name="nzindex"/>.</param>
+        /// <param name="primsolution">The values of the variables.</param>
+        /// <param name="nzindex">The variable indexes.</param>
+        /// <returns>The value of the constraint as calculated with the provided variable values.</returns>
+        /// <remarks>
+        /// <para>If <paramref name="primsolution"/> is <c>null</c>, then the solution
+        /// of the last solve is taken. <paramref name="count"/> and <paramref name="nzindex"/> are then ignored.</para>
+        /// <para>If <paramref name="primsolution"/> is not <c>null</c>, and <paramref name="nzindex"/> is <c>null</c>,
+        /// then the variable values are taken from <paramref name="primsolution"/> and element i must specify
+        /// the value for variable i.
+        /// Element 0 is not used and thus data starts from element 1. 
+        /// The variable must then contain 1+<see cref="get_Ncolumns"/> elements.
+        /// <paramref name="count"/> is ignored in that case.</para>
+        /// <para>If <paramref name="primsolution"/> is not <c>null</c>, and <paramref name="nzindex"/> is not <c>null</c>,
+        /// then the variable values are taken from <paramref name="primsolution"/>. 
+        /// <paramref name="nzindex"/> contains the indexes of the variables and <paramref name="count"/> specifies 
+        /// how many elements there are in <paramref name="primsolution"/> and <paramref name="nzindex"/>.
+        /// So the data is then provided in a sparse vector.
+        /// Elements start from index 0 in that case.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_constr_value.htm">Full C API documentation.</seealso>
         public double get_constr_value(int row, int count, double[] primsolution, int[] nzindex)
         {
             return Interop.get_constr_value(_lp, row, count, primsolution, nzindex);
         }
 
+        /// <summary>
+        /// Returns the values of the constraints.
+        /// </summary>
+        /// <param name="constr">An array that will contain the values of the constraints.</param>
+        /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
+        /// <remarks>
+        /// <para>These values are only valid after a successful <see cref="solve"/>. 
+        /// The array must already be dimensioned with <see cref="get_Nrows"/> elements.
+        /// Element 0 will contain the value of the first row, element 1 of the second row, ...</para>
+        /// <para>Note that when <see cref="set_presolve"/> was called with parameter <see cref="lpsolve_presolve.PRESOLVE_LINDEP"/>
+        /// that this can result in deletion of rows (the linear dependent ones). 
+        /// This method will then return only the values of the rows that are kept and 
+        /// the values of the deleted rows are not known anymore.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_constraints.htm">Full C API documentation.</seealso>
         public bool get_constraints(double[] constr)
         {
             return Interop.get_constraints(_lp, constr);
         }
 
+        /// <summary>
+        /// Returns the value(s) of the dual variables aka reduced costs.
+        /// </summary>
+        /// <param name="rc">An array that will contain the values of the dual variables aka reduced costs.</param>
+        /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
+        /// <remarks>
+        /// <para>The <see cref="get_dual_solution"/> functions return only the value(s) of the dual variables aka reduced costs.</para>
+        /// <para>These values are only valid after a successful <see cref="solve"/> and if there are integer variables in the model then only if <see cref="set_presolve"/>
+        /// is called before <see cref="solve"/> with parameter <see cref="lpsolve_presolve.PRESOLVE_SENSDUALS"/>.</para>
+        /// <para><paramref name="rc"/> needs to already be dimensioned with 1+<see cref="get_Nrows"/>+<see cref="get_Ncolumns"/> elements.</para>
+        /// <para>For function <see cref="get_dual_solution"/>, the index starts from 1 and element 0 is not used.
+        /// The first <see cref="get_Nrows"/> elements contain the duals of the constraints, 
+        /// the next <see cref="get_Ncolumns"/> elements contain the duals of the variables.</para>
+        /// <para>The dual values or reduced costs values indicate that the objective function will change with the value of the reduced cost
+        /// if the restriction is changed with 1 unit.
+        /// There will only be a reduced cost if the value is bounded by the restriction, else it is zero.
+        /// Note that the sign indicates if the objective function will increase or decrease.
+        /// The reduced costs remains constant as long as the restriction stays within the lower/upper range also provided with these functions (dualsfrom, dualstill).
+        /// If there is no reduced cost, or no lower/upper limit, then these values are (-)infinity.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_sensitivity_rhs.htm">Full C API documentation.</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/sensitivity.htm">Sensitivity explanation.</seealso>
         public bool get_dual_solution(double[] rc)
         {
             return Interop.get_dual_solution(_lp, rc);
         }
 
+        /// <summary>
+        /// Returns the deepest Branch-and-bound level of the last solution.
+        /// </summary>
+        /// <returns>The deepest Branch-and-bound level of the last solution.</returns>
+        /// <remarks>
+        /// Is only applicable if the model contains integer variables.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_max_level.htm">Full C API documentation.</seealso>
         public int get_max_level()
         {
             return Interop.get_max_level(_lp);
         }
 
+        /// <summary>
+        /// Returns the value of the objective function.
+        /// </summary>
+        /// <returns>The value of the objective function.</returns>
+        /// <remarks>
+        /// <para>This value is only valid after a successful <see cref="solve"/>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_objective.htm">Full C API documentation.</seealso>
         public double get_objective()
         {
             return Interop.get_objective(_lp);
         }
 
+        /// <summary>
+        /// Returns the solution of the model.
+        /// </summary>
+        /// <param name="pv">An array that will contain the value of the objective function (element 0),
+        /// values of the constraints (elements 1 till Nrows),
+        /// and the values of the variables (elements Nrows+1 till Nrows+NColumns).
+        /// </param>
+        /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
+        /// <remarks>
+        /// <para>These values are only valid after a successful <see cref="solve"/>.
+        /// <paramref name="pv"/> needs to be already dimensioned with 1 + <see cref="get_Nrows"/> + <see cref="get_Ncolumns"/> elements. 
+        /// Element 0 is the value of the objective function, elements 1 till Nrows the values of the constraints and elements Nrows+1 till Nrows+NColumns the values of the variables.
+        /// </para>
+        /// <para>Special considerations when presolve was done. When <see cref="set_presolve"/> is called before solve, 
+        /// then presolve can have deleted both rows and columns from the model because they could be eliminated.
+        /// This influences <see cref="get_primal_solution"/>.
+        /// This function only reports the values of the remaining variables and constraints.
+        /// </para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_primal_solution.htm">Full C API documentation.</seealso>
         public bool get_primal_solution(double[] pv)
         {
             return Interop.get_primal_solution(_lp, pv);
         }
 
+        /// <summary>
+        /// Returns the sensitivity of the objective function.
+        /// </summary>
+        /// <param name="objfrom">An array that will contain the values of the lower limits on the objective function.</param>
+        /// <param name="objtill">An array that will contain the values of the upper limits of the objective function.</param>
+        /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
+        /// <remarks>
+        /// <para>The <see cref="get_sensitivity_obj"/> and <see cref="get_sensitivity_objex"/> functions return 
+        /// the sensitivity of the objective function.</para>
+        /// <para>These values are only valid after a successful <see cref="solve"/> and if there are integer
+        /// variables in the model then only if <see cref="set_presolve"/> is called before <see cref="solve"/>
+        /// with parameter <see cref="lpsolve_presolve.PRESOLVE_SENSDUALS"/>.
+        /// The arrays must already be dimensioned with <see cref="get_Ncolumns"/> elements.
+        /// Element 0 will contain the value of the first variable, element 1 of the second variable, ...</para>
+        /// <para>The meaning of these limits are the following. As long as the value of the coefficient of 
+        /// the objective function stays between the lower limit (<paramref name="objfrom"/>) and the upper limit (<paramref name="objtill"/>),
+        /// the solution stays the same.
+        /// Only the objective value itself changes with a value equal to the difference multiplied by
+        /// the amount of this variable.
+        /// If there is no lower/upper limit, then these values are (-)infinity.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_sensitivity_obj.htm">Full C API documentation.</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/sensitivity.htm">Sensitivity explanation.</seealso>
         public bool get_sensitivity_obj(double[] objfrom, double[] objtill)
         {
             return Interop.get_sensitivity_obj(_lp, objfrom, objtill);
         }
 
+        /// <summary>
+        /// Returns the sensitivity of the objective function.
+        /// </summary>
+        /// <param name="objfrom">An array that will contain the values of the lower limits on the objective function.</param>
+        /// <param name="objtill">An array that will contain the values of the upper limits of the objective function.</param>
+        /// <param name="objfromvalue">An array that will contain the values of the variables at their lower limit. Only applicable when the value of the variable is 0 (rejected).</param>
+        /// <param name="objtillvalue">Not used at this time.</param>
+        /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
+        /// <remarks>
+        /// <para>The <see cref="get_sensitivity_obj"/> and <see cref="get_sensitivity_objex"/> functions return 
+        /// the sensitivity of the objective function.</para>
+        /// <para>These values are only valid after a successful <see cref="solve"/> and if there are integer
+        /// variables in the model then only if <see cref="set_presolve"/> is called before <see cref="solve"/>
+        /// with parameter <see cref="lpsolve_presolve.PRESOLVE_SENSDUALS"/>.
+        /// The arrays must already be dimensioned with <see cref="get_Ncolumns"/> elements.
+        /// Element 0 will contain the value of the first variable, element 1 of the second variable, ...</para>
+        /// <para>The meaning of these limits are the following. As long as the value of the coefficient of 
+        /// the objective function stays between the lower limit (<paramref name="objfrom"/>) and the upper limit (<paramref name="objtill"/>),
+        /// the solution stays the same.
+        /// Only the objective value itself changes with a value equal to the difference multiplied by
+        /// the amount of this variable.
+        /// If there is no lower/upper limit, then these values are (-)infinity.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_sensitivity_obj.htm">Full C API documentation.</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/sensitivity.htm">Sensitivity explanation.</seealso>
         public bool get_sensitivity_objex(double[] objfrom, double[] objtill, double[] objfromvalue,
             double[] objtillvalue)
         {
             return Interop.get_sensitivity_objex(_lp, objfrom, objtill, objfromvalue, objtillvalue);
         }
 
+        /// <summary>
+        /// Returns the sensitivity of the constraints and the variables.
+        /// </summary>
+        /// <param name="duals">An array that will contain the values of the dual variables aka reduced costs.</param>
+        /// <param name="dualsfrom">An array that will contain the values of the lower limits on the dual variables aka reduced costs.</param>
+        /// <param name="dualstill">An array that will contain the values of the upper limits on the dual variables aka reduced costs.</param>
+        /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
+        /// <remarks>
+        /// <para>The function returns the values of the dual variables aka reduced costs and their limits.</para>
+        /// <para>These values are only valid after a successful solve and if there are integer variables in the model then only if <see cref="set_presolve"/>
+        /// is called before <see cref="solve"/> with parameter <see cref="lpsolve_presolve.PRESOLVE_SENSDUALS"/>.</para>
+        /// <para>The arrays need to be alread already dimensioned with <see cref="get_Nrows"/>+<see cref="get_Ncolumns"/> elements.</para>
+        /// <para>Element 0 will contain the value of the first row, element 1 of the second row, ...
+        /// Element <see cref="get_Nrows"/> contains the value for the first variable, element <see cref="get_Nrows"/>+1 the value for the second variable and so on.</para>
+        /// <para>The dual values or reduced costs values indicate that the objective function will change with the value of the reduced cost
+        /// if the restriction is changed with 1 unit.
+        /// There will only be a reduced cost if the value is bounded by the restriction, else it is zero.
+        /// Note that the sign indicates if the objective function will increase or decrease.
+        /// The reduced costs remains constant as long as the restriction stays within the lower/upper range also provided with these functions (dualsfrom, dualstill).
+        /// If there is no reduced cost, or no lower/upper limit, then these values are (-)infinity.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_sensitivity_rhs.htm">Full C API documentation.</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/sensitivity.htm">Sensitivity explanation.</seealso>
         public bool get_sensitivity_rhs(double[] duals, double[] dualsfrom, double[] dualstill)
         {
             return Interop.get_sensitivity_rhs(_lp, duals, dualsfrom, dualstill);
         }
 
+        /// <summary>
+        /// Returns the number of equal solutions.
+        /// </summary>
+        /// <returns>The number of equal solutions up to <see cref="get_solutionlimit"/></returns>
+        /// <remarks>
+        /// <para>This is only valid if there are integer, semi-continious or SOS variables in the model
+        /// so that the branch-and-bound algoritm is used.
+        /// This count gives the number of solutions with the same optimal objective value.
+        /// If there is only one optimal solution, the result is 1.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_solutioncount.htm">Full C API documentation.</seealso>
         public int get_solutioncount()
         {
             return Interop.get_solutioncount(_lp);
         }
 
+        /// <summary>
+        /// Returns the total number of iterations.
+        /// </summary>
+        /// <returns>The total number of iterations.</returns>
+        /// <remarks>
+        /// <para>If the model contains integer variables then it returns the number of iterations to find a relaxed solution plus the number of iterations in the B&amp;B process.</para>
+        /// <para>If the model contains no integer variables then it returns the number of iterations to find a solution.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_total_iter.htm">Full C API documentation.</seealso>
         public long get_total_iter()
         {
             return Interop.get_total_iter(_lp);
         }
 
+        /// <summary>
+        /// Returns the total number of nodes processed in branch-and-bound of the last solution.
+        /// </summary>
+        /// <returns>The total number of nodes processed in branch-and-bound of the last solution.</returns>
+        /// <remarks>
+        /// Is only applicable if the model contains integer variables.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_total_nodes.htm">Full C API documentation.</seealso>
         public long get_total_nodes()
         {
             return Interop.get_total_nodes(_lp);
         }
 
+        /// <summary>
+        /// Returns the reduced cost on a variable.
+        /// </summary>
+        /// <param name="index">The column of the variable for which the reduced cost is required.
+        /// Note that this is the column number before presolve was done, if active.
+        /// If index is 0, then the value of the objective function is returned.</param>
+        /// <returns>The reduced cost on the variable at <paramref name="index"/>.</returns>
+        /// <remarks>
+        /// <para>The function returns only the value of the dual variables aka reduced costs.</para>
+        /// <para>This value is only valid after a successful <see cref="solve"/> and if there are integer variables in the model then only if <see cref="set_presolve"/>
+        /// is called before <see cref="solve"/> with parameter <see cref="lpsolve_presolve.PRESOLVE_SENSDUALS"/>.</para>
+        /// <para>The dual values or reduced costs values indicate that the objective function will change with the value of the reduced cost
+        /// if the restriction is changed with 1 unit.
+        /// There will only be a reduced cost if the value is bounded by the restriction, else it is zero.
+        /// Note that the sign indicates if the objective function will increase or decrease.
+        /// The reduced costs remains constant as long as the restriction stays within the lower/upper range also provided with these functions (dualsfrom, dualstill).
+        /// If there is no reduced cost, or no lower/upper limit, then these values are (-)infinity.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_sensitivity_rhs.htm">Full C API documentation.</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/sensitivity.htm">Sensitivity explanation.</seealso>
         public double get_var_dualresult(int index)
         {
             return Interop.get_var_dualresult(_lp, index);
         }
 
+        /// <summary>
+        /// Returns the solution of the model.
+        /// </summary>
+        /// <param name="index">The original index of the variable in the model no matter if <see cref="set_presolve"/> is called before <see cref="solve"/>.</param>
+        /// <returns>The value of the solution for variable at <paramref name="index"/>.</returns>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_primal_solution.htm">Full C API documentation.</seealso>
         public double get_var_primalresult(int index)
         {
             return Interop.get_var_primalresult(_lp, index);
         }
 
+        /// <summary>
+        /// Returns the values of the variables.
+        /// </summary>
+        /// <param name="var">An array that will contain the values of the variables.</param>
+        /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
+        /// <remarks>
+        /// <para>These values are only valid after a successful <see cref="solve"/>. 
+        /// <paramref name="var"/> must already be dimensioned with <see cref="get_Ncolumns"/> elements.
+        /// Element 0 will contain the value of the first variable, element 1 of the second variable, ...</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_variables.htm">Full C API documentation.</seealso>
         public bool get_variables(double[] var)
         {
             return Interop.get_variables(_lp, var);
         }
 
+        /// <summary>
+        /// Returns the value of the objective function.
+        /// </summary>
+        /// <returns>The current value of the objective while solving the model.</returns>
+        /// <remarks>This value can be retrieved while solving in a callback function.</remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_working_objective.htm">Full C API documentation.</seealso>
         public double get_working_objective()
         {
             return Interop.get_working_objective(_lp);
         }
 
+        /// <summary>
+        /// Checks if provided solution is a feasible solution.
+        /// </summary>
+        /// <param name="values">
+        ///   <para>An array of row/column values that are checked against the bounds and ranges.</para>
+        ///   <para>The array must have <see cref="get_Nrows"/>+<see cref="get_Ncolumns"/> elements. Element 0 is not used.</para>
+        /// </param>
+        /// <param name="threshold">A tolerance value. The values may differ that much. Recommended to use <see cref="get_epsint"/> for this value.</param>
+        /// <returns><c>true</c> if <paramref name="values"/> represent a solution to the model, <c>false</c> otherwise</returns>
+        /// <remarks>
+        /// <para>All values of the values array must be between the bounds and ranges to be a feasible solution.</para>
+        /// <para>This value is only valid after a successful <see cref="solve"/>.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_feasible.htm">Full C API documentation.</seealso>
         public bool is_feasible(double[] values, double threshold)
         {
             return Interop.is_feasible(_lp, values, threshold);

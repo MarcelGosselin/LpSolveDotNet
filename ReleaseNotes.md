@@ -31,6 +31,7 @@
 * Enum value `lpsolve_basiscrash.CRASH_NOTHING` renamed `lpsolve_basiscrash.CRASH_NONE` to follow C code.
 * Method `get_Lrows` was removed as lpsolve's Lagrangian solver does not work.
 * Methods `get_print_sol` and `set_print_sol` now use a `lpsolve_print_sol_option` instead of an `int`.
+* Method `put_msgfunc`'s mask parameter is now a `lpsolve_msgmask` enum.
 
 ## 3.1.0
 

@@ -71,7 +71,7 @@ namespace LpSolveDotNet.Demo
                 lp.put_abortfunc(ctrlcfunc, IntPtr.Zero);
 
                 /* set a message function. Again optional */
-                lp.put_msgfunc(msgfunc, IntPtr.Zero, (int)(lpsolve_msgmask.MSG_PRESOLVE | lpsolve_msgmask.MSG_LPFEASIBLE | lpsolve_msgmask.MSG_LPOPTIMAL | lpsolve_msgmask.MSG_MILPEQUAL | lpsolve_msgmask.MSG_MILPFEASIBLE | lpsolve_msgmask.MSG_MILPBETTER));
+                lp.put_msgfunc(msgfunc, IntPtr.Zero, lpsolve_msgmask.MSG_PRESOLVE | lpsolve_msgmask.MSG_LPFEASIBLE | lpsolve_msgmask.MSG_LPOPTIMAL | lpsolve_msgmask.MSG_MILPEQUAL | lpsolve_msgmask.MSG_MILPFEASIBLE | lpsolve_msgmask.MSG_MILPBETTER);
 
                 lp.print_str("lp_solve " + version + " demo" + NewLine + NewLine);
                 lp.print_str("This demo will show most of the features of lp_solve " + version + NewLine);

@@ -316,6 +316,9 @@ namespace LpSolveDotNet
         CRASH_LEASTDEGENERATE = 3,
     }
 
+    /// <summary>
+    /// Defines the desired combination of primal and dual simplex algorithms.
+    /// </summary>
     public enum lpsolve_simplextypes
     {
         /// <summary>Phase1 Primal, Phase2 Primal</summary>
@@ -379,6 +382,9 @@ namespace LpSolveDotNet
         NODE_STRONGINIT = 32768
     }
 
+    /// <summary>
+    /// Defines the possible return values of method <see cref="LpSolve.solve"/>.
+    /// </summary>
     public enum lpsolve_return
     {
         /// <summary>Undefined internal error</summary>
@@ -489,6 +495,9 @@ namespace LpSolveDotNet
         BRANCH_DEFAULT = 3,
     }
 
+    /// <summary>
+    /// Defines the events at which method set with <see cref="LpSolve.put_msgfunc"/> is called.
+    /// </summary>
     [Flags]
     public enum lpsolve_msgmask
     {
@@ -588,8 +597,28 @@ namespace LpSolveDotNet
         AUTOMATIC = 2,
     }
 
+    /// <summary>
+    /// Defines a callback called regularly while solving the model to verify if solving should abort.
+    /// </summary>
+    /// <param name="lp">Pointer to LP model.</param>
+    /// <param name="userhandle">A parameter that will be provided to the abort callback.</param>
+    /// <returns>If <c>true</c> then lp_solve aborts the solver and returns with an appropriate code.</returns>
     public delegate bool ctrlcfunc(IntPtr lp, IntPtr userhandle);
+
+    /// <summary>
+    /// Defines a callback called when certain events occur. Set up by <see cref="LpSolve.put_msgfunc"/>.
+    /// </summary>
+    /// <param name="lp">Pointer to LP model.</param>
+    /// <param name="userhandle">A parameter that will be provided to the message callback.</param>
+    /// <param name="message">The event that triggered a call to this callback method.</param>
     public delegate void msgfunc(IntPtr lp, IntPtr userhandle, lpsolve_msgmask message);
+
+    /// <summary>
+    /// Defines a callback called when certain log events occur. Set up by <see cref="LpSolve.put_logfunc"/>.
+    /// </summary>
+    /// <param name="lp">Pointer to LP model.</param>
+    /// <param name="userhandle">A parameter that will be provided to the log callback.</param>
+    /// <param name="buf">The log message.</param>
     public delegate void logfunc(IntPtr lp, IntPtr userhandle, [MarshalAs(UnmanagedType.LPStr)] string buf);
 
     internal static class Interop
@@ -861,7 +890,7 @@ namespace LpSolveDotNet
         [DllImport("lpsolve55.dll", SetLastError = true)]
         public static extern void put_logfunc(IntPtr lp, logfunc newlog, IntPtr loghandle);
         [DllImport("lpsolve55.dll", SetLastError = true)]
-        public static extern void put_msgfunc(IntPtr lp, msgfunc newmsg, IntPtr msghandle, int mask);
+        public static extern void put_msgfunc(IntPtr lp, msgfunc newmsg, IntPtr msghandle, lpsolve_msgmask mask);
         [DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
         public static extern bool read_basis(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string filename, [MarshalAs(UnmanagedType.LPStr)] string info);
         //[DllImport("lpsolve55.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]

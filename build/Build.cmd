@@ -7,7 +7,7 @@ cd "%THIS_DIR%..\src\LpSolveDotNet"
 echo.
 echo Build project
 ::dotnet pack --configuration Release -p:NoWarn=1591 || goto :error
-msbuild -t:Clean;Pack -p:NoWarn=1591 -restore || goto :error
+msbuild -t:Clean;Pack -restore || goto :error
 
 ::if [%1]==[push] (
 ::	echo.
