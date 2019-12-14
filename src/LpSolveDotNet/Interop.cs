@@ -418,7 +418,7 @@ namespace LpSolveDotNet
         /// <item><description>set_break_at_first was called so that the first found integer solution is found (-f option in lp_solve)</description></item>
         /// <item><description>set_break_at_value was called so that when integer solution is found that is better than the specified value that it stops (-o option in lp_solve)</description></item>
         /// <item><description>set_mip_gap was called (-g/-ga/-gr options in lp_solve) to specify a MIP gap</description></item>
-        /// <item><description>An abort callback is installed (<see cref="LpSolve.put_abortfunc"/>) and this callback returned <c>true</></description></item>
+        /// <item><description>An abort callback is installed (<see cref="LpSolve.put_abortfunc"/>) and this callback returned <c>true</c></description></item>
         /// <item><description>At some point not enough memory could not be allocated</description></item>
         /// </list>
         /// </summary>
@@ -445,7 +445,7 @@ namespace LpSolveDotNet
         NUMFAILURE = 5,
 
         /// <summary>
-        /// The abort callback returned <c>true</>. <see cref="LpSolve.put_abortfunc"/>
+        /// The abort callback returned <c>true</c>. <see cref="LpSolve.put_abortfunc"/>
         /// </summary>
         USERABORT = 6,
 
