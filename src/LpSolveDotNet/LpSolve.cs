@@ -7,8 +7,6 @@ using System.Reflection;
 
 namespace LpSolveDotNet
 {
-    //TODO: Need to do everywhere: verify seealso, function=>method, ...
-
     /// <summary>
     /// Class that represents a Linear Programming (LP) model and methods to solve it.
     /// <para>
@@ -150,7 +148,7 @@ namespace LpSolveDotNet
         /// <returns>A new <see cref="LpSolve"/> model matching the one in the file.
         /// A <c>null</c> return value indicates an error. Specifically file could not be opened, has wrong structure or not enough memory is available.</returns>
         /// <remarks>The model in the file must be in <see href="http://lpsolve.sourceforge.net/5.5/lp-format.htm">lp-format</see>.</remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/read_LP.htm">Full C API documentation.</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/read_lp.htm">Full C API documentation.</seealso>
         public static LpSolve read_LP(string fileName, lpsolve_verbosity verbose, string lpName)
         {
             IntPtr lp = Interop.read_LP(fileName, verbose, lpName);
@@ -730,7 +728,7 @@ namespace LpSolveDotNet
         /// <para>It is almost always better to use <see cref="add_constraintex"/> instead of <see cref="add_constraint"/>. <see cref="add_constraintex"/> is always at least as performant as <see cref="add_constraint"/>.</para>
         /// <para>Note that it is advised to set the objective function (via <see cref="set_obj_fn"/>, <see cref="set_obj_fnex"/>, <see cref="str_set_obj_fn"/>, <see cref="set_obj"/>)
         /// before adding rows. This especially for larger models. This will be much more performant than adding the objective function afterwards.</para>
-        /// <para>Note that these routines will perform much better when <see cref="set_add_rowmode"/> is called before adding constraints.</para>
+        /// <para>Note that these methods will perform much better when <see cref="set_add_rowmode"/> is called before adding constraints.</para>
         /// <para>Note that if you have to add many constraints, performance can be improved by a call to <see cref="resize_lp"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_constraint.htm">Full C API documentation.</seealso>
@@ -760,7 +758,7 @@ namespace LpSolveDotNet
         /// <para>It is almost always better to use <see cref="add_constraintex"/> instead of <see cref="add_constraint"/>. <see cref="add_constraintex"/> is always at least as performant as <see cref="add_constraint"/>.</para>
         /// <para>Note that it is advised to set the objective function (via <see cref="set_obj_fn"/>, <see cref="set_obj_fnex"/>, <see cref="str_set_obj_fn"/>, <see cref="set_obj"/>)
         /// before adding rows. This especially for larger models. This will be much more performant than adding the objective function afterwards.</para>
-        /// <para>Note that these routines will perform much better when <see cref="set_add_rowmode"/> is called before adding constraints.</para>
+        /// <para>Note that these methods will perform much better when <see cref="set_add_rowmode"/> is called before adding constraints.</para>
         /// <para>Note that if you have to add many constraints, performance can be improved by a call to <see cref="resize_lp"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_constraint.htm">Full C API documentation.</seealso>
@@ -779,7 +777,7 @@ namespace LpSolveDotNet
         /// <remarks>
         /// <para>This method adds a row to the model (at the end) and sets all values of the row at once.</para>
         /// <para>This method should only be used in small or demo code since it is not performant and uses more memory than <see cref="add_constraint"/> and <see cref="add_constraintex"/>.</para>
-        /// <para>Note that these routines will perform much better when <see cref="set_add_rowmode"/> is called before adding constraints.</para>
+        /// <para>Note that these methods will perform much better when <see cref="set_add_rowmode"/> is called before adding constraints.</para>
         /// <para>Note that if you have to add many constraints, performance can be improved by a call to <see cref="resize_lp"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_constraint.htm">Full C API documentation.</seealso>
@@ -795,7 +793,7 @@ namespace LpSolveDotNet
         /// <returns><c>true</c> if operation was successful, <c>false</c> otherwise. An error occurs when <paramref name="del_row"/>
         /// is not between 1 and the number of rows in the model.</returns>
         /// <remarks>
-        /// <para>Note that row entry mode must be off, else this function also fails. See <see cref="set_add_rowmode"/>.</para>
+        /// <para>Note that row entry mode must be off, else this method also fails. See <see cref="set_add_rowmode"/>.</para>
         /// <para>This method deletes a row from the model. The row is effectively deleted, so all rows after this row shift one up.</para>
         /// <para>Note that row 0 (the objective function) cannot be deleted. There is always an objective function.</para>
         /// <para>Note that you can also delete multiple constraints by a call to <see cref="resize_lp"/>.</para>
@@ -853,7 +851,7 @@ namespace LpSolveDotNet
         /// <para>Note that element 0 of the array is not considered (i.e. ignored). Column 1 is element 1, column 2 is element 2, ...</para>
         /// <para>It is almost always better to use <see cref="set_rowex"/> instead of <see cref="set_row"/>. <see cref="set_rowex"/> is always at least as performant as <see cref="set_row"/>.</para>
         /// <para>It is more performant to call these methods than multiple times <see cref="set_mat"/>.</para>
-        /// <para>Note that these routines will perform much better when <see cref="set_add_rowmode"/> is called before adding constraints.</para>
+        /// <para>Note that these methods will perform much better when <see cref="set_add_rowmode"/> is called before adding constraints.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_row.htm">Full C API documentation.</seealso>
         public bool set_row(int row_no, double[] row)
@@ -880,7 +878,7 @@ namespace LpSolveDotNet
         /// <para>It is almost always better to use <see cref="set_rowex"/> instead of <see cref="set_row"/>. <see cref="set_rowex"/> is always at least as performant as <see cref="set_row"/>.</para>
         /// <para>It is more performant to call these methods than multiple times <see cref="set_mat"/>.</para>
         /// <para>Note that unspecified values by <see cref="set_rowex"/> are set to zero.</para>
-        /// <para>Note that these routines will perform much better when <see cref="set_add_rowmode"/> is called before adding constraints.</para>
+        /// <para>Note that these methods will perform much better when <see cref="set_add_rowmode"/> is called before adding constraints.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_row.htm">Full C API documentation.</seealso>
         public bool set_rowex(int row_no, int count, double[] row, int[] colno)
@@ -939,7 +937,7 @@ namespace LpSolveDotNet
         /// <remarks>
         /// <para>Row names are optional. If no row name was specified, the method returns Rx with x the row number. row 0 is the objective function.</para>
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_origrow_name.htm">Full C API documentation.</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_row_name.htm">Full C API documentation.</seealso>
         public string get_origrow_name(int row)
         {
             return Interop.get_origrow_name(_lp, row);
@@ -1033,7 +1031,7 @@ namespace LpSolveDotNet
         /// <para>Note that the range value is the difference value and not the absolute value.</para>
         /// <para>If no range was set then <see cref="get_rh_range"/> returns a very big number, the value of <see cref="get_infinite"/>.</para>
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_rh_range.htm">Full C API documentation.</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_rh_range.htm">Full C API documentation.</seealso>
         public double get_rh_range(int row)
         {
             return Interop.get_rh_range(_lp, row);
@@ -1258,7 +1256,7 @@ namespace LpSolveDotNet
         /// <remarks>
         /// Giving the lp a name is optional. The default name is "Unnamed".
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_lp_name.htm">Full C API documentation.</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_lp_name.htm">Full C API documentation.</seealso>
         public string get_lp_name()
         {
             return Interop.get_lp_name(_lp);
@@ -1289,9 +1287,9 @@ namespace LpSolveDotNet
         /// <para>However, the function does **not** add rows/columns to the model if the new number of rows/columns is larger.
         /// It does however changes internal memory allocations to the new specified sizes.
         /// This to make the <see cref="add_constraint"/>, <see cref="add_constraintex"/>, <see cref="str_add_constraint"/> and <see cref="add_column"/>,
-        /// <see cref="add_columnex"/>, <see cref="str_add_column"/> routines faster. Without <see cref="resize_lp"/>, these methods have to reallocated
+        /// <see cref="add_columnex"/>, <see cref="str_add_column"/> methods faster. Without <see cref="resize_lp"/>, these methods have to reallocated
         /// memory at each call for the new dimensions. However if <see cref="resize_lp "/> is used, then memory reallocation
-        /// must be done only once resulting in better performance. So if the number of rows/columns that will be added is known in advance, then performance can be improved by using this function.</para>
+        /// must be done only once resulting in better performance. So if the number of rows/columns that will be added is known in advance, then performance can be improved by using this method.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/resize_lp.htm">Full C API documentation.</seealso>
         public bool resize_lp(int rows, int columns)
@@ -1314,9 +1312,9 @@ namespace LpSolveDotNet
         /// advisable to call this method to set the mode. Normally a model is build either column by column or row by row.</para>
         /// <para>Note that there are several restrictions with this mode:
         /// Only use this method after a <see cref="make_lp"/> call. Not when the model is read from file.
-        /// Also, if this function is used, first add the objective function via <see cref="set_obj_fn"/>, <see cref="set_obj_fnex"/>, <see cref="str_set_obj_fn"/>
+        /// Also, if this method is used, first add the objective function via <see cref="set_obj_fn"/>, <see cref="set_obj_fnex"/>, <see cref="str_set_obj_fn"/>
         /// and after that add the constraints via <see cref="add_constraint"/>, <see cref="add_constraintex"/>, <see cref="str_add_constraint"/>.
-        /// Don't call other API functions while in row entry mode.
+        /// Don't call other API methods while in row entry mode.
         /// No other data matrix access is allowed while in row entry mode.
         /// After adding the contraints, turn row entry mode back off.
         /// Once turned of, you cannot switch back to row entry mode. So in short:<list type="bullet">
@@ -1327,7 +1325,7 @@ namespace LpSolveDotNet
         /// </list>
         /// </para>
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_add_rowmode.htm">Full C API documentation.</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_add_rowmode.htm">Full C API documentation.</seealso>
         public bool is_add_rowmode()
         {
             return Interop.is_add_rowmode(_lp);
@@ -1349,9 +1347,9 @@ namespace LpSolveDotNet
         /// advisable to call this method to set the mode. Normally a model is build either column by column or row by row.</para>
         /// <para>Note that there are several restrictions with this mode:
         /// Only use this method after a <see cref="make_lp"/> call. Not when the model is read from file.
-        /// Also, if this function is used, first add the objective function via <see cref="set_obj_fn"/>, <see cref="set_obj_fnex"/>, <see cref="str_set_obj_fn"/>
+        /// Also, if this method is used, first add the objective function via <see cref="set_obj_fn"/>, <see cref="set_obj_fnex"/>, <see cref="str_set_obj_fn"/>
         /// and after that add the constraints via <see cref="add_constraint"/>, <see cref="add_constraintex"/>, <see cref="str_add_constraint"/>.
-        /// Don't call other API functions while in row entry mode.
+        /// Don't call other API methods while in row entry mode.
         /// No other data matrix access is allowed while in row entry mode.
         /// After adding the contraints, turn row entry mode back off.
         /// Once turned of, you cannot switch back to row entry mode. So in short:<list type="bullet">
@@ -1380,7 +1378,7 @@ namespace LpSolveDotNet
         /// It is the original column/row number that is returned.</returns>
         /// <remarks>
         /// Note that this index starts from 1.
-        /// Some API routines expect zero-based indexes and thus this value must then be corrected with -1.
+        /// Some API methods expect zero-based indexes and thus this value must then be corrected with -1.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_nameindex.htm">Full C API documentation.</seealso>
         public int get_nameindex(string name, bool isrow)
@@ -1437,14 +1435,14 @@ namespace LpSolveDotNet
         /// <param name="column">Column number of the matrix. Must be between 1 and number of columns in the model.</param>
         /// <returns>
         /// <para>Returns the value of the element on row <paramref name="row"/>, column <paramref name="column"/>.
-        /// If no value was set for this element, the function returns 0.</para>
-        /// <para>Note that row entry mode must be off, else this function also fails.
+        /// If no value was set for this element, the method returns 0.</para>
+        /// <para>Note that row entry mode must be off, else this method also fails.
         /// See <see cref="set_add_rowmode"/>.</para></returns>
         /// <remarks>
-        /// <para>This function is not efficient if many values are to be retrieved.
+        /// <para>This method is not efficient if many values are to be retrieved.
         /// Consider to use <see cref="get_row"/>, <see cref="get_rowex"/>, <see cref="get_column"/>, <see cref="get_columnex"/>.</para>
         /// <para>
-        /// If row and/or column are outside the allowed range, the function returns 0.
+        /// If row and/or column are outside the allowed range, the method returns 0.
         /// </para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_mat.htm">Full C API documentation.</seealso>
@@ -1460,17 +1458,17 @@ namespace LpSolveDotNet
         /// <param name="column">Column number of the matrix. Must be between 1 and number of columns in the model.</param>
         /// <param name="value">Value to set on row <paramref name="row"/>, column <paramref name="column"/>.</param>
         /// <returns><para><c>true</c> if operation was successful, <c>false</c> otherwise.</para>
-        /// <para>Note that row entry mode must be off, else this function also fails.
+        /// <para>Note that row entry mode must be off, else this method also fails.
         /// See <see cref="set_add_rowmode"/>.</para></returns>
         /// <remarks>
         /// <para>If there was already a value for this element, it is replaced and if there was no value, it is added.</para>
-        /// <para>This function is not efficient if many values are to be set.
+        /// <para>This method is not efficient if many values are to be set.
         /// Consider to use <see cref="add_constraint"/>, <see cref="add_constraintex"/>, <see cref="str_add_constraint"/>,
         /// <see cref="set_row"/>, <see cref="set_rowex"/>, <see cref="set_obj_fn"/>, <see cref="set_obj_fnex"/>,
         /// <see cref="str_set_obj_fn"/>, <see cref="set_obj"/>, <see cref="add_column"/>, <see cref="add_columnex"/>,
         /// <see cref="str_add_column"/>, <see cref="set_column"/>, <see cref="set_columnex"/>.</para>
         /// <para>
-        /// If row and/or column are outside the allowed range, the function returns 0.
+        /// If row and/or column are outside the allowed range, the method returns 0.
         /// </para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_mat.htm">Full C API documentation.</seealso>
@@ -1569,7 +1567,7 @@ namespace LpSolveDotNet
         /// <returns>Returns the list index of the new SOS if the operation was successful.
         /// A return value of 0 indicates an error.</returns>
         /// <remarks>
-        /// <para>The <see cref="add_SOS"/> function adds an SOS constraint.</para>
+        /// <para>The <see cref="add_SOS"/> method adds an SOS constraint.</para>
         /// <para>See <see href="http://lpsolve.sourceforge.net/5.5/SOS.htm">Special Ordered Sets</see> for a description about SOS variables.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_SOS.htm">Full C API documentation.</seealso>
@@ -1589,7 +1587,7 @@ namespace LpSolveDotNet
         /// Default a variable is not SOS. A variable becomes a SOS variable via <see cref="add_SOS"/>.</para>
         /// <para>See <see href="http://lpsolve.sourceforge.net/5.5/SOS.htm">Special Ordered Sets</see> for a description about SOS variables.</para>
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_SOS.htm">Full C API documentation.</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_SOS_var.htm">Full C API documentation.</seealso>
         public bool is_SOS_var(int column)
         {
             return Interop.is_SOS_var(_lp, column);
@@ -1784,7 +1782,7 @@ namespace LpSolveDotNet
         /// <param name="absolute">If <c>true</c> then the absolute MIP gap is set, else the relative MIP gap.</param>
         /// <param name="mip_gap">The MIP gap.</param>
         /// <remarks>
-        /// <para>The set_mip_gap function sets the MIP gap that specifies a tolerance for the branch and bound algorithm.
+        /// <para>The <see cref="set_mip_gap"/> method sets the MIP gap that specifies a tolerance for the branch and bound algorithm.
         /// This tolerance is the difference between the best-found solution yet and the current solution.
         /// If the difference is smaller than this tolerance then the solution (and all the sub-solutions) is rejected.
         /// This can result in faster solving times, but results in a solution which is not the perfect solution.
@@ -1803,7 +1801,7 @@ namespace LpSolveDotNet
         /// <param name="absolute">If <c>true</c> then the absolute MIP gap is returned, else the relative MIP gap.</param>
         /// <returns>The MIP gap value</returns>
         /// <remarks>
-        /// <para>The get_mip_gap function returns the MIP gap that specifies a tolerance for the branch and bound algorithm.
+        /// <para>The <see cref="get_mip_gap"/> method returns the MIP gap that specifies a tolerance for the branch and bound algorithm.
         /// This tolerance is the difference between the best-found solution yet and the current solution.
         /// If the difference is smaller than this tolerance then the solution (and all the sub-solutions) is rejected.
         /// This can result in faster solving times, but results in a solution which is not the perfect solution.
@@ -1839,15 +1837,15 @@ namespace LpSolveDotNet
         /// </summary>
         /// <remarks>
         /// <para>
-        /// This routine is meant for internal use and development.
+        /// This method is meant for internal use and development.
         /// It causes a reinversion of the matrix at a next opportunity.
-        /// The routine should only be used by people deeply understanding the code.
+        /// The method should only be used by people deeply understanding the code.
         /// </para>
         /// <para>
-        /// In the past, this routine was documented as the routine to set an initial base.
+        /// In the past, this method was documented as the method to set an initial base.
         /// <strong>This is incorrect.</strong>
         /// <see cref="default_basis"/> must be used for this purpose.
-        /// It is very unlikely that you must call this routine.
+        /// It is very unlikely that you must call this method.
         /// </para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/reset_basis.htm">Full C API documentation.</seealso>
@@ -1956,7 +1954,7 @@ namespace LpSolveDotNet
         /// <returns><c>true</c> if a basis could be returned, <c>false</c> otherwise.</returns>
         /// <remarks>
         /// <para>This can only be done after a successful solve.
-        /// If the model is not successively solved then the function will return <c>false</c>.</para>
+        /// If the model is not successively solved then the method will return <c>false</c>.</para>
         /// <para>The array receives the basic variables and if <paramref name="nonbasic"/> is <c>true</c>,
         /// then also the non-basic variables.
         /// If an element is less then zero then it means on lower bound, else on upper bound.</para>
@@ -1987,11 +1985,11 @@ namespace LpSolveDotNet
         /// Element 0 is not used.</param>
         /// <param name="basisvector">When successful, this vector contains a feasible basis corresponding to guessvector.
         /// The array must already be dimensioned for at least 1+<see cref="get_Nrows"/>+<see cref="get_Ncolumns"/> elements.
-        /// When the routine returns successfully, <paramref name="basisvector"/> is filled with the basis.
+        /// When the method returns successfully, <paramref name="basisvector"/> is filled with the basis.
         /// This array can be provided to <see cref="set_basis"/>.</param>
         /// <returns><c>true</c> if a valid base could be determined, <c>false</c> otherwise.</returns>
         /// <remarks>
-        /// <para>This routine is meant to find a basis based on provided variable values.
+        /// <para>This method is meant to find a basis based on provided variable values.
         /// This basis can be provided to lp_solve via <see cref="set_basis"/>.
         /// This can result in getting faster to an optimal solution.
         /// However the simplex algorithm doesn't guarantee you that.</para>
@@ -2283,7 +2281,7 @@ namespace LpSolveDotNet
         /// <remarks>
         /// See <see cref="ScalingAlgorithmAndParameters" /> for more information on scaling.
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_scaling.htm">Full C API documentation.</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_scalemode.htm">Full C API documentation.</seealso>
         public bool is_scalemode(
             lpsolve_scale_algorithm algorithmMask = lpsolve_scale_algorithm.SCALE_NONE,
             lpsolve_scale_parameters parameterMask = lpsolve_scale_parameters.SCALE_NONE)
@@ -2299,7 +2297,7 @@ namespace LpSolveDotNet
         /// <remarks>
         /// See <see cref="ScalingAlgorithmAndParameters" /> for more information on scaling.
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_scaling.htm">Full C API documentation.</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_scaletype.htm">Full C API documentation.</seealso>
         public bool is_scaletype(lpsolve_scale_algorithm algorithm)
         {
             return Interop.is_scaletype(_lp, algorithm);
@@ -2323,7 +2321,7 @@ namespace LpSolveDotNet
         /// Unscales the model.
         /// </summary>
         /// <remarks>
-        /// The unscale function unscales the model.
+        /// The unscale method unscales the model.
         /// Scaling can influence numerical stability considerably.
         /// It is advisable to always use some sort of scaling.
         /// </remarks>
@@ -2371,9 +2369,9 @@ namespace LpSolveDotNet
         /// Depending on the model one rule can be best and for another model another rule.
         /// </para>
         /// <para>The default is <see cref="lpsolve_branch.BRANCH_DEFAULT">BRANCH_DEFAULT (3)</see> which means that 
-        /// the branch mode specified with <see cref="set_bb_floorfirst"/> function must be used.</para>
+        /// the branch mode specified with <see cref="set_bb_floorfirst"/> method must be used.</para>
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_var_branch.htm">Full C API documentation.</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_var_branch.htm">Full C API documentation.</seealso>
         public bool set_var_branch(int column, lpsolve_branch branch_mode)
         {
             return Interop.set_var_branch(_lp, column, branch_mode);
@@ -2547,7 +2545,7 @@ namespace LpSolveDotNet
         /// Depending on the model one rule can be best and for another model another rule.</para>
         /// <para>The default is <see cref="lpsolve_branch.BRANCH_AUTOMATIC"/>.</para>
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_bb_floorfirst.htm">Full C API documentation.</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_bb_floorfirst.htm">Full C API documentation.</seealso>
         public void set_bb_floorfirst(lpsolve_branch bb_floorfirst)
         {
             Interop.set_bb_floorfirst(_lp, bb_floorfirst);
@@ -2733,7 +2731,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <example>
         /// </example>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_anti_degen.htm">Full C API documentation.</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/read_params.htm">Full C API documentation.</seealso>
         public bool read_params(string filename, string options)
         {
             return Interop.read_params(_lp, filename, options);
@@ -2806,7 +2804,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <example>
         /// </example>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_anti_degen.htm">Full C API documentation.</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/write_params.htm">Full C API documentation.</seealso>
         public bool write_params(string filename, string options)
         {
             return Interop.write_params(_lp, filename, options);
@@ -2861,14 +2859,14 @@ namespace LpSolveDotNet
         /// </summary>
         /// <returns>The solution number that must be returned. This value gives the number of the solution that must be returned.</returns>
         /// <remarks>
-        /// <para>This function is only valid if there are integer, semi-continious or SOS variables in the 
+        /// <para>This method is only valid if there are integer, semi-continious or SOS variables in the 
         /// model so that the branch-and-bound algoritm is used.
         /// If there are more solutions with the same objective value, then this number specifies 
         /// which solution must be returned. This can be used to retrieve all possible solutions. 
         /// Start with 1 till <see cref="get_solutioncount"/>.
         /// </para>
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_solutionlimit.htm">Full C API documentation.</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_solutionlimit.htm">Full C API documentation.</seealso>
         public int get_solutionlimit()
         {
             return Interop.get_solutionlimit(_lp);
@@ -2879,7 +2877,7 @@ namespace LpSolveDotNet
         /// </summary>
         /// <param name="limit">The solution number that must be returned. This value gives the number of the solution that must be returned.</param>
         /// <remarks>
-        /// <para>This function is only valid if there are integer, semi-continious or SOS variables in the 
+        /// <para>This method is only valid if there are integer, semi-continious or SOS variables in the 
         /// model so that the branch-and-bound algoritm is used.
         /// If there are more solutions with the same objective value, then this number specifies 
         /// which solution must be returned. This can be used to retrieve all possible solutions. 
@@ -2897,7 +2895,7 @@ namespace LpSolveDotNet
         /// </summary>
         /// <returns>The number of seconds after which a timeout occurs.</returns>
         /// <remarks>
-        /// <para>The <see cref="solve"/> function may not last longer than this time or
+        /// <para>The <see cref="solve"/> method may not last longer than this time or
         /// the method returns with a timeout. There is no valid solution at this time.
         /// The default timeout is 0, resulting in no timeout.</para>
         /// </remarks>
@@ -2912,7 +2910,7 @@ namespace LpSolveDotNet
         /// </summary>
         /// <param name="sectimeout">The number of seconds after which a timeout occurs. If zero, then no timeout will occur.</param>
         /// <remarks>
-        /// <para>The <see cref="solve"/> function may not last longer than this time or
+        /// <para>The <see cref="solve"/> method may not last longer than this time or
         /// the method returns with a timeout. The default timeout is 0, resulting in no timeout.</para>
         /// <para>If a timout occurs, but there was already an integer solution found (that is possibly not the best),
         /// then solve will return <see cref="lpsolve_return.SUBOPTIMAL"/>.
@@ -3047,7 +3045,7 @@ namespace LpSolveDotNet
 
         #endregion
 
-        #region Callback routines
+        #region Callback methods
 
         /// <summary>
         /// Sets a callback called regularly while solving the model to verify if solving should abort.
@@ -3076,7 +3074,7 @@ namespace LpSolveDotNet
         /// <remarks>
         /// <para>When set, the log callback is called when lp_solve has someting to report.
         /// The log callback can be cleared by specifying <c>null</c> as <paramref name="newlog"/>.</para>
-        /// <para>This function is called at the same time as something is written to the file set via <see cref="set_outputfile"/>.</para>
+        /// <para>This method is called at the same time as something is written to the file set via <see cref="set_outputfile"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/put_logfunc.htm">Full C API documentation.</seealso>
         public void put_logfunc(logfunc newlog, IntPtr loghandle)
@@ -3192,18 +3190,18 @@ namespace LpSolveDotNet
         /// <param name="rc">An array that will contain the values of the dual variables aka reduced costs.</param>
         /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
         /// <remarks>
-        /// <para>The <see cref="get_dual_solution"/> functions return only the value(s) of the dual variables aka reduced costs.</para>
+        /// <para>The <see cref="get_dual_solution"/> method return only the value(s) of the dual variables aka reduced costs.</para>
         /// <para>These values are only valid after a successful <see cref="solve"/> and if there are integer variables in the model then only if <see cref="set_presolve"/>
         /// is called before <see cref="solve"/> with parameter <see cref="lpsolve_presolve.PRESOLVE_SENSDUALS"/>.</para>
         /// <para><paramref name="rc"/> needs to already be dimensioned with 1+<see cref="get_Nrows"/>+<see cref="get_Ncolumns"/> elements.</para>
-        /// <para>For function <see cref="get_dual_solution"/>, the index starts from 1 and element 0 is not used.
+        /// <para>For method <see cref="get_dual_solution"/>, the index starts from 1 and element 0 is not used.
         /// The first <see cref="get_Nrows"/> elements contain the duals of the constraints, 
         /// the next <see cref="get_Ncolumns"/> elements contain the duals of the variables.</para>
         /// <para>The dual values or reduced costs values indicate that the objective function will change with the value of the reduced cost
         /// if the restriction is changed with 1 unit.
         /// There will only be a reduced cost if the value is bounded by the restriction, else it is zero.
         /// Note that the sign indicates if the objective function will increase or decrease.
-        /// The reduced costs remains constant as long as the restriction stays within the lower/upper range also provided with these functions (dualsfrom, dualstill).
+        /// The reduced costs remains constant as long as the restriction stays within the lower/upper range also provided with these methods (dualsfrom, dualstill).
         /// If there is no reduced cost, or no lower/upper limit, then these values are (-)infinity.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_sensitivity_rhs.htm">Full C API documentation.</seealso>
@@ -3255,7 +3253,7 @@ namespace LpSolveDotNet
         /// <para>Special considerations when presolve was done. When <see cref="set_presolve"/> is called before solve, 
         /// then presolve can have deleted both rows and columns from the model because they could be eliminated.
         /// This influences <see cref="get_primal_solution"/>.
-        /// This function only reports the values of the remaining variables and constraints.
+        /// This method only reports the values of the remaining variables and constraints.
         /// </para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_primal_solution.htm">Full C API documentation.</seealso>
@@ -3271,7 +3269,7 @@ namespace LpSolveDotNet
         /// <param name="objtill">An array that will contain the values of the upper limits of the objective function.</param>
         /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
         /// <remarks>
-        /// <para>The <see cref="get_sensitivity_obj"/> and <see cref="get_sensitivity_objex"/> functions return 
+        /// <para>The <see cref="get_sensitivity_obj"/> and <see cref="get_sensitivity_objex"/> methods return 
         /// the sensitivity of the objective function.</para>
         /// <para>These values are only valid after a successful <see cref="solve"/> and if there are integer
         /// variables in the model then only if <see cref="set_presolve"/> is called before <see cref="solve"/>
@@ -3301,7 +3299,7 @@ namespace LpSolveDotNet
         /// <param name="objtillvalue">Not used at this time.</param>
         /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
         /// <remarks>
-        /// <para>The <see cref="get_sensitivity_obj"/> and <see cref="get_sensitivity_objex"/> functions return 
+        /// <para>The <see cref="get_sensitivity_obj"/> and <see cref="get_sensitivity_objex"/> methods return 
         /// the sensitivity of the objective function.</para>
         /// <para>These values are only valid after a successful <see cref="solve"/> and if there are integer
         /// variables in the model then only if <see cref="set_presolve"/> is called before <see cref="solve"/>
@@ -3331,7 +3329,7 @@ namespace LpSolveDotNet
         /// <param name="dualstill">An array that will contain the values of the upper limits on the dual variables aka reduced costs.</param>
         /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
         /// <remarks>
-        /// <para>The function returns the values of the dual variables aka reduced costs and their limits.</para>
+        /// <para>The method returns the values of the dual variables aka reduced costs and their limits.</para>
         /// <para>These values are only valid after a successful solve and if there are integer variables in the model then only if <see cref="set_presolve"/>
         /// is called before <see cref="solve"/> with parameter <see cref="lpsolve_presolve.PRESOLVE_SENSDUALS"/>.</para>
         /// <para>The arrays need to be alread already dimensioned with <see cref="get_Nrows"/>+<see cref="get_Ncolumns"/> elements.</para>
@@ -3341,7 +3339,7 @@ namespace LpSolveDotNet
         /// if the restriction is changed with 1 unit.
         /// There will only be a reduced cost if the value is bounded by the restriction, else it is zero.
         /// Note that the sign indicates if the objective function will increase or decrease.
-        /// The reduced costs remains constant as long as the restriction stays within the lower/upper range also provided with these functions (dualsfrom, dualstill).
+        /// The reduced costs remains constant as long as the restriction stays within the lower/upper range also provided with these methods (dualsfrom, dualstill).
         /// If there is no reduced cost, or no lower/upper limit, then these values are (-)infinity.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_sensitivity_rhs.htm">Full C API documentation.</seealso>
@@ -3402,14 +3400,14 @@ namespace LpSolveDotNet
         /// If index is 0, then the value of the objective function is returned.</param>
         /// <returns>The reduced cost on the variable at <paramref name="index"/>.</returns>
         /// <remarks>
-        /// <para>The function returns only the value of the dual variables aka reduced costs.</para>
+        /// <para>The method returns only the value of the dual variables aka reduced costs.</para>
         /// <para>This value is only valid after a successful <see cref="solve"/> and if there are integer variables in the model then only if <see cref="set_presolve"/>
         /// is called before <see cref="solve"/> with parameter <see cref="lpsolve_presolve.PRESOLVE_SENSDUALS"/>.</para>
         /// <para>The dual values or reduced costs values indicate that the objective function will change with the value of the reduced cost
         /// if the restriction is changed with 1 unit.
         /// There will only be a reduced cost if the value is bounded by the restriction, else it is zero.
         /// Note that the sign indicates if the objective function will increase or decrease.
-        /// The reduced costs remains constant as long as the restriction stays within the lower/upper range also provided with these functions (dualsfrom, dualstill).
+        /// The reduced costs remains constant as long as the restriction stays within the lower/upper range also provided with these methods (dualsfrom, dualstill).
         /// If there is no reduced cost, or no lower/upper limit, then these values are (-)infinity.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_sensitivity_rhs.htm">Full C API documentation.</seealso>
@@ -3450,7 +3448,7 @@ namespace LpSolveDotNet
         /// Returns the value of the objective function.
         /// </summary>
         /// <returns>The current value of the objective while solving the model.</returns>
-        /// <remarks>This value can be retrieved while solving in a callback function.</remarks>
+        /// <remarks>This value can be retrieved while solving in a callback method.</remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_working_objective.htm">Full C API documentation.</seealso>
         public double get_working_objective()
         {
@@ -3498,7 +3496,7 @@ namespace LpSolveDotNet
         /// It doesn't go to the console or to a file then.
         /// This is useful in combination with put_logfunc to redirect output to somewhere completely different.</para>
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_outputfile.htm">Full C API documentation.</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_output.htm">Full C API documentation.</seealso>
         public bool set_outputfile(string filename)
         {
             return Interop.set_outputfile(_lp, filename);
@@ -3509,7 +3507,7 @@ namespace LpSolveDotNet
         /// </summary>
         /// <returns>A <see cref="lpsolve_print_sol_option"/>, default is to not print.</returns>
         /// <remarks>
-        /// This function is meant for debugging purposes. The default is not to print <see cref="lpsolve_print_sol_option.FALSE"/>.
+        /// This method is meant for debugging purposes. The default is not to print <see cref="lpsolve_print_sol_option.FALSE"/>.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_print_sol.htm">Full C API documentation.</seealso>
         public lpsolve_print_sol_option get_print_sol()
@@ -3522,7 +3520,7 @@ namespace LpSolveDotNet
         /// </summary>
         /// <param name="print_sol">A <see cref="lpsolve_print_sol_option"/>, default is to not print.</param>
         /// <remarks>
-        /// This function is meant for debugging purposes. The default is not to print <see cref="lpsolve_print_sol_option.FALSE"/>.
+        /// This method is meant for debugging purposes. The default is not to print <see cref="lpsolve_print_sol_option.FALSE"/>.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_print_sol.htm">Full C API documentation.</seealso>
         public void set_print_sol(lpsolve_print_sol_option print_sol)
@@ -3543,9 +3541,9 @@ namespace LpSolveDotNet
         /// verbose determines how much of the lp_solve message are reported.
         /// All messages equal to and below the set level are reported.</para>
         /// <para>The default reporting device is the console screen.
-        /// It is possible to set a used defined reporting routine via <see cref="put_logfunc"/>.</para>
+        /// It is possible to set a used defined reporting callback via <see cref="put_logfunc"/>.</para>
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_verbose.htm">Full C API documentation.</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_verbose.htm">Full C API documentation.</seealso>
         public lpsolve_verbosity get_verbose()
         {
             return Interop.get_verbose(_lp);
@@ -3564,7 +3562,7 @@ namespace LpSolveDotNet
         /// <paramref name="verbose"/> determines how much of the lp_solve message are reported.
         /// All messages equal to and below the set level are reported.</para>
         /// <para>The default reporting device is the console screen.
-        /// It is possible to set a used defined reporting routine via <see cref="put_logfunc"/>.</para>
+        /// It is possible to set a used defined reporting callback via <see cref="put_logfunc"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_verbose.htm">Full C API documentation.</seealso>
         public void set_verbose(lpsolve_verbosity verbose)
@@ -3577,7 +3575,7 @@ namespace LpSolveDotNet
         /// </summary>
         /// <returns><c>true</c> to print intermediate results, <c>false</c> to not print.</returns>
         /// <remarks>
-        /// This function is meant for debugging purposes. The default is not to print (<c>false</c>).
+        /// This method is meant for debugging purposes. The default is not to print (<c>false</c>).
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_debug.htm">Full C API documentation.</seealso>
         public bool is_debug()
@@ -3590,7 +3588,7 @@ namespace LpSolveDotNet
         /// </summary>
         /// <param name="debug"><c>true</c> to print intermediate results, <c>false</c> to not print.</param>
         /// <remarks>
-        /// This function is meant for debugging purposes. The default is not to print (<c>false</c>).
+        /// This method is meant for debugging purposes. The default is not to print (<c>false</c>).
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_debug.htm">Full C API documentation.</seealso>
         public void set_debug(bool debug)
@@ -3603,7 +3601,7 @@ namespace LpSolveDotNet
         /// </summary>
         /// <returns><c>true</c> if pivot selection must be printed, <c>false</c> otherwise.</returns>
         /// <remarks>
-        /// This function is meant for debugging purposes. The default is not to print (<c>false</c>).
+        /// This method is meant for debugging purposes. The default is not to print (<c>false</c>).
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_trace.htm">Full C API documentation.</seealso>
         public bool is_trace()
@@ -3616,7 +3614,7 @@ namespace LpSolveDotNet
         /// </summary>
         /// <param name="trace"><c>true</c> to set trace, <c>false</c> to remove it.</param>
         /// <remarks>
-        /// This function is meant for debugging purposes. The default is not to print (<c>false</c>).
+        /// This method is meant for debugging purposes. The default is not to print (<c>false</c>).
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_trace.htm">Full C API documentation.</seealso>
         public void set_trace(bool trace)
@@ -3633,8 +3631,8 @@ namespace LpSolveDotNet
         /// </summary>
         /// <param name="columns">Number of columns to print solution.</param>
         /// <remarks>
-        /// <para>This function only works after a successful <see cref="solve"/>.</para>
-        /// <para>This function is meant for debugging purposes. By default, the output is stdout.
+        /// <para>This method only works after a successful <see cref="solve"/>.</para>
+        /// <para>This method is meant for debugging purposes. By default, the output is stdout.
         /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_constraints.htm">Full C API documentation.</seealso>
@@ -3649,7 +3647,7 @@ namespace LpSolveDotNet
         /// <param name="filename">Name of file to write to.</param>
         /// <returns><c>true</c> if data could be written, else <c>false</c>.</returns>
         /// <remarks>
-        /// <para>This function is meant for debugging purposes.</para>
+        /// <para>This method is meant for debugging purposes.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_debugdump.htm">Full C API documentation.</seealso>
         public bool print_debugdump(string filename)
@@ -3661,8 +3659,8 @@ namespace LpSolveDotNet
         /// Prints the values of the duals of the lp model.
         /// </summary>
         /// <remarks>
-        /// <para>This function only works after a successful <see cref="solve"/>.</para>
-        /// <para>This function is meant for debugging purposes. By default, the output is stdout.
+        /// <para>This method only works after a successful <see cref="solve"/>.</para>
+        /// <para>This method is meant for debugging purposes. By default, the output is stdout.
         /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_duals.htm">Full C API documentation.</seealso>
@@ -3675,7 +3673,7 @@ namespace LpSolveDotNet
         /// Prints the lp model.
         /// </summary>
         /// <remarks>
-        /// <para>This function is meant for debugging purposes. By default, the output is stdout.
+        /// <para>This method is meant for debugging purposes. By default, the output is stdout.
         /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_lp.htm">Full C API documentation.</seealso>
@@ -3688,8 +3686,8 @@ namespace LpSolveDotNet
         /// Prints the objective value of the lp model.
         /// </summary>
         /// <remarks>
-        /// <para>This function only works after a successful <see cref="solve"/>.</para>
-        /// <para>This function is meant for debugging purposes. By default, the output is stdout.
+        /// <para>This method only works after a successful <see cref="solve"/>.</para>
+        /// <para>This method is meant for debugging purposes. By default, the output is stdout.
         /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_objective.htm">Full C API documentation.</seealso>
@@ -3702,9 +3700,9 @@ namespace LpSolveDotNet
         /// Prints the scales of the lp model.
         /// </summary>
         /// <remarks>
-        /// <para>This function only works after a successful <see cref="solve"/>.</para>
+        /// <para>This method only works after a successful <see cref="solve"/>.</para>
         /// <para>It will only output something when the model is scaled.</para>
-        /// <para>This function is meant for debugging purposes. By default, the output is stdout.
+        /// <para>This method is meant for debugging purposes. By default, the output is stdout.
         /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_scales.htm">Full C API documentation.</seealso>
@@ -3718,8 +3716,8 @@ namespace LpSolveDotNet
         /// </summary>
         /// <param name="columns">Number of columns to print solution.</param>
         /// <remarks>
-        /// <para>This function only works after a successful <see cref="solve"/>.</para>
-        /// <para>This function is meant for debugging purposes. By default, the output is stdout.
+        /// <para>This method only works after a successful <see cref="solve"/>.</para>
+        /// <para>This method is meant for debugging purposes. By default, the output is stdout.
         /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_solution.htm">Full C API documentation.</seealso>
@@ -3733,7 +3731,7 @@ namespace LpSolveDotNet
         /// </summary>
         /// <param name="str">The string to print</param>
         /// <remarks>
-        /// <para>This function is meant for debugging purposes. By default, the output is stdout.
+        /// <para>This method is meant for debugging purposes. By default, the output is stdout.
         /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_str.htm">Full C API documentation.</seealso>
@@ -3746,8 +3744,8 @@ namespace LpSolveDotNet
         /// Prints the tableau.
         /// </summary>
         /// <remarks>
-        /// <para>This function only works after a successful <see cref="solve"/>.</para>
-        /// <para>This function is meant for debugging purposes. By default, the output is stdout.
+        /// <para>This method only works after a successful <see cref="solve"/>.</para>
+        /// <para>This method is meant for debugging purposes. By default, the output is stdout.
         /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_tableau.htm">Full C API documentation.</seealso>
@@ -3816,7 +3814,7 @@ namespace LpSolveDotNet
         /// </summary>
         /// <returns><c>true</c> if there is a built-in XLI is available, <c>false</c> if not.</returns>
         /// <remarks>
-        /// <para>At this moment, this routine always returns <c>false</c> since no built-in XLI is available.</para>
+        /// <para>At this moment, this method always returns <c>false</c> since no built-in XLI is available.</para>
         /// <para>See <seealso href="http://lpsolve.sourceforge.net/5.5/XLI.htm">External Language Interfaces</seealso>
         /// for a complete description on XLIs.</para>
         /// </remarks>
@@ -3847,7 +3845,7 @@ namespace LpSolveDotNet
         /// <returns><c>true</c> if succeeded, <c>false</c> otherwise.</returns>
         /// <remarks>
         /// <para>This call is normally only needed when <see cref="write_XLI"/> will be called. 
-        /// <see cref="read_XLI"/> automatically calls this routine</para>
+        /// <see cref="read_XLI"/> automatically calls this method</para>
         /// <para>See <seealso href="http://lpsolve.sourceforge.net/5.5/XLI.htm">External Language Interfaces</seealso>
         /// for a complete description on XLIs.</para>
         /// </remarks>
@@ -3865,7 +3863,7 @@ namespace LpSolveDotNet
         /// <param name="results"><c>false</c> to generate a model file, <c>true</c> to generate a solution file.</param>
         /// <returns><c>true</c> if succeeded, <c>false</c> otherwise.</returns>
         /// <remarks>
-        /// <para>Note that <see cref="set_XLI"/> must be called before this routine to set an XLI.</para>
+        /// <para>Note that <see cref="set_XLI"/> must be called before this method to set an XLI.</para>
         /// <para>See <seealso href="http://lpsolve.sourceforge.net/5.5/XLI.htm">External Language Interfaces</seealso>
         /// for a complete description on XLIs.</para>
         /// </remarks>
@@ -3877,7 +3875,7 @@ namespace LpSolveDotNet
 
         #endregion
 
-        #region Miscellaneous routines
+        #region Miscellaneous methods
 
         /// <summary>
         /// Returns the version of the lpsolve library loaded ar runtime.
@@ -3938,7 +3936,7 @@ namespace LpSolveDotNet
         /// <remarks>
         /// <para>Note that the number of columns can change when a presolve is done
         /// or when negative variables are split in a positive and a negative part.</para>
-        /// <para>Therefore it is advisable to use this function to determine how many columns there are
+        /// <para>Therefore it is advisable to use this method to determine how many columns there are
         /// in the lp model instead of relying on an own count.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_Ncolumns.htm">Full C API documentation.</seealso>
@@ -3982,7 +3980,7 @@ namespace LpSolveDotNet
         /// <returns>The number of rows (constraints) in the lp model.</returns>
         /// <remarks>
         /// <para>Note that the number of rows can change when a presolve is done.</para>
-        /// <para>Therefore it is advisable to use this function to determine how many rows there are
+        /// <para>Therefore it is advisable to use this method to determine how many rows there are
         /// in the lp model instead of relying on an own count.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_Nrows.htm">Full C API documentation.</seealso>
@@ -3992,11 +3990,11 @@ namespace LpSolveDotNet
         }
 
         /// <summary>
-        /// Returns an extra status after a call to a function.
+        /// Returns an extra status after a call to a method.
         /// </summary>
-        /// <returns>Extra status which indicates type of problem after call to function.</returns>
+        /// <returns>Extra status which indicates type of problem after call to method.</returns>
         /// <remarks>
-        /// Some functions return <c>false</c> when they have failed.
+        /// Some methods return <c>false</c> when they have failed.
         /// To have more information on the reason of the failure, this method can be used to get an extended error code.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_status.htm">Full C API documentation.</seealso>
@@ -4006,10 +4004,10 @@ namespace LpSolveDotNet
         }
 
         /// <summary>
-        /// Returns the description of a returncode of the <see cref="solve"/> function.
+        /// Returns the description of a returncode of the <see cref="solve"/> method.
         /// </summary>
         /// <param name="statuscode">Returncode of <see cref="solve"/></param>
-        /// <returns>The description of a returncode of the <see cref="solve"/> function</returns>
+        /// <returns>The description of a returncode of the <see cref="solve"/> method</returns>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_statustext.htm">Full C API documentation.</seealso>
         public string get_statustext(int statuscode)
         {

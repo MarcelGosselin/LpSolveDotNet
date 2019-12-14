@@ -250,7 +250,7 @@ namespace LpSolveDotNet
         /// <summary>Merges neighboring >= or &lt;= constraints when the vectors are otherwise relatively identical into a single ranged constraint</summary>
         PRESOLVE_MERGEROWS = 32768,
         /// <summary>Converts qualifying equalities to inequalities by converting a column singleton variable to slack.
-        /// The routine also detects implicit duplicate slacks from inequality constraints, fixes and removes the redundant variable.
+        /// The method also detects implicit duplicate slacks from inequality constraints, fixes and removes the redundant variable.
         /// This latter removal also tends to reduce the risk of degeneracy.
         /// The combined function of this option can have a dramatic simplifying effect on some models.
         /// Implied slacks is when, for example, there is a column singleton (with zero OF) in an equality constraint.
@@ -418,7 +418,7 @@ namespace LpSolveDotNet
         /// <item><description>set_break_at_first was called so that the first found integer solution is found (-f option in lp_solve)</description></item>
         /// <item><description>set_break_at_value was called so that when integer solution is found that is better than the specified value that it stops (-o option in lp_solve)</description></item>
         /// <item><description>set_mip_gap was called (-g/-ga/-gr options in lp_solve) to specify a MIP gap</description></item>
-        /// <item><description>An abort function is installed (<see cref="LpSolve.put_abortfunc"/>) and this function returned TRUE</description></item>
+        /// <item><description>An abort callback is installed (<see cref="LpSolve.put_abortfunc"/>) and this callback returned <c>true</></description></item>
         /// <item><description>At some point not enough memory could not be allocated</description></item>
         /// </list>
         /// </summary>
@@ -445,7 +445,7 @@ namespace LpSolveDotNet
         NUMFAILURE = 5,
 
         /// <summary>
-        /// The abort routine returned TRUE. <see cref="LpSolve.put_abortfunc"/>
+        /// The abort callback returned <c>true</>. <see cref="LpSolve.put_abortfunc"/>
         /// </summary>
         USERABORT = 6,
 
@@ -546,7 +546,7 @@ namespace LpSolveDotNet
     /// </summary>
     public enum lpsolve_verbosity
     {
-        /// <summary>Only some specific debug messages in de debug print routines are reported. (Value = 0)</summary>
+        /// <summary>Only some specific debug messages in the debug print methods are reported. (Value = 0)</summary>
         NEUTRAL = 0,
         /// <summary>Only critical messages are reported. Hard errors like instability, out of memory, ... (Value = 1)</summary>
         CRITICAL = 1,
