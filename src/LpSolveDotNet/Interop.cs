@@ -377,7 +377,7 @@ namespace LpSolveDotNet
         NODE_BREADTHFIRSTMODE = 4096,
         /// <summary>Create an "optimal" B&amp;B variable ordering. Can speed up B&amp;B algorithm.</summary>
         NODE_AUTOORDER = 8192,
-        /// <summary>Do bound tightening during B&B based of reduced cost information.</summary>
+        /// <summary>Do bound tightening during B&amp;B based of reduced cost information.</summary>
         NODE_RCOSTFIXING = 16384,
         /// <summary>Initialize pseudo-costs by strong branching.</summary>
         NODE_STRONGINIT = 32768
