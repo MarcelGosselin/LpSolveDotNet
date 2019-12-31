@@ -338,47 +338,48 @@ namespace LpSolveDotNet
     [Flags]
     public enum lpsolve_BBstrategies
     {
-        /// <summary></summary>
+        /// <summary>Select lowest indexed non-integer column.</summary>
         NODE_FIRSTSELECT = 0,
-        /// <summary></summary>
+        /// <summary>Selection based on distance from the current bounds.</summary>
         NODE_GAPSELECT = 1,
-        /// <summary></summary>
+        /// <summary>Selection based on the largest current bound.</summary>
         NODE_RANGESELECT = 2,
-        /// <summary></summary>
+        /// <summary>Selection based on largest fractional value.</summary>
         NODE_FRACTIONSELECT = 3,
-        /// <summary></summary>
+        /// <summary>Simple, unweighted pseudo-cost of a variable.</summary>
         NODE_PSEUDOCOSTSELECT = 4,
-        /// <summary></summary>
+        /// <summary>This is an extended pseudo-costing strategy based on minimizing the number of integer infeasibilities.</summary>
         NODE_PSEUDONONINTSELECT = 5,
-        /// <summary></summary>
+        /// <summary>This is an extended pseudo-costing strategy based on maximizing the normal pseudo-cost divided by the number of infeasibilities. Effectively, it is similar to (the reciprocal of) a cost/benefit ratio.</summary>
         NODE_PSEUDORATIOSELECT = 6,
         /// <summary></summary>
         NODE_USERSELECT = 7,
-        /// <summary></summary>
+        /// <summary>Select by criterion minimum (worst), rather than criterion maximum (best).</summary>
         NODE_WEIGHTREVERSEMODE = 8,
-        /// <summary></summary>
+        /// <summary>In case when <see cref="LpSolve.get_bb_floorfirst"/> is <see cref="lpsolve_branch.BRANCH_AUTOMATIC"/>,
+        /// select the opposite direction (lower/upper branch) that <see cref="lpsolve_branch.BRANCH_AUTOMATIC"/> had chosen.</summary>
         NODE_BRANCHREVERSEMODE = 16,
         /// <summary></summary>
         NODE_GREEDYMODE = 32,
-        /// <summary></summary>
+        /// <summary>Toggles between weighting based on pseudocost or objective function value.</summary>
         NODE_PSEUDOCOSTMODE = 64,
-        /// <summary></summary>
+        /// <summary>Select the node that has already been selected before the most number of times.</summary>
         NODE_DEPTHFIRSTMODE = 128,
-        /// <summary></summary>
+        /// <summary>Adds a randomization factor to the score for any node candicate.</summary>
         NODE_RANDOMIZEMODE = 256,
-        /// <summary></summary>
+        /// <summary>Enables GUB mode. Still in development and should not be used at this time.</summary>
         NODE_GUBMODE = 512,
-        /// <summary></summary>
+        /// <summary>When <see cref="NODE_DEPTHFIRSTMODE"/> is selected, switch off this mode when a first solution is found.</summary>
         NODE_DYNAMICMODE = 1024,
-        /// <summary></summary>
+        /// <summary>Enables regular restarts of pseudocost value calculations.</summary>
         NODE_RESTARTMODE = 2048,
-        /// <summary></summary>
+        /// <summary>Select the node that has been selected before the fewest number of times or not at all.</summary>
         NODE_BREADTHFIRSTMODE = 4096,
-        /// <summary></summary>
+        /// <summary>Create an "optimal" B&amp;B variable ordering. Can speed up B&amp;B algorithm.</summary>
         NODE_AUTOORDER = 8192,
-        /// <summary></summary>
+        /// <summary>Do bound tightening during B&B based of reduced cost information.</summary>
         NODE_RCOSTFIXING = 16384,
-        /// <summary></summary>
+        /// <summary>Initialize pseudo-costs by strong branching.</summary>
         NODE_STRONGINIT = 32768
     }
 

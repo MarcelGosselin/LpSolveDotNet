@@ -29,14 +29,14 @@ namespace LpSolveDotNet
         /// Initializes the library by making sure the correct <c>lpsolve55.dll</c> native library
         /// will be loaded.
         /// </summary>
-        /// <param name="dllFolderPath">The (optional) folder where the native library is located.
-        /// When <paramref name="dllFolderPath"/> is <c>null</c>, it will use either <c>basedir/NativeBinaries/win64</c> or <c>basedir/NativeBinaries/win32</c>
+        /// <param name="nativeLibraryFolderPath">The (optional) folder where the native library is located.
+        /// When <paramref name="nativeLibraryFolderPath"/> is <c>null</c>, it will use either <c>basedir/NativeBinaries/win64</c> or <c>basedir/NativeBinaries/win32</c>
         /// based on whether application running is 32 or 64-bits. This will work for any application built on Windows platform
         /// using the NuGet package because the package because the NuGet</param>
         /// <returns><c>true</c>, if it found the native library, <c>false</c> otherwise.</returns>
-        public static bool Init(string dllFolderPath = null)
+        public static bool Init(string nativeLibraryFolderPath = null)
         {
-            if (string.IsNullOrEmpty(dllFolderPath))
+            if (string.IsNullOrEmpty(nativeLibraryFolderPath))
             {
                 bool is64Bit = IntPtr.Size == 8;
                 Assembly thisAssembly = typeof(LpSolve)
@@ -46,26 +46,26 @@ namespace LpSolveDotNet
                     .Assembly
                     ;
                 string baseDirectory = Path.GetDirectoryName(new Uri(thisAssembly.CodeBase).LocalPath);
-                dllFolderPath = Path.Combine(Path.Combine(baseDirectory, "NativeBinaries"), is64Bit ? "win64" : "win32");
+                nativeLibraryFolderPath = Path.Combine(Path.Combine(baseDirectory, "NativeBinaries"), is64Bit ? "win64" : "win32");
             }
-            if (dllFolderPath.EndsWith(Path.DirectorySeparatorChar.ToString())
-                || dllFolderPath.EndsWith(Path.AltDirectorySeparatorChar.ToString()))
+            if (nativeLibraryFolderPath.EndsWith(Path.DirectorySeparatorChar.ToString())
+                || nativeLibraryFolderPath.EndsWith(Path.AltDirectorySeparatorChar.ToString()))
             {
                 // remove trailing slash for use in PATH environment variable
-                dllFolderPath = dllFolderPath.Substring(0, dllFolderPath.Length - 1);
+                nativeLibraryFolderPath = nativeLibraryFolderPath.Substring(0, nativeLibraryFolderPath.Length - 1);
             }
-            var dllFilePath = Path.Combine(dllFolderPath + Path.DirectorySeparatorChar, "lpsolve55.dll");
+            var nativeLibraryFilePath = Path.Combine(nativeLibraryFolderPath + Path.DirectorySeparatorChar, "lpsolve55.dll");
 
-            bool returnValue = File.Exists(dllFilePath);
+            bool returnValue = File.Exists(nativeLibraryFilePath);
             if (returnValue)
             {
                 if (!_hasAlreadyChangedPathEnvironmentVariable)
                 {
                     string pathEnvironmentVariable = GetPathEnvironmentVariable();
                     string pathWithSemiColon = pathEnvironmentVariable + Path.PathSeparator;
-                    if (pathWithSemiColon.IndexOf(dllFolderPath + Path.PathSeparator) < 0)
+                    if (pathWithSemiColon.IndexOf(nativeLibraryFolderPath + Path.PathSeparator) < 0)
                     {
-                        SetPathEnvironmentVariable(dllFolderPath + Path.PathSeparator + pathEnvironmentVariable);
+                        SetPathEnvironmentVariable(nativeLibraryFolderPath + Path.PathSeparator + pathEnvironmentVariable);
                     }
                     _hasAlreadyChangedPathEnvironmentVariable = true;
                 }
@@ -183,7 +183,7 @@ namespace LpSolveDotNet
         /// <returns>A new <see cref="LpSolve"/> model matching the one in the file.
         /// A <c>null</c> return value indicates an error.</returns>
         /// <remarks>The method constructs a new <see cref="LpSolve"/> model by reading model from <paramref name="modelName"/> via the specified XLI.
-        /// See <see href="http://lpsolve.sourceforge.net/5.5/XLI.htm">Extnernal Language Interfaces</see>for a complete description on XLIs.</remarks>
+        /// See <see href="http://lpsolve.sourceforge.net/5.5/XLI.htm">External Language Interfaces</see>for a complete description on XLIs.</remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/read_XLI.htm">Full C API documentation.</seealso>
         public static LpSolve read_XLI(string xliName, string modelName, string dataName, string options, lpsolve_verbosity verbose)
         {
@@ -472,7 +472,8 @@ namespace LpSolveDotNet
         /// <param name="column">The column number of the variable to check. Must be between 1 and the number of columns in the lp.</param>
         /// <returns><c>true</c> if variable is defined as negative, <c>false</c> otherwise.</returns>
         /// <remarks>
-        /// Negative means a lower and upper bound that are both negative. Default a variable is not free because default it has a lower bound of 0 (and an upper bound of +infinity).
+        /// Negative means a lower and upper bound that are both negative.
+        /// By default a variable is not negative because it has a lower bound of 0 (and an upper bound of +infinity).
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_negative.htm">Full C API documentation.</seealso>
         public bool is_negative(int column)
@@ -616,9 +617,13 @@ namespace LpSolveDotNet
         /// <param name="column">The column number of the variable that must be set. Must be between 1 and the number of columns in the lp.</param>
         /// <returns><c>true</c> if variable is operation was successful, <c>false</c> otherwise.</returns>
         /// <remarks>
+        /// <para>
+        /// By default a variable is not free because it has a lower bound of 0 (and an upper bound of +infinity).
+        /// </para>
+        /// <para>
         /// Free means a lower bound of -infinity and an upper bound of +infinity.
-        /// Default a variable is not free because default it has a lower bound of 0 (and an upper bound of +infinity).
         /// See <see href="http://lpsolve.sourceforge.net/5.5/free.htm">free variables</see> for a description about free variables.
+        /// </para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_unbounded.htm">Full C API documentation.</seealso>
         public bool set_unbounded(int column)
@@ -750,7 +755,7 @@ namespace LpSolveDotNet
         /// <returns><c>true</c> if operation was successful, <c>false</c> otherwise.</returns>
         /// <remarks>
         /// <para>This method adds a row to the model (at the end) and sets all values of the row at once.</para>
-        /// <para>Note that when <paramref name="row"/> is <c>null</c>, element 0 of the array is not considered (i.e. ignored). Column 1 is element 1, column 2 is element 2, ...</para>
+        /// <para>Note that when <paramref name="colno"/> is <c>null</c>, element 0 of the array is not considered (i.e. ignored). Column 1 is element 1, column 2 is element 2, ...</para>
         /// <para>This method has the possibility to specify only the non-zero elements. In that case <paramref name="colno"/> specifies the column numbers of 
         /// the non-zero elements. Both <paramref name="row"/> and <paramref name="colno"/> are then zero-based arrays.
         /// This will speed up building the model considerably if there are a lot of zero values. In most cases the matrix is sparse and has many zero value.
@@ -1483,7 +1488,7 @@ namespace LpSolveDotNet
         /// <param name="tighten">Specifies if set bounds may only be tighter <c>true</c> or also less restrictive <c>false</c>.</param>
         /// <remarks>
         /// <para>If set to <c>true</c> then bounds may only be tighter.
-        /// This means that when <see cref="set_lowbo"/> or <see cref="set_lowbo"/> is used to set a bound
+        /// This means that when <see cref="set_lowbo"/> or <see cref="set_upbo"/> is used to set a bound
         /// and the bound is less restrictive than an already set bound, then this new bound will be ignored.
         /// If tighten is set to <c>false</c>, the new bound is accepted.
         /// This functionality is useful when several bounds are set on a variable and at the end you want
