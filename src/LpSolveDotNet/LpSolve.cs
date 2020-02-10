@@ -1,9 +1,13 @@
 ﻿#if NET20 || NETSTANDARD2_0
-#define SUPPORTS_ENVIRONMENT_VARIABLE_TARGET
+    #define SUPPORTS_ENVIRONMENT_VARIABLE_TARGET
+#endif
+#if NETSTANDARD2_0 || NETSTANDARD1_5
+    #define SUPPORTS_OS_PLATFORM
 #endif
 using System;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace LpSolveDotNet
 {
@@ -25,20 +29,26 @@ namespace LpSolveDotNet
     {
         #region Library initialization
 
+        //TODO: verify if we want to replace with https://developers.redhat.com/blog/2019/09/06/interacting-with-native-libraries-in-net-core-3-0/
+
         /// <summary>
-        /// Initializes the library by making sure the correct <c>lpsolve55.dll</c> native library
-        /// will be loaded.
+        /// Initializes the library by making sure the correct native library will be loaded.
         /// </summary>
         /// <param name="nativeLibraryFolderPath">The (optional) folder where the native library is located.
         /// When <paramref name="nativeLibraryFolderPath"/> is <c>null</c>, it will use either <c>basedir/NativeBinaries/win64</c> or <c>basedir/NativeBinaries/win32</c>
         /// based on whether application running is 32 or 64-bits. This will work for any application built on Windows platform
         /// using the NuGet package because the package because the NuGet</param>
+        /// <param name="nativeLibraryNamePrefix">The prefix for the native library file name. It defaults to <c>null</c> but when left <c>null</c>,
+        /// it will be inferred by <see href="https://docs.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.osplatform">OSPlatform</see>.
+        /// On Linux, OSX and other Unixes it will be <c>lib</c>, and on Windows it will be empty string.</param>
+        /// <param name="nativeLibraryExtension">The file extension for the native library (you must include the dot). 
+        /// It defaults to <c>null</c> but when left <c>null</c>, it will be inferred by <see href="https://docs.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.osplatform">OSPlatform</see>
+        /// to <c>.dll</c> on Windows, <c>.so</c> on Unix and <c>.dylib</c> on OSX.</param>
         /// <returns><c>true</c>, if it found the native library, <c>false</c> otherwise.</returns>
-        public static bool Init(string nativeLibraryFolderPath = null)
+        public static bool Init(string nativeLibraryFolderPath = null, string nativeLibraryNamePrefix = null, string nativeLibraryExtension = null)
         {
             if (string.IsNullOrEmpty(nativeLibraryFolderPath))
             {
-                bool is64Bit = IntPtr.Size == 8;
                 Assembly thisAssembly = typeof(LpSolve)
 #if NETSTANDARD1_5
                     .GetTypeInfo()
@@ -46,17 +56,78 @@ namespace LpSolveDotNet
                     .Assembly
                     ;
                 string baseDirectory = Path.GetDirectoryName(new Uri(thisAssembly.CodeBase).LocalPath);
-                nativeLibraryFolderPath = Path.Combine(Path.Combine(baseDirectory, "NativeBinaries"), is64Bit ? "win64" : "win32");
+                bool is64Bit = IntPtr.Size == 8;
+
+                string subFolder = "";
+#if SUPPORTS_OS_PLATFORM
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    subFolder = is64Bit ? "win64" : "win32";
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    subFolder = is64Bit ? "osx64" : "osx32";
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    subFolder = is64Bit ? "ux64" : "ux32";
+                }
+#else
+                subFolder = is64Bit ? "win64" : "win32";
+#endif
+
+                nativeLibraryFolderPath = Path.Combine(Path.Combine(baseDirectory, "NativeBinaries"), subFolder);
             }
+
             if (nativeLibraryFolderPath.EndsWith(Path.DirectorySeparatorChar.ToString())
                 || nativeLibraryFolderPath.EndsWith(Path.AltDirectorySeparatorChar.ToString()))
             {
                 // remove trailing slash for use in PATH environment variable
                 nativeLibraryFolderPath = nativeLibraryFolderPath.Substring(0, nativeLibraryFolderPath.Length - 1);
             }
-            var nativeLibraryFilePath = Path.Combine(nativeLibraryFolderPath + Path.DirectorySeparatorChar, "lpsolve55.dll");
+
+            if (nativeLibraryNamePrefix == null)
+            {
+#if SUPPORTS_OS_PLATFORM
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    nativeLibraryNamePrefix = "";
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+                    || RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    nativeLibraryNamePrefix = "lib";
+                }
+#else
+                nativeLibraryNamePrefix = "";
+#endif
+            }
+
+            if (nativeLibraryExtension == null)
+            {
+#if SUPPORTS_OS_PLATFORM
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    nativeLibraryExtension = ".dll";
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    nativeLibraryExtension = ".dylib";
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    nativeLibraryExtension = ".so";
+                }
+#else
+                nativeLibraryExtension = ".dll";
+#endif
+            }
+
+            var nativeLibraryFileName = nativeLibraryNamePrefix + Interop.LibraryName + nativeLibraryExtension;
+            var nativeLibraryFilePath = Path.Combine(nativeLibraryFolderPath + Path.DirectorySeparatorChar, nativeLibraryFileName);
 
             bool returnValue = File.Exists(nativeLibraryFilePath);
+
             if (returnValue)
             {
                 if (!_hasAlreadyChangedPathEnvironmentVariable)

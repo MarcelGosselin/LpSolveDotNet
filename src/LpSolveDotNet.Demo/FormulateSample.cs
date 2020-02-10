@@ -8,11 +8,11 @@ namespace LpSolveDotNet.Demo
     /// </summary>
     class FormulateSample
     {
-        public static void Main2()
+        public static int Test()
         {
             LpSolve.Init();
 
-            Demo();
+            return Demo();
         }
 
         private static int Demo()
