@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29709.97
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LpSolveDotNet", "LpSolveDotNet\LpSolveDotNet.csproj", "{F414EC31-02F6-4B0E-AC94-4FD4774E9C76}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LpSolveDotNet", "LpSolveDotNet\LpSolveDotNet.csproj", "{F414EC31-02F6-4B0E-AC94-4FD4774E9C76}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LpSolveDotNet.Demo", "LpSolveDotNet.Demo\LpSolveDotNet.Demo.csproj", "{8850A1FB-5764-43BA-BCBE-3D4002014F20}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LpSolveDotNet.Demo", "LpSolveDotNet.Demo\LpSolveDotNet.Demo.csproj", "{8850A1FB-5764-43BA-BCBE-3D4002014F20}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,5 +24,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5741DC53-8B37-466F-8E82-C5FBCC07219D}
 	EndGlobalSection
 EndGlobal

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 
 namespace LpSolveDotNet.Demo
 {
@@ -124,7 +125,7 @@ namespace LpSolveDotNet.Demo
                 lp.get_variables(row);
                 for (j = 0; j < Ncol; j++)
                 {
-                    Debug.WriteLine(lp.get_col_name(j + 1) + ": " + row[j]);
+                    Console.WriteLine(lp.get_col_name(j + 1) + ": " + row[j]);
                 }
             }
             return 0;

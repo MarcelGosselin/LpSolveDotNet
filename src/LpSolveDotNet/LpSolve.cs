@@ -1,13 +1,20 @@
-﻿#if NET20 || NETSTANDARD2_0
-    #define SUPPORTS_ENVIRONMENT_VARIABLE_TARGET
-#endif
-#if NETSTANDARD2_0 || NETSTANDARD1_5
+﻿#if NETCOREAPP3_0 || NET471 || NETSTANDARD2_0 || NETSTANDARD1_5
     #define SUPPORTS_OS_PLATFORM
 #endif
+#if NETCOREAPP3_0
+    #define SUPPORTS_NATIVELIBRARY
+    #define SUPPORTS_ASSEMBLYLOADCONTEXT_RESOLVINGUNMANAGEDDLL
+#endif
+
 using System;
 using System.IO;
 using System.Reflection;
+#if SUPPORTS_OS_PLATFORM || SUPPORTS_NATIVELIBRARY
 using System.Runtime.InteropServices;
+#endif
+#if SUPPORTS_ASSEMBLYLOADCONTEXT_RESOLVINGUNMANAGEDDLL
+using System.Runtime.Loader;
+#endif
 
 namespace LpSolveDotNet
 {
@@ -29,15 +36,27 @@ namespace LpSolveDotNet
     {
         #region Library initialization
 
-        //TODO: verify if we want to replace with https://developers.redhat.com/blog/2019/09/06/interacting-with-native-libraries-in-net-core-3-0/
-
         /// <summary>
         /// Initializes the library by making sure the correct native library will be loaded.
+        /// <remarks>
+        /// If you use this method with a platform other than .NET framework or for a version of .NET Core before 3.0,
+        /// you <strong>must</strong> either:<list>
+        /// <item>provide a value for <see cref="CustomLoadNativeLibrary"/></item>
+        /// <item>put the native library in a place where the runtime will pick it up.</item>
+        /// </list> 
+        /// </remarks>
         /// </summary>
         /// <param name="nativeLibraryFolderPath">The (optional) folder where the native library is located.
-        /// When <paramref name="nativeLibraryFolderPath"/> is <c>null</c>, it will use either <c>basedir/NativeBinaries/win64</c> or <c>basedir/NativeBinaries/win32</c>
-        /// based on whether application running is 32 or 64-bits. This will work for any application built on Windows platform
-        /// using the NuGet package because the package because the NuGet</param>
+        /// When <paramref name="nativeLibraryFolderPath"/> is <c>null</c>, it will infer one of
+        /// <list type="bullet">
+        /// <item>basedir/NativeBinaries/win-x64</item>
+        /// <item>basedir/NativeBinaries/win-x86</item>
+        /// <item>basedir/NativeBinaries/linux-x64</item>
+        /// <item>basedir/NativeBinaries/linux-x86</item>
+        /// <item>basedir/NativeBinaries/osx-x64</item>
+        /// <item>basedir/NativeBinaries/osx-x86</item>
+        /// </list>
+        /// </param>
         /// <param name="nativeLibraryNamePrefix">The prefix for the native library file name. It defaults to <c>null</c> but when left <c>null</c>,
         /// it will be inferred by <see href="https://docs.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.osplatform">OSPlatform</see>.
         /// On Linux, OSX and other Unixes it will be <c>lib</c>, and on Windows it will be empty string.</param>
@@ -53,29 +72,9 @@ namespace LpSolveDotNet
 #if NETSTANDARD1_5
                     .GetTypeInfo()
 #endif
-                    .Assembly
-                    ;
+                    .Assembly;
                 string baseDirectory = Path.GetDirectoryName(new Uri(thisAssembly.CodeBase).LocalPath);
-                bool is64Bit = IntPtr.Size == 8;
-
-                string subFolder = "";
-#if SUPPORTS_OS_PLATFORM
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    subFolder = is64Bit ? "win64" : "win32";
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                {
-                    subFolder = is64Bit ? "osx64" : "osx32";
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    subFolder = is64Bit ? "ux64" : "ux32";
-                }
-#else
-                subFolder = is64Bit ? "win64" : "win32";
-#endif
-
+                string subFolder = GetFolderNameByOSAndArchitecture();
                 nativeLibraryFolderPath = Path.Combine(Path.Combine(baseDirectory, "NativeBinaries"), subFolder);
             }
 
@@ -86,92 +85,164 @@ namespace LpSolveDotNet
                 nativeLibraryFolderPath = nativeLibraryFolderPath.Substring(0, nativeLibraryFolderPath.Length - 1);
             }
 
-            if (nativeLibraryNamePrefix == null)
-            {
-#if SUPPORTS_OS_PLATFORM
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    nativeLibraryNamePrefix = "";
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-                    || RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    nativeLibraryNamePrefix = "lib";
-                }
-#else
-                nativeLibraryNamePrefix = "";
-#endif
-            }
-
-            if (nativeLibraryExtension == null)
-            {
-#if SUPPORTS_OS_PLATFORM
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    nativeLibraryExtension = ".dll";
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                {
-                    nativeLibraryExtension = ".dylib";
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    nativeLibraryExtension = ".so";
-                }
-#else
-                nativeLibraryExtension = ".dll";
-#endif
-            }
+            nativeLibraryNamePrefix ??= GetLibraryNamePrefix();
+            nativeLibraryExtension ??= GetLibraryExtension();
 
             var nativeLibraryFileName = nativeLibraryNamePrefix + Interop.LibraryName + nativeLibraryExtension;
             var nativeLibraryFilePath = Path.Combine(nativeLibraryFolderPath + Path.DirectorySeparatorChar, nativeLibraryFileName);
 
             bool returnValue = File.Exists(nativeLibraryFilePath);
-
             if (returnValue)
             {
-                if (!_hasAlreadyChangedPathEnvironmentVariable)
+                var customLoadNativeLibrary = CustomLoadNativeLibrary;
+                if (customLoadNativeLibrary != null)
                 {
-                    string pathEnvironmentVariable = GetPathEnvironmentVariable();
-                    string pathWithSemiColon = pathEnvironmentVariable + Path.PathSeparator;
-                    if (pathWithSemiColon.IndexOf(nativeLibraryFolderPath + Path.PathSeparator) < 0)
-                    {
-                        SetPathEnvironmentVariable(nativeLibraryFolderPath + Path.PathSeparator + pathEnvironmentVariable);
-                    }
-                    _hasAlreadyChangedPathEnvironmentVariable = true;
+                    customLoadNativeLibrary(nativeLibraryFilePath);
+                }
+                else
+                {
+                    LoadNativeLibrary(nativeLibraryFilePath);
                 }
             }
+
             return returnValue;
         }
+
+        /// <summary>
+        /// When not <c>null</c>, defines a method which receives the expected path of the native library
+        /// and will tell the runtime to load it.
+        /// </summary>
+        public static Action<string> CustomLoadNativeLibrary { get; set; }
+
+#if NET20 // That was Windows only 
+
+        private static string GetFolderNameByOSAndArchitecture() => IntPtr.Size == 8
+            ? "win-x64"
+            : "win-x86";
+
+        private static string GetLibraryNamePrefix() => "";
+
+        private static string GetLibraryExtension() => ".dll";
+
+#elif SUPPORTS_OS_PLATFORM
+
+        private static string GetFolderNameByOSAndArchitecture()
+        {
+            string arch = RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return $"win-{arch}";
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                return $"linux-{arch}";
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return $"osx-{arch}";
+            }
+            else
+            {
+                return "UNKNOWN";
+            }
+        }
+
+        private static string GetLibraryNamePrefix()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return "";
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+                || RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                return "lib";
+            }
+            return null;
+        }
+
+        private static string GetLibraryExtension()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return ".dll";
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return ".dylib";
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                return ".so";
+            }
+            return null;
+        }
+#endif
+
+#if SUPPORTS_NATIVELIBRARY && SUPPORTS_ASSEMBLYLOADCONTEXT_RESOLVINGUNMANAGEDDLL
+
+        private static void LoadNativeLibrary(string nativeLibraryFilePath)
+        {
+            if (_nativeLibraryFilePath == null)
+            {
+                Assembly thisAssembly = typeof(LpSolve).Assembly;
+                var loadContext = AssemblyLoadContext.GetLoadContext(thisAssembly) ?? AssemblyLoadContext.Default;
+                loadContext.ResolvingUnmanagedDll += ResolvingLpSolveUnmanagedDll;
+            }
+            _nativeLibraryFilePath = nativeLibraryFilePath;
+
+            static IntPtr ResolvingLpSolveUnmanagedDll(Assembly arg1, string arg2)
+            {
+                if (arg2 == Interop.LibraryName)
+                {
+                    return NativeLibrary.Load(_nativeLibraryFilePath);
+                }
+                return IntPtr.Zero;
+            }
+        }
+        private static string _nativeLibraryFilePath;
+
+#elif NET20 || NET471
+
+        private static void LoadNativeLibrary(string nativeLibraryFilePath)
+        {
+            if (!_hasAlreadyChangedPathEnvironmentVariable)
+            {
+                string pathEnvironmentVariable = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Process);
+                string pathWithSeparator = pathEnvironmentVariable + Path.PathSeparator;
+                string nativeLibraryFolderPath = Path.GetDirectoryName(nativeLibraryFilePath);
+
+                if (pathWithSeparator.IndexOf(nativeLibraryFolderPath + Path.PathSeparator) < 0)
+                {
+                    Environment.SetEnvironmentVariable(
+                        "PATH",
+                        nativeLibraryFolderPath + Path.PathSeparator + pathEnvironmentVariable,
+                        EnvironmentVariableTarget.Process);
+                }
+                _hasAlreadyChangedPathEnvironmentVariable = true;
+            }
+        }
+        
         private static bool _hasAlreadyChangedPathEnvironmentVariable;
 
-        private static string GetPathEnvironmentVariable()
+#else
+
+        private static void LoadNativeLibrary(string nativeLibraryFilePath)
         {
-            return Environment.GetEnvironmentVariable("PATH"
-#if SUPPORTS_ENVIRONMENT_VARIABLE_TARGET
-                , EnvironmentVariableTarget.Process
-#endif
-                );
+            // Nothing to do, hopefully  CustomLoadNativeLibrary handled it
         }
 
-        private static void SetPathEnvironmentVariable(string value)
-        {
-            Environment.SetEnvironmentVariable("PATH", value
-#if SUPPORTS_ENVIRONMENT_VARIABLE_TARGET
-                , EnvironmentVariableTarget.Process
 #endif
-                );
-        }
 
-        #endregion
+#endregion
 
-        #region Fields
+#region Fields
 
         private IntPtr _lp;
 
-        #endregion
+#endregion
 
-        #region Create/destroy model
+#region Create/destroy model
 
         /// <summary>
         /// Constructor, to be called from <see cref="CreateFromLpRecStructurePointer"/> only.
@@ -317,11 +388,11 @@ namespace LpSolveDotNet
             Dispose(false);
         }
 
-        #endregion
+#endregion
 
-        #region Build model
+#region Build model
 
-        #region Column
+#region Column
 
         /// <summary>
         /// Adds a column to the model.
@@ -787,9 +858,9 @@ namespace LpSolveDotNet
             return Interop.set_lowbo(_lp, column, value);
         }
 
-        #endregion // Build model /  Column
+#endregion // Build model /  Column
 
-        #region Constraint / Row
+#region Constraint / Row
 
         /// <summary>
         /// Adds a constraint to the model.
@@ -1163,9 +1234,9 @@ namespace LpSolveDotNet
             return Interop.str_set_rh_vec(_lp, rh_string);
         }
 
-        #endregion
+#endregion
 
-        #region Objective
+#region Objective
 
         /// <summary>
         /// Sets the objective function (row 0) of the matrix.
@@ -1323,7 +1394,7 @@ namespace LpSolveDotNet
             Interop.set_sense(_lp, maximize);
         }
 
-        #endregion
+#endregion
 
         /// <summary>
         /// Gets the name of the model.
@@ -1669,11 +1740,11 @@ namespace LpSolveDotNet
             return Interop.is_SOS_var(_lp, column);
         }
 
-        #endregion
+#endregion
 
-        #region Solver settings
+#region Solver settings
 
-        #region Epsilon / Tolerance
+#region Epsilon / Tolerance
 
         /// <summary>
         /// Returns the value that is used as a tolerance for the Right Hand Side (RHS) to determine whether a value should be considered as 0.
@@ -1905,9 +1976,9 @@ namespace LpSolveDotNet
             return Interop.set_epslevel(_lp, level);
         }
 
-        #endregion
+#endregion
 
-        #region Basis
+#region Basis
         /// <summary>
         /// Causes reinversion at next opportunity.
         /// </summary>
@@ -2172,9 +2243,9 @@ namespace LpSolveDotNet
             return Interop.set_BFP(_lp, filename);
         }
 
-        #endregion
+#endregion
 
-        #region Pivoting
+#region Pivoting
 
         /// <summary>
         /// Returns the maximum number of pivots between a re-inversion of the matrix.
@@ -2274,9 +2345,9 @@ namespace LpSolveDotNet
             return Interop.is_piv_mode(_lp, testmask);
         }
 
-        #endregion
+#endregion
 
-        #region Scaling
+#region Scaling
 
         /// <summary>
         /// Gets the relative scaling convergence criterion for the active scaling mode.
@@ -2407,9 +2478,9 @@ namespace LpSolveDotNet
             Interop.unscale(_lp);
         }
 
-        #endregion
+#endregion
 
-        #region Branching
+#region Branching
 
         /// <summary>
         /// Returns, for the specified variable, which branch to take first in branch-and-bound algorithm.
@@ -2627,7 +2698,7 @@ namespace LpSolveDotNet
             Interop.set_bb_floorfirst(_lp, bb_floorfirst);
         }
 
-        #endregion
+#endregion
 
         /// <summary>
         /// Returns the iterative improvement level.
@@ -3119,9 +3190,9 @@ namespace LpSolveDotNet
             Interop.set_presolve(_lp, do_presolve, maxloops);
         }
 
-        #endregion
+#endregion
 
-        #region Callback methods
+#region Callback methods
 
         /// <summary>
         /// Sets a callback called regularly while solving the model to verify if solving should abort.
@@ -3176,9 +3247,9 @@ namespace LpSolveDotNet
         }
 
 
-        #endregion
+#endregion
 
-        #region Solve
+#region Solve
 
         /// <summary>
         /// Solve the model.
@@ -3206,9 +3277,9 @@ namespace LpSolveDotNet
             return Interop.solve(_lp);
         }
 
-        #endregion
+#endregion
 
-        #region Solution
+#region Solution
 
         /// <summary>
         /// Gets the value of a constraint according to provided variable values.
@@ -3550,9 +3621,9 @@ namespace LpSolveDotNet
             return Interop.is_feasible(_lp, values, threshold);
         }
 
-        #endregion
+#endregion
 
-        #region Debug/print settings
+#region Debug/print settings
 
         /// <summary>
         /// Defines the output when lp_solve has something to report.
@@ -3698,9 +3769,9 @@ namespace LpSolveDotNet
             Interop.set_trace(_lp, trace);
         }
 
-        #endregion
+#endregion
 
-        #region Debug/print
+#region Debug/print
 
         /// <summary>
         /// Prints the values of the constraints of the lp model.
@@ -3830,9 +3901,9 @@ namespace LpSolveDotNet
             Interop.print_tableau(_lp);
         }
 
-        #endregion
+#endregion
 
-        #region Write model to file
+#region Write model to file
 
         /// <summary>
         /// Write the model in the lp format to <paramref name="filename"/>.
@@ -3949,9 +4020,9 @@ namespace LpSolveDotNet
             return Interop.write_XLI(_lp, filename, options, results);
         }
 
-        #endregion
+#endregion
 
-        #region Miscellaneous methods
+#region Miscellaneous methods
 
         /// <summary>
         /// Returns the version of the lpsolve library loaded ar runtime.
@@ -4141,6 +4212,6 @@ namespace LpSolveDotNet
             return Interop.get_orig_index(_lp, lp_index);
         }
 
-        #endregion
+#endregion
     }
 }

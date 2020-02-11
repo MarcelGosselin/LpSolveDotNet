@@ -7,7 +7,7 @@ namespace LpSolveDotNet.Demo
         [STAThread]
         public static int Main(string[] args)
         {
-            if (args.Length == 0 || args[0].Equals("original", StringComparison.InvariantCultureIgnoreCase))
+            if (args.Length == 0 || args[0].Equals("original", StringComparison.CurrentCultureIgnoreCase))
             {
                 return OriginalSample.Test();
             }
