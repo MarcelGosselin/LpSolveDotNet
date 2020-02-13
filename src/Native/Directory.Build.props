@@ -1,0 +1,35 @@
+﻿<Project>
+  <!-- Import parent Directory.build.props to get TargetFrameworks, NuGet package properties,...-->
+  <Import Project="../Directory.Build.props" />
+  <PropertyGroup>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../LpSolveDotNet/LpSolveDotNet.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- In order for the Pack/PackagePath to work with multiple TargetFrameworks, we need to use Content instead of None -->
+    <None Remove="LpSolveDotNet.*.targets;NativeBinaries\**" />
+    <Content Include="LpSolveDotNet.Native.$(RuntimeID).targets">
+      <Pack>true</Pack>
+      <PackagePath>build</PackagePath>
+    </Content>
+    <Content Include="NativeBinaries\**\$(RuntimeID)\*">
+      <Pack>true</Pack>
+      <PackagePath>build\NativeBinaries</PackagePath>
+      <!-- To let dependent projects in this solution work. -->
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <!-- This needs to be here instead of standard PropertyGroup because in PropertyGroup the $(RuntimeID) is not defined yet.-->
+  <!-- BeforeTargets="Build" is used and not Pack because Pack is too late.-->
+  <Target Name="FixNuGetPackageProperties" BeforeTargets="Build">
+    <CreateProperty Value="Native library for platform $(RuntimeID) for NuGet package LpSolveDotNet.">
+      <Output TaskParameter="Value" PropertyName="Title"/>
+    </CreateProperty>
+    <CreateProperty Value="Packages the native library necessary to run an application with NuGet package LpSolveDotNet on platform $(RuntimeID).">
+      <Output TaskParameter="Value" PropertyName="Description"/>
+    </CreateProperty>
+  </Target>
+</Project>

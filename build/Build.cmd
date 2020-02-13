@@ -2,12 +2,12 @@
 setlocal
 pushd %~dp0
 
-cd "%THIS_DIR%..\src\LpSolveDotNet"
+cd /d "%THIS_DIR%..\src"
 
 echo.
 echo Build project
 ::dotnet pack --configuration Release -p:NoWarn=1591 || goto :error
-msbuild -t:Clean;Pack -restore || goto :error
+msbuild -noLogo -t:Clean;Pack -restore -p:Configuration=Release LpSolveDotNet.sln || goto :error
 
 ::if [%1]==[push] (
 ::	echo.

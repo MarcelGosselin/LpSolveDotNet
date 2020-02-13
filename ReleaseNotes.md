@@ -3,9 +3,10 @@
 ## vNext -- not released yet
 
 ### New Features/Improvements
-* Support for .NET Core and more (.NET Standard 1.5 and 2.0)
-* Document enum values
-* Add missing enum values to be equal to those in lpsolve's source code.
+* Support for .NET Core and more (.NET Standard 1.5 and 2.0).
+* Document enum values.
+* **Breaking see below** Add missing enum values to be equal to those in lpsolve's source code.
+* **Breaking see below** The native libraries have been extracted to separate NuGet packages.
 
 ### Bug Fixes
 * Fixes issue #6: Missing enum value `lpsolve_return.ACCURACYERROR` with value `25`
@@ -32,6 +33,13 @@
 * Method `get_Lrows` was removed as lpsolve's Lagrangian solver does not work.
 * Methods `get_print_sol` and `set_print_sol` now use a `lpsolve_print_sol_option` instead of an `int`.
 * Method `put_msgfunc`'s mask parameter is now a `lpsolve_msgmask` enum.
+
+### Other breaking changes
+* The native libraries have been extracted to separate NuGet packages:
+   * `LpSolveDotNet.Native.win-x64`
+   * `LpSolveDotNet.Native.win-x86`
+
+  You need to reference at least one of them from your project. [See README for details](./README).
 
 ## 3.1.0
 

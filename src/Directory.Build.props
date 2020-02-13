@@ -1,0 +1,50 @@
+﻿<Project>
+  <!-- Assembly and NuGet package Properties -->
+  <PropertyGroup>
+    <Copyright>Copyright © Marcel Gosselin 2019</Copyright>
+    <Version>4.0.0-alpha1</Version>
+  </PropertyGroup>
+  <!-- NuGet Package properties -->
+  <PropertyGroup>
+    <Authors>Marcel Gosselin</Authors>
+    <Title>Mixed Integer Linear Programming (MILP) solver lp_solve wrapped for .NET use.</Title>
+    <Description>
+      .NET wrapper of native library lp_solve.
+      Mixed Integer Linear Programming (MILP) solver lp_solve solves pure linear, (mixed) integer/binary, semi-cont and special ordered sets (SOS) models.
+    </Description>
+    <PackageLicenseExpression>LGPL-2.1-or-later</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/MarcelGosselin/LpSolveDotNet</PackageProjectUrl>
+    <PackageTags>lpsolve lp_solve milp</PackageTags>
+    <PackageReleaseNotes>
+      Complete release notes can be found at https://github.com/MarcelGosselin/LpSolveDotNet/blob/master/ReleaseNotes.md
+      This release contains:
+      - Support for .NET Core and .NET Standard
+      - Add missing enum values to be equal to those in lpsolve's source code.
+      - (Breaking changes) Fix all enum values to be equal to those in lpsolve's source code.
+      - (Breaking changes) The native libraries have been extracted to separate NuGet packages `LpSolveDotNet.Native.win-x64`, `LpSolveDotNet.Native.win-x86`, ...
+        See https://github.com/MarcelGosselin/LpSolveDotNet/blob/master/README.md for details.
+    </PackageReleaseNotes>
+    <PackageOutputPath>..\..\build\output</PackageOutputPath>
+    <RepositoryUrl>https://github.com/MarcelGosselin/LpSolveDotNet.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+  <!-- Assembly-Only Properties -->
+  <PropertyGroup>
+    <Product>LP Solve .NET - .NET wrapper for lp_solve</Product>
+    <!-- InformationalVersion is displayed when displaying DLL properties in Windows and looking at Product Version. -->
+    <InformationalVersion>$(Version)</InformationalVersion>
+  </PropertyGroup>
+  <PropertyGroup>
+    <!-- 
+    Targeting .NET Standard:
+        1.5   lowest possible otherwise we have no Assembly.CodeBase property
+        2.0   because of https://docs.microsoft.com/en-us/dotnet/standard/net-standard#which-net-standard-version-to-target
+    Targeting .NET Framework:
+        2.0   because the previous do not include .NET Framework < 4.6 which this library clearly supports
+        4.7.1 because it is the first to support same APIs we use with .NET core
+    Targeting .NET Core:
+        3.0   first version of .NET Core to have full feature of Init() method (this is not in a standard yet)
+    -->
+    <TargetFrameworks>net20;net471;netstandard20;netstandard15;netcoreapp30</TargetFrameworks>
+  </PropertyGroup>
+</Project>

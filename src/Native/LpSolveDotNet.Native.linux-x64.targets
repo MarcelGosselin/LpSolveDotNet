@@ -3,7 +3,7 @@
   <!-- Based on https://tyrrrz.me/blog/additional-nuget-files-in-new-csproj -->
   <ItemGroup>
     <!-- star after NativeBinaries is to have it included in RecursiveDir-->
-    <None Include="$(MSBuildThisFileDirectory)NativeBinaries*\**\lpsolve55.dll">
+    <None Include="$(MSBuildThisFileDirectory)NativeBinaries*\**\*">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <Visible>false</Visible>
