@@ -38,13 +38,6 @@ namespace LpSolveDotNet
 
         /// <summary>
         /// Initializes the library by making sure the correct native library will be loaded.
-        /// <remarks>
-        /// If you use this method with a platform other than .NET framework or for a version of .NET Core before 3.0,
-        /// you <strong>must</strong> either:<list>
-        /// <item>provide a value for <see cref="CustomLoadNativeLibrary"/></item>
-        /// <item>put the native library in a place where the runtime will pick it up.</item>
-        /// </list> 
-        /// </remarks>
         /// </summary>
         /// <param name="nativeLibraryFolderPath">The (optional) folder where the native library is located.
         /// When <paramref name="nativeLibraryFolderPath"/> is <c>null</c>, it will infer one of
@@ -64,6 +57,13 @@ namespace LpSolveDotNet
         /// It defaults to <c>null</c> but when left <c>null</c>, it will be inferred by <see href="https://docs.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.osplatform">OSPlatform</see>
         /// to <c>.dll</c> on Windows, <c>.so</c> on Unix and <c>.dylib</c> on OSX.</param>
         /// <returns><c>true</c>, if it found the native library, <c>false</c> otherwise.</returns>
+        /// <remarks>
+        /// If you use this method with a platform other than .NET framework or for a version of .NET Core before 3.0,
+        /// you <strong>must</strong> either:<list>
+        /// <item>provide a value for <see cref="CustomLoadNativeLibrary"/></item>
+        /// <item>put the native library in a place where the runtime will pick it up.</item>
+        /// </list> 
+        /// </remarks>
         public static bool Init(string nativeLibraryFolderPath = null, string nativeLibraryNamePrefix = null, string nativeLibraryExtension = null)
         {
             if (string.IsNullOrEmpty(nativeLibraryFolderPath))
@@ -2698,7 +2698,33 @@ namespace LpSolveDotNet
             Interop.set_bb_floorfirst(_lp, bb_floorfirst);
         }
 
-#endregion
+        /// <summary>
+        /// Allows to set a user function that specifies which non-integer variable to select next to make integer in the B&amp;B solve.
+        /// </summary>
+        /// <param name="nodeSelector">
+        /// <para>The node selection method.</para>
+        /// <para>When it returns a positive number, it is the node (column number) to make integer.</para>
+        /// <para>When it returns <c>0</c> then it indicates that all variables are integers.</para>
+        /// <para>When a negative value is returned, lp_solve will determine the next variable to make integer as if the routine is not set.</para>
+        /// </param>
+        /// <remarks>Via this routine the user can implement his own rule to select the next non-integer variable to make integer.
+        /// This overrules the setting of <see cref="set_bb_rule"/>.</remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/put_bb_nodefunc.htm">Full C API documentation.</seealso>
+        public void put_bb_nodefunc(BranchAndBoundNodeSelector nodeSelector)
+            => Interop.put_bb_nodefunc(_lp, (x, y, z) => nodeSelector(this), IntPtr.Zero);
+
+        /// <summary>
+        /// Allows to set a user function that specifies which B&amp;B branching to use given a column to branch on.
+        /// </summary>
+        /// <param name="branchSelector">The branch selection method.</param>
+        /// <remarks>With this function you can specify which branch must be taken first in the B&amp;B algorithm.
+        /// The floor or the ceiling.
+        /// This overrules the setting of <see cref="set_bb_floorfirst"/>.</remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/put_bb_branchfunc.htm">Full C API documentation.</seealso>
+        public void put_bb_branchfunc(BranchAndBoundBranchSelector branchSelector)
+            => Interop.put_bb_branchfunc(_lp, (x, y, column) => branchSelector(this, column) == BranchSelectorResult.Floor, IntPtr.Zero);
+
+        #endregion
 
         /// <summary>
         /// Returns the iterative improvement level.

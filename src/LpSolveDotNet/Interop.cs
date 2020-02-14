@@ -622,6 +622,28 @@ namespace LpSolveDotNet
     /// <param name="buf">The log message.</param>
     public delegate void logfunc(IntPtr lp, IntPtr userhandle, [MarshalAs(UnmanagedType.LPStr)] string buf);
 
+    /// <summary>
+    /// Defines a callback called by branch and bound solve to select which 
+    /// non-integer variable to select next to make integer. Set up by <see cref="LpSolve.put_bb_nodefunc"/>.
+    /// </summary>
+    /// <param name="lp">Pointer to LP model.</param>
+    /// <param name="userhandle">A parameter that will be provided to the callback and set by <see cref="LpSolve.put_bb_nodefunc"/>.</param>
+    /// <param name="vartype">At this moment this is always equal to BB_INT (1)</param>
+    /// <returns>Returns the node (column number) to make integer.
+    /// When <c>0</c> is returned then it indicates that all variables are integer.
+    /// When a negative value is returned, lp_solve will determine the next variable to make integer as if the routine is not set.</returns>
+    public delegate int bbnodefunc(IntPtr lp, IntPtr userhandle, int vartype);
+
+    /// <summary>
+    /// User function that specifies which B&amp;B branching to use given a column to branch on.
+    /// Set up by <see cref="LpSolve.put_bb_branchfunc"/>.
+    /// </summary>
+    /// <param name="lp">Pointer to LP model.</param>
+    /// <param name="userhandle">A parameter that will be provided to the callback and set by <see cref="LpSolve.put_bb_nodefunc"/>.</param>
+    /// <param name="column">The column on which to branch.</param>
+    /// <returns>Returns <c>true</c> if floor branch is to be used first or <c>false</c> if ceiling branch is to be used first.</returns>
+    public delegate bool bbbranchfunc(IntPtr lp, IntPtr userhandle, int column);
+
     internal static class Interop
     {
         /// <summary>
@@ -929,6 +951,10 @@ namespace LpSolveDotNet
         public static extern void set_bb_floorfirst(IntPtr lp, lpsolve_branch bb_floorfirst);
         [DllImport(LibraryName, SetLastError = true)]
         public static extern void set_bb_rule(IntPtr lp, lpsolve_BBstrategies bb_rule);
+        [DllImport(LibraryName, SetLastError = true)]
+        public static extern void put_bb_nodefunc(IntPtr lp, bbnodefunc newnode, IntPtr bbnodehandle);
+        [DllImport(LibraryName, SetLastError = true)]
+        public static extern void put_bb_branchfunc(IntPtr lp, bbbranchfunc newnode, IntPtr bbbranchhandle);
         [DllImport(LibraryName, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
         public static extern bool set_BFP(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string filename);
         [DllImport(LibraryName, SetLastError = true)]
