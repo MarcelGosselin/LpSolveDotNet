@@ -1,12 +1,13 @@
 ﻿#if NETCOREAPP3_0 || NET471 || NETSTANDARD2_0 || NETSTANDARD1_5
-    #define SUPPORTS_OS_PLATFORM
+#define SUPPORTS_OS_PLATFORM
 #endif
 #if NETCOREAPP3_0
-    #define SUPPORTS_NATIVELIBRARY
-    #define SUPPORTS_ASSEMBLYLOADCONTEXT_RESOLVINGUNMANAGEDDLL
+#define SUPPORTS_NATIVELIBRARY
+#define SUPPORTS_ASSEMBLYLOADCONTEXT_RESOLVINGUNMANAGEDDLL
 #endif
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 #if SUPPORTS_OS_PLATFORM || SUPPORTS_NATIVELIBRARY
@@ -31,6 +32,8 @@ namespace LpSolveDotNet
     /// You must call the method <see cref="Init"/> once before calling any other method
     /// in order to make sure the native lpsolve library will be loaded from the right location.
     /// </remarks>
+    [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Need to keep same names as C library.")]
+    [SuppressMessage("Naming", "CA1707:Identifiers should not contain underscores", Justification = "Need to keep same names as C library.")]
     public sealed class LpSolve
         : IDisposable
     {
@@ -78,18 +81,13 @@ namespace LpSolveDotNet
                 nativeLibraryFolderPath = Path.Combine(Path.Combine(baseDirectory, "NativeBinaries"), subFolder);
             }
 
-            if (nativeLibraryFolderPath.EndsWith(Path.DirectorySeparatorChar.ToString())
-                || nativeLibraryFolderPath.EndsWith(Path.AltDirectorySeparatorChar.ToString()))
-            {
-                // remove trailing slash for use in PATH environment variable
-                nativeLibraryFolderPath = nativeLibraryFolderPath.Substring(0, nativeLibraryFolderPath.Length - 1);
-            }
+            nativeLibraryFolderPath = nativeLibraryFolderPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
             nativeLibraryNamePrefix ??= GetLibraryNamePrefix();
             nativeLibraryExtension ??= GetLibraryExtension();
 
-            var nativeLibraryFileName = nativeLibraryNamePrefix + Interop.LibraryName + nativeLibraryExtension;
-            var nativeLibraryFilePath = Path.Combine(nativeLibraryFolderPath + Path.DirectorySeparatorChar, nativeLibraryFileName);
+            string nativeLibraryFileName = nativeLibraryNamePrefix + NativeMethods.LibraryName + nativeLibraryExtension;
+            string nativeLibraryFilePath = Path.Combine(nativeLibraryFolderPath + Path.DirectorySeparatorChar, nativeLibraryFileName);
 
             bool returnValue = File.Exists(nativeLibraryFilePath);
             if (returnValue)
@@ -128,7 +126,9 @@ namespace LpSolveDotNet
 
         private static string GetFolderNameByOSAndArchitecture()
         {
+#pragma warning disable CA1308 // Normalize strings to uppercase
             string arch = RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
+#pragma warning restore CA1308 // Normalize strings to uppercase
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 return $"win-{arch}";
@@ -193,7 +193,7 @@ namespace LpSolveDotNet
 
             static IntPtr ResolvingLpSolveUnmanagedDll(Assembly arg1, string arg2)
             {
-                if (arg2 == Interop.LibraryName)
+                if (arg2 == NativeMethods.LibraryName)
                 {
                     return NativeLibrary.Load(_nativeLibraryFilePath);
                 }
@@ -212,7 +212,7 @@ namespace LpSolveDotNet
                 string pathWithSeparator = pathEnvironmentVariable + Path.PathSeparator;
                 string nativeLibraryFolderPath = Path.GetDirectoryName(nativeLibraryFilePath);
 
-                if (pathWithSeparator.IndexOf(nativeLibraryFolderPath + Path.PathSeparator) < 0)
+                if (pathWithSeparator.IndexOf(nativeLibraryFolderPath + Path.PathSeparator, StringComparison.CurrentCultureIgnoreCase) < 0)
                 {
                     Environment.SetEnvironmentVariable(
                         "PATH",
@@ -222,11 +222,13 @@ namespace LpSolveDotNet
                 _hasAlreadyChangedPathEnvironmentVariable = true;
             }
         }
-        
+
         private static bool _hasAlreadyChangedPathEnvironmentVariable;
 
 #else
 
+        [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Not used in this target framework but we need to keep same signature as other frameworks.")]
+        [SuppressMessage("Performance", "CA1801:Review unused parameters", Justification = "Not used in this target framework but we need to keep same signature as other frameworks.")]
         private static void LoadNativeLibrary(string nativeLibraryFilePath)
         {
             // Nothing to do, hopefully  CustomLoadNativeLibrary handled it
@@ -234,25 +236,21 @@ namespace LpSolveDotNet
 
 #endif
 
-#endregion
+        #endregion
 
-#region Fields
+        #region Fields
 
         private IntPtr _lp;
 
-#endregion
+        #endregion
 
-#region Create/destroy model
+        #region Create/destroy model
 
         /// <summary>
         /// Constructor, to be called from <see cref="CreateFromLpRecStructurePointer"/> only.
         /// </summary>
         private LpSolve(IntPtr lp)
         {
-            if (lp == IntPtr.Zero)
-            {
-                throw new ArgumentException("'lp' must be a valid pointer.", "lp");
-            }
             _lp = lp;
         }
 
@@ -277,7 +275,7 @@ namespace LpSolveDotNet
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/make_lp.htm">Full C API documentation.</seealso>
         public static LpSolve make_lp(int rows, int columns)
         {
-            IntPtr lp = Interop.make_lp(rows, columns);
+            IntPtr lp = NativeMethods.make_lp(rows, columns);
             return CreateFromLpRecStructurePointer(lp);
         }
 
@@ -293,7 +291,7 @@ namespace LpSolveDotNet
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/read_lp.htm">Full C API documentation.</seealso>
         public static LpSolve read_LP(string fileName, lpsolve_verbosity verbose, string lpName)
         {
-            IntPtr lp = Interop.read_LP(fileName, verbose, lpName);
+            IntPtr lp = NativeMethods.read_LP(fileName, verbose, lpName);
             return CreateFromLpRecStructurePointer(lp);
         }
 
@@ -310,7 +308,7 @@ namespace LpSolveDotNet
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/read_mps.htm">Full C API documentation.</seealso>
         public static LpSolve read_MPS(string fileName, lpsolve_verbosity verbose, lpsolve_mps_options options)
         {
-            IntPtr lp = Interop.read_MPS(fileName, ((int)verbose)|((int)options));
+            IntPtr lp = NativeMethods.read_MPS(fileName, ((int)verbose) | ((int)options));
             return CreateFromLpRecStructurePointer(lp);
         }
 
@@ -329,7 +327,7 @@ namespace LpSolveDotNet
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/read_XLI.htm">Full C API documentation.</seealso>
         public static LpSolve read_XLI(string xliName, string modelName, string dataName, string options, lpsolve_verbosity verbose)
         {
-            IntPtr lp = Interop.read_XLI(xliName, modelName, dataName, options, verbose);
+            IntPtr lp = NativeMethods.read_XLI(xliName, modelName, dataName, options, verbose);
             return CreateFromLpRecStructurePointer(lp);
         }
 
@@ -341,7 +339,7 @@ namespace LpSolveDotNet
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/copy_lp.htm">Full C API documentation.</seealso>
         public LpSolve copy_lp()
         {
-            IntPtr lp = Interop.copy_lp(_lp);
+            IntPtr lp = NativeMethods.copy_lp(_lp);
             return CreateFromLpRecStructurePointer(lp);
         }
 
@@ -352,17 +350,18 @@ namespace LpSolveDotNet
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/delete_lp.htm">Full C API documentation.</seealso>
         public void delete_lp()
         {
-            // implement Dispose pattern according to https://msdn.microsoft.com/en-us/library/b1yfkh5e.aspx
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        void IDisposable.Dispose()
-        {
             // According to https://msdn.microsoft.com/en-us/library/b1yfkh5e.aspx
             //      CONSIDER providing method Close(), in addition to the Dispose(), if close is standard terminology in the area.
             //      When doing so, it is important that you make the Close implementation identical to Dispose and consider implementing the IDisposable.Dispose method explicitly
-            delete_lp();
+            Dispose();
+        }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            // implement Dispose pattern according to https://msdn.microsoft.com/en-us/library/b1yfkh5e.aspx
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         private void Dispose(bool disposing)
@@ -370,7 +369,7 @@ namespace LpSolveDotNet
             // release unmanaged memory
             if (_lp != IntPtr.Zero)
             {
-                Interop.delete_lp(_lp);
+                NativeMethods.delete_lp(_lp);
                 _lp = IntPtr.Zero;
             }
 
@@ -388,11 +387,11 @@ namespace LpSolveDotNet
             Dispose(false);
         }
 
-#endregion
+        #endregion
 
-#region Build model
+        #region Build model
 
-#region Column
+        #region Column
 
         /// <summary>
         /// Adds a column to the model.
@@ -406,9 +405,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_column.htm">Full C API documentation.</seealso>
         public bool add_column(double[] column)
-        {
-            return Interop.add_column(_lp, column);
-        }
+            => NativeMethods.add_column(_lp, column);
 
         /// <summary>
         /// Adds a column to the model.
@@ -431,9 +428,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_column.htm">Full C API documentation.</seealso>
         public bool add_columnex(int count, double[] column, int[] rowno)
-        {
-            return Interop.add_columnex(_lp, count, column, rowno);
-        }
+            => NativeMethods.add_columnex(_lp, count, column, rowno);
 
         /// <summary>
         /// Adds a column to the model.
@@ -445,9 +440,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_column.htm">Full C API documentation.</seealso>
         public bool str_add_column(string col_string)
-        {
-            return Interop.str_add_column(_lp, col_string);
-        }
+            => NativeMethods.str_add_column(_lp, col_string);
 
         /// <summary>
         /// Deletes a column from the model.
@@ -463,9 +456,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/del_column.htm">Full C API documentation.</seealso>
         public bool del_column(int column)
-        {
-            return Interop.del_column(_lp, column);
-        }
+            => NativeMethods.del_column(_lp, column);
 
 
         /// <summary>
@@ -482,9 +473,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_column.htm">Full C API documentation.</seealso>
         public bool set_column(int col_no, double[] column)
-        {
-            return Interop.set_column(_lp, col_no, column);
-        }
+            => NativeMethods.set_column(_lp, col_no, column);
 
         /// <summary>
         /// Sets a column in the model.
@@ -509,9 +498,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_column.htm">Full C API documentation.</seealso>
         public bool set_columnex(int col_no, int count, double[] column, int[] rowno)
-        {
-            return Interop.set_columnex(_lp, col_no, count, column, rowno);
-        }
+            => NativeMethods.set_columnex(_lp, col_no, count, column, rowno);
 
         /// <summary>
         /// Gets all column elements from the model for the given <paramref name="col_nr"/>.
@@ -525,9 +512,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_column.htm">Full C API documentation.</seealso>
         public bool get_column(int col_nr, double[] column)
-        {
-            return Interop.get_column(_lp, col_nr, column);
-        }
+            => NativeMethods.get_column(_lp, col_nr, column);
 
         /// <summary>
         /// Gets the non-zero column elements from the model for the given <paramref name="col_nr"/>.
@@ -544,9 +529,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_column.htm">Full C API documentation.</seealso>
         public int get_columnex(int col_nr, double[] column, int[] nzrow)
-        {
-            return Interop.get_columnex(_lp, col_nr, column, nzrow);
-        }
+            => NativeMethods.get_columnex(_lp, col_nr, column, nzrow);
 
         /// <summary>
         /// Sets the name of a column in the model.
@@ -560,9 +543,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_col_name.htm">Full C API documentation.</seealso>
         public bool set_col_name(int column, string new_name)
-        {
-            return Interop.set_col_name(_lp, column, new_name);
-        }
+            => NativeMethods.set_col_name(_lp, column, new_name);
 
         /// <summary>
         /// Gets the name of a column in the model.
@@ -582,9 +563,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_col_name.htm">Full C API documentation.</seealso>
         public string get_col_name(int column)
-        {
-            return Interop.get_col_name(_lp, column);
-        }
+            => NativeMethods.get_col_name(_lp, column);
 
         /// <summary>
         /// Gets the name of a column in the model.
@@ -604,9 +583,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_col_name.htm">Full C API documentation.</seealso>
         public string get_origcol_name(int column)
-        {
-            return Interop.get_origcol_name(_lp, column);
-        }
+            => NativeMethods.get_origcol_name(_lp, column);
 
         /// <summary>
         /// Returns whether the variable is negative or not.
@@ -619,9 +596,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_negative.htm">Full C API documentation.</seealso>
         public bool is_negative(int column)
-        {
-            return Interop.is_negative(_lp, column);
-        }
+            => NativeMethods.is_negative(_lp, column);
 
         /// <summary>
         /// Returns whether the variable is of type Integer or not.
@@ -636,9 +611,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_int.htm">Full C API documentation.</seealso>
         public bool is_int(int column)
-        {
-            return Interop.is_int(_lp, column);
-        }
+            => NativeMethods.is_int(_lp, column);
 
         /// <summary>
         /// Sets the type of the variable to type Integer or floating point.
@@ -655,9 +628,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_int.htm">Full C API documentation.</seealso>
         public bool set_int(int column, bool must_be_int)
-        {
-            return Interop.set_int(_lp, column, must_be_int);
-        }
+            => NativeMethods.set_int(_lp, column, must_be_int);
 
         /// <summary>
         /// Returns whether the variable is of type Binary or not.
@@ -673,9 +644,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_binary.htm">Full C API documentation.</seealso>
         public bool is_binary(int column)
-        {
-            return Interop.is_binary(_lp, column);
-        }
+            => NativeMethods.is_binary(_lp, column);
 
         /// <summary>
         /// Sets the type of the variable to type Binary or floating point.
@@ -694,9 +663,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_binary.htm">Full C API documentation.</seealso>
         public bool set_binary(int column, bool must_be_bin)
-        {
-            return Interop.set_binary(_lp, column, must_be_bin);
-        }
+            => NativeMethods.set_binary(_lp, column, must_be_bin);
 
         /// <summary>
         /// Returns whether the variable is of type semi-continuous or not.
@@ -709,9 +676,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_semicont.htm">Full C API documentation.</seealso>
         public bool is_semicont(int column)
-        {
-            return Interop.is_semicont(_lp, column);
-        }
+            => NativeMethods.is_semicont(_lp, column);
 
         /// <summary>
         /// Sets the type of the variable to type semi-continuous or not.
@@ -729,9 +694,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_semicont.htm">Full C API documentation.</seealso>
         public bool set_semicont(int column, bool must_be_sc)
-        {
-            return Interop.set_semicont(_lp, column, must_be_sc);
-        }
+            => NativeMethods.set_semicont(_lp, column, must_be_sc);
 
         /// <summary>
         /// Sets the lower and upper bound of a variable.
@@ -749,9 +712,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_bounds.htm">Full C API documentation.</seealso>
         public bool set_bounds(int column, double lower, double upper)
-        {
-            return Interop.set_bounds(_lp, column, lower, upper);
-        }
+            => NativeMethods.set_bounds(_lp, column, lower, upper);
 
         /// <summary>
         /// Sets if the variable is free.
@@ -769,9 +730,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_unbounded.htm">Full C API documentation.</seealso>
         public bool set_unbounded(int column)
-        {
-            return Interop.set_unbounded(_lp, column);
-        }
+            => NativeMethods.set_unbounded(_lp, column);
 
         /// <summary>
         /// Returns whether the variable is free or not.
@@ -785,9 +744,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_unbounded.htm">Full C API documentation.</seealso>
         public bool is_unbounded(int column)
-        {
-            return Interop.is_unbounded(_lp, column);
-        }
+            => NativeMethods.is_unbounded(_lp, column);
 
         /// <summary>
         /// Gets the upper bound of a variable.
@@ -802,9 +759,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_upbo.htm">Full C API documentation.</seealso>
         public double get_upbo(int column)
-        {
-            return Interop.get_upbo(_lp, column);
-        }
+            => NativeMethods.get_upbo(_lp, column);
 
         /// <summary>
         /// Sets the upper bound of a variable.
@@ -819,9 +774,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_upbo.htm">Full C API documentation.</seealso>
         public bool set_upbo(int column, double value)
-        {
-            return Interop.set_upbo(_lp, column, value);
-        }
+            => NativeMethods.set_upbo(_lp, column, value);
 
         /// <summary>
         /// Gets the lower bound of a variable.
@@ -836,9 +789,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_lowbo.htm">Full C API documentation.</seealso>
         public double get_lowbo(int column)
-        {
-            return Interop.get_lowbo(_lp, column);
-        }
+            => NativeMethods.get_lowbo(_lp, column);
 
         /// <summary>
         /// Sets the lower bound of a variable.
@@ -854,13 +805,11 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_lowbo.htm">Full C API documentation.</seealso>
         public bool set_lowbo(int column, double value)
-        {
-            return Interop.set_lowbo(_lp, column, value);
-        }
+            => NativeMethods.set_lowbo(_lp, column, value);
 
-#endregion // Build model /  Column
+        #endregion // Build model /  Column
 
-#region Constraint / Row
+        #region Constraint / Row
 
         /// <summary>
         /// Adds a constraint to the model.
@@ -880,9 +829,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_constraint.htm">Full C API documentation.</seealso>
         public bool add_constraint(double[] row, lpsolve_constr_types constr_type, double rh)
-        {
-            return Interop.add_constraint(_lp, row, constr_type, rh);
-        }
+            => NativeMethods.add_constraint(_lp, row, constr_type, rh);
 
 
         /// <summary>
@@ -910,9 +857,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_constraint.htm">Full C API documentation.</seealso>
         public bool add_constraintex(int count, double[] row, int[] colno, lpsolve_constr_types constr_type, double rh)
-        {
-            return Interop.add_constraintex(_lp, count, row, colno, constr_type, rh);
-        }
+            => NativeMethods.add_constraintex(_lp, count, row, colno, constr_type, rh);
 
         /// <summary>
         /// Adds a constraint to the model.
@@ -929,9 +874,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_constraint.htm">Full C API documentation.</seealso>
         public bool str_add_constraint(string row_string, lpsolve_constr_types constr_type, double rh)
-        {
-            return Interop.str_add_constraint(_lp, row_string, constr_type, rh);
-        }
+            => NativeMethods.str_add_constraint(_lp, row_string, constr_type, rh);
 
         /// <summary>
         /// Removes a constraint from the model.
@@ -947,9 +890,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/del_constraint.htm">Full C API documentation.</seealso>
         public bool del_constraint(int del_row)
-        {
-            return Interop.del_constraint(_lp, del_row);
-        }
+            => NativeMethods.del_constraint(_lp, del_row);
 
         /// <summary>
         /// Gets all row elements from the model for the given <paramref name="row_nr"/>.
@@ -964,9 +905,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_row.htm">Full C API documentation.</seealso>
         public bool get_row(int row_nr, double[] row)
-        {
-            return Interop.get_row(_lp, row_nr, row);
-        }
+            => NativeMethods.get_row(_lp, row_nr, row);
 
         /// <summary>
         /// Gets the non-zero row elements from the model for the given <paramref name="row_nr"/>.
@@ -983,9 +922,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_row.htm">Full C API documentation.</seealso>
         public int get_rowex(int row_nr, double[] row, int[] colno)
-        {
-            return Interop.get_rowex(_lp, row_nr, row, colno);
-        }
+            => NativeMethods.get_rowex(_lp, row_nr, row, colno);
 
         /// <summary>
         /// Sets a constraint in the model.
@@ -1002,9 +939,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_row.htm">Full C API documentation.</seealso>
         public bool set_row(int row_no, double[] row)
-        {
-            return Interop.set_row(_lp, row_no, row);
-        }
+            => NativeMethods.set_row(_lp, row_no, row);
 
         /// <summary>
         /// Sets a constraint in the model.
@@ -1029,9 +964,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_row.htm">Full C API documentation.</seealso>
         public bool set_rowex(int row_no, int count, double[] row, int[] colno)
-        {
-            return Interop.set_rowex(_lp, row_no, count, row, colno);
-        }
+            => NativeMethods.set_rowex(_lp, row_no, count, row, colno);
 
         /// <summary>
         /// Sets the name of a constraint (row) in the model.
@@ -1044,9 +977,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_row_name.htm">Full C API documentation.</seealso>
         public bool set_row_name(int row, string new_name)
-        {
-            return Interop.set_row_name(_lp, row, new_name);
-        }
+            => NativeMethods.set_row_name(_lp, row, new_name);
 
         /// <summary>
         /// Gets the name of a constraint (row) in the model.
@@ -1065,9 +996,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_row_name.htm">Full C API documentation.</seealso>
         public string get_row_name(int row)
-        {
-            return Interop.get_row_name(_lp, row);
-        }
+            => NativeMethods.get_row_name(_lp, row);
 
         /// <summary>
         /// Gets the name of a constraint (row) in the model.
@@ -1086,9 +1015,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_row_name.htm">Full C API documentation.</seealso>
         public string get_origrow_name(int row)
-        {
-            return Interop.get_origrow_name(_lp, row);
-        }
+            => NativeMethods.get_origrow_name(_lp, row);
 
         /// <summary>
         /// Returns whether or not the constraint of the given row matches the given mask.
@@ -1098,9 +1025,7 @@ namespace LpSolveDotNet
         /// <returns><c>true</c> if the containt types match, <c>false</c> otherwise.</returns>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_constr_type.htm">Full C API documentation.</seealso>
         public bool is_constr_type(int row, lpsolve_constr_types mask)
-        {
-            return Interop.is_constr_type(_lp, row, mask);
-        }
+            => NativeMethods.is_constr_type(_lp, row, mask);
 
         /// <summary>
         /// Gets the type of a constraint.
@@ -1110,9 +1035,7 @@ namespace LpSolveDotNet
         /// <remarks>The default constraint type is <see cref="lpsolve_constr_types.LE"/>.</remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_constr_type.htm">Full C API documentation.</seealso>
         public lpsolve_constr_types get_constr_type(int row)
-        {
-            return Interop.get_constr_type(_lp, row);
-        }
+            => NativeMethods.get_constr_type(_lp, row);
 
         /// <summary>
         /// Sets the type of a constraint for the specified row.
@@ -1129,9 +1052,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_constr_type.htm">Full C API documentation.</seealso>
         public bool set_constr_type(int row, lpsolve_constr_types con_type)
-        {
-            return Interop.set_constr_type(_lp, row, con_type);
-        }
+            => NativeMethods.set_constr_type(_lp, row, con_type);
 
         /// <summary>
         /// Gets the value of the right hand side (RHS) vector (column 0) for one row.
@@ -1143,9 +1064,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_rh.htm">Full C API documentation.</seealso>
         public double get_rh(int row)
-        {
-            return Interop.get_rh(_lp, row);
-        }
+            => NativeMethods.get_rh(_lp, row);
 
         /// <summary>
         /// Sets the value of the right hand side (RHS) vector (column 0) for the specified row.
@@ -1161,9 +1080,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_rh.htm">Full C API documentation.</seealso>
         public bool set_rh(int row, double value)
-        {
-            return Interop.set_rh(_lp, row, value);
-        }
+            => NativeMethods.set_rh(_lp, row, value);
 
         /// <summary>
         /// Gets the range on the constraint (row) identified by <paramref name="row"/>.
@@ -1180,9 +1097,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_rh_range.htm">Full C API documentation.</seealso>
         public double get_rh_range(int row)
-        {
-            return Interop.get_rh_range(_lp, row);
-        }
+            => NativeMethods.get_rh_range(_lp, row);
 
         /// <summary>
         /// Sets the range on the constraint (row) identified by <paramref name="row"/>.
@@ -1199,9 +1114,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_rh_range.htm">Full C API documentation.</seealso>
         public bool set_rh_range(int row, double deltavalue)
-        {
-            return Interop.set_rh_range(_lp, row, deltavalue);
-        }
+            => NativeMethods.set_rh_range(_lp, row, deltavalue);
 
         /// <summary>
         /// Sets the value of the right hand side (RHS) vector (column 0).
@@ -1214,9 +1127,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_rh_vec.htm">Full C API documentation.</seealso>
         public void set_rh_vec(double[] rh)
-        {
-            Interop.set_rh_vec(_lp, rh);
-        }
+            => NativeMethods.set_rh_vec(_lp, rh);
 
         /// <summary>
         /// Sets the value of the right hand side (RHS) vector (column 0).
@@ -1230,13 +1141,11 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_rh_vec.htm">Full C API documentation.</seealso>
         public bool str_set_rh_vec(string rh_string)
-        {
-            return Interop.str_set_rh_vec(_lp, rh_string);
-        }
+            => NativeMethods.str_set_rh_vec(_lp, rh_string);
 
-#endregion
+        #endregion
 
-#region Objective
+        #region Objective
 
         /// <summary>
         /// Sets the objective function (row 0) of the matrix.
@@ -1252,9 +1161,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_obj_fn.htm">Full C API documentation.</seealso>
         public bool set_obj(int column, double value)
-        {
-            return Interop.set_obj(_lp, column, value);
-        }
+            => NativeMethods.set_obj(_lp, column, value);
 
         /// <summary>
         /// Returns initial "at least better than" guess for objective function.
@@ -1266,9 +1173,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_obj_bound.htm">Full C API documentation.</seealso>
         public double get_obj_bound()
-        {
-            return Interop.get_obj_bound(_lp);
-        }
+            => NativeMethods.get_obj_bound(_lp);
 
         /// <summary>
         /// Sets initial "at least better than" guess for objective function.
@@ -1283,9 +1188,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_obj_bound.htm">Full C API documentation.</seealso>
         public void set_obj_bound(double obj_bound)
-        {
-            Interop.set_obj_bound(_lp, obj_bound);
-        }
+            => NativeMethods.set_obj_bound(_lp, obj_bound);
 
         /// <summary>
         /// Sets the objective function (row 0) of the matrix.
@@ -1302,9 +1205,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_obj_fn.htm">Full C API documentation.</seealso>
         public bool set_obj_fn(double[] row)
-        {
-            return Interop.set_obj_fn(_lp, row);
-        }
+            => NativeMethods.set_obj_fn(_lp, row);
 
         /// <summary>
         /// Sets the objective function (row 0) of the matrix.
@@ -1325,9 +1226,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_obj_fn.htm">Full C API documentation.</seealso>
         public bool set_obj_fnex(int count, double[] row, int[] colno)
-        {
-            return Interop.set_obj_fnex(_lp, count, row, colno);
-        }
+            => NativeMethods.set_obj_fnex(_lp, count, row, colno);
 
         /// <summary>
         /// Sets the objective function (row 0) of the matrix.
@@ -1340,9 +1239,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_obj_fn.htm">Full C API documentation.</seealso>
         public bool str_set_obj_fn(string row_string)
-        {
-            return Interop.str_set_obj_fn(_lp, row_string);
-        }
+            => NativeMethods.str_set_obj_fn(_lp, row_string);
 
         /// <summary>
         /// Returns objective function direction.
@@ -1353,9 +1250,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_maxim.htm">Full C API documentation.</seealso>
         public bool is_maxim()
-        {
-            return Interop.is_maxim(_lp);
-        }
+            => NativeMethods.is_maxim(_lp);
 
         /// <summary>
         /// Sets the objective function to <c>maximize</c>.
@@ -1365,9 +1260,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_maxim.htm">Full C API documentation.</seealso>
         public void set_maxim()
-        {
-            Interop.set_maxim(_lp);
-        }
+            => NativeMethods.set_maxim(_lp);
 
         /// <summary>
         /// Sets the objective function to <c>minimize</c>.
@@ -1377,9 +1270,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_minim.htm">Full C API documentation.</seealso>
         public void set_minim()
-        {
-            Interop.set_minim(_lp);
-        }
+            => NativeMethods.set_minim(_lp);
 
         /// <summary>
         /// Sets the objective function sense.
@@ -1390,11 +1281,9 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_sense.htm">Full C API documentation.</seealso>
         public void set_sense(bool maximize)
-        {
-            Interop.set_sense(_lp, maximize);
-        }
+            => NativeMethods.set_sense(_lp, maximize);
 
-#endregion
+        #endregion
 
         /// <summary>
         /// Gets the name of the model.
@@ -1405,9 +1294,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_lp_name.htm">Full C API documentation.</seealso>
         public string get_lp_name()
-        {
-            return Interop.get_lp_name(_lp);
-        }
+            => NativeMethods.get_lp_name(_lp);
 
         /// <summary>
         /// Sets the name of the model.
@@ -1419,9 +1306,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_lp_name.htm">Full C API documentation.</seealso>
         public bool set_lp_name(string lpname)
-        {
-            return Interop.set_lp_name(_lp, lpname);
-        }
+            => NativeMethods.set_lp_name(_lp, lpname);
 
         /// <summary>
         /// Allocates memory for the specified size.
@@ -1440,9 +1325,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/resize_lp.htm">Full C API documentation.</seealso>
         public bool resize_lp(int rows, int columns)
-        {
-            return Interop.resize_lp(_lp, rows, columns);
-        }
+            => NativeMethods.resize_lp(_lp, rows, columns);
 
         /// <summary>
         /// Returns a flag telling which of the add methods perform best. Whether <see cref="add_column"/>, <see cref="add_columnex"/>, <see cref="str_add_column"/>
@@ -1474,9 +1357,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_add_rowmode.htm">Full C API documentation.</seealso>
         public bool is_add_rowmode()
-        {
-            return Interop.is_add_rowmode(_lp);
-        }
+            => NativeMethods.is_add_rowmode(_lp);
 
         /// <summary>
         /// Specifies which add methods perform best. Whether <see cref="add_column"/>, <see cref="add_columnex"/>, <see cref="str_add_column"/>
@@ -1509,9 +1390,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_add_rowmode.htm">Full C API documentation.</seealso>
         public bool set_add_rowmode(bool turnon)
-        {
-            return Interop.set_add_rowmode(_lp, turnon);
-        }
+            => NativeMethods.set_add_rowmode(_lp, turnon);
 
         /// <summary>
         /// Gets the index of a given column or row name in the model.
@@ -1529,9 +1408,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_nameindex.htm">Full C API documentation.</seealso>
         public int get_nameindex(string name, bool isrow)
-        {
-            return Interop.get_nameindex(_lp, name, isrow);
-        }
+            => NativeMethods.get_nameindex(_lp, name, isrow);
 
         /// <summary>
         /// Returns the value of "infinite".
@@ -1543,9 +1420,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_infinite.htm">Full C API documentation.</seealso>
         public double get_infinite()
-        {
-            return Interop.get_infinite(_lp);
-        }
+            => NativeMethods.get_infinite(_lp);
 
         /// <summary>
         /// Specifies the practical value of "infinite".
@@ -1557,9 +1432,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_infinite.htm">Full C API documentation.</seealso>
         public void set_infinite(double infinite)
-        {
-            Interop.set_infinite(_lp, infinite);
-        }
+            => NativeMethods.set_infinite(_lp, infinite);
 
         /// <summary>
         /// Checks if the provided absolute of the value is larger or equal to "infinite".
@@ -1571,9 +1444,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_infinite.htm">Full C API documentation.</seealso>
         public bool is_infinite(double value)
-        {
-            return Interop.is_infinite(_lp, value);
-        }
+            => NativeMethods.is_infinite(_lp, value);
 
         /// <summary>
         /// Gets a single element from the matrix.
@@ -1594,9 +1465,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_mat.htm">Full C API documentation.</seealso>
         public double get_mat(int row, int column)
-        {
-            return Interop.get_mat(_lp, row, column);
-        }
+            => NativeMethods.get_mat(_lp, row, column);
 
         /// <summary>
         /// Sets a single element in the matrix.
@@ -1620,9 +1489,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_mat.htm">Full C API documentation.</seealso>
         public bool set_mat(int row, int column, double value)
-        {
-            return Interop.set_mat(_lp, row, column, value);
-        }
+            => NativeMethods.set_mat(_lp, row, column, value);
 
         /// <summary>
         /// Specifies if set bounds may only be tighter or also less restrictive.
@@ -1640,9 +1507,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_bounds_tighter.htm">Full C API documentation.</seealso>
         public void set_bounds_tighter(bool tighten)
-        {
-            Interop.set_bounds_tighter(_lp, tighten);
-        }
+            => NativeMethods.set_bounds_tighter(_lp, tighten);
 
         /// <summary>
         /// Returns if set bounds may only be tighter or also less restrictive.
@@ -1660,9 +1525,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_bounds_tighter.htm">Full C API documentation.</seealso>
         public bool get_bounds_tighter()
-        {
-            return Interop.get_bounds_tighter(_lp);
-        }
+            => NativeMethods.get_bounds_tighter(_lp);
 
         /// <summary>
         /// Returns, for the specified variable, the priority the variable has in the branch-and-bound algorithm.
@@ -1677,9 +1540,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_var_priority.htm">Full C API documentation.</seealso>
         public int get_var_priority(int column)
-        {
-            return Interop.get_var_priority(_lp, column);
-        }
+            => NativeMethods.get_var_priority(_lp, column);
 
         /// <summary>
         /// Sets the weights on variables.
@@ -1697,9 +1558,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_var_weights.htm">Full C API documentation.</seealso>
         public bool set_var_weights(double[] weights)
-        {
-            return Interop.set_var_weights(_lp, weights);
-        }
+            => NativeMethods.set_var_weights(_lp, weights);
 
         /// <summary>
         /// Adds a SOS (Special Ordered Sets) constraint.
@@ -1719,9 +1578,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_SOS.htm">Full C API documentation.</seealso>
         public int add_SOS(string name, int sostype, int priority, int count, int[] sosvars, double[] weights)
-        {
-            return Interop.add_SOS(_lp, name, sostype, priority, count, sosvars, weights);
-        }
+            => NativeMethods.add_SOS(_lp, name, sostype, priority, count, sosvars, weights);
 
         /// <summary>
         /// Returns if the variable is SOS (Special Ordered Set) or not.
@@ -1736,15 +1593,13 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_SOS_var.htm">Full C API documentation.</seealso>
         public bool is_SOS_var(int column)
-        {
-            return Interop.is_SOS_var(_lp, column);
-        }
+            => NativeMethods.is_SOS_var(_lp, column);
 
-#endregion
+        #endregion
 
-#region Solver settings
+        #region Solver settings
 
-#region Epsilon / Tolerance
+        #region Epsilon / Tolerance
 
         /// <summary>
         /// Returns the value that is used as a tolerance for the Right Hand Side (RHS) to determine whether a value should be considered as 0.
@@ -1755,9 +1610,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_epsb.htm">Full C API documentation.</seealso>
         public double get_epsb()
-        {
-            return Interop.get_epsb(_lp);
-        }
+            => NativeMethods.get_epsb(_lp);
 
         /// <summary>
         /// Specifies the value that is used as a tolerance for the Right Hand Side (RHS) to determine whether a value should be considered as 0.
@@ -1770,9 +1623,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_epsb.htm">Full C API documentation.</seealso>
         public void set_epsb(double epsb)
-        {
-            Interop.set_epsb(_lp, epsb);
-        }
+            => NativeMethods.set_epsb(_lp, epsb);
 
         /// <summary>
         /// Returns the value that is used as a tolerance for the reduced costs to determine whether a value should be considered as 0.
@@ -1783,9 +1634,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_epsd.htm">Full C API documentation.</seealso>
         public double get_epsd()
-        {
-            return Interop.get_epsd(_lp);
-        }
+            => NativeMethods.get_epsd(_lp);
 
         /// <summary>
         /// Specifies the value that is used as a tolerance for reduced costs to determine whether a value should be considered as 0.
@@ -1798,9 +1647,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_epsd.htm">Full C API documentation.</seealso>
         public void set_epsd(double epsd)
-        {
-            Interop.set_epsd(_lp, epsd);
-        }
+            => NativeMethods.set_epsd(_lp, epsd);
 
         /// <summary>
         /// Returns the value that is used as a tolerance for rounding values to zero.
@@ -1812,9 +1659,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_epsel.htm">Full C API documentation.</seealso>
         public double get_epsel()
-        {
-            return Interop.get_epsel(_lp);
-        }
+            => NativeMethods.get_epsel(_lp);
 
         /// <summary>
         /// Specifies the value that is used as a tolerance for rounding values to zero.
@@ -1827,9 +1672,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_epsel.htm">Full C API documentation.</seealso>
         public void set_epsel(double epsel)
-        {
-            Interop.set_epsel(_lp, epsel);
-        }
+            => NativeMethods.set_epsel(_lp, epsel);
 
         /// <summary>
         /// Returns the tolerance that is used to determine whether a floating-point number is in fact an integer.
@@ -1840,9 +1683,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_epsint.htm">Full C API documentation.</seealso>
         public double get_epsint()
-        {
-            return Interop.get_epsint(_lp);
-        }
+            => NativeMethods.get_epsint(_lp);
 
         /// <summary>
         /// Specifies the tolerance that is used to determine whether a floating-point number is in fact an integer.
@@ -1861,9 +1702,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_epsint.htm">Full C API documentation.</seealso>
         public void set_epsint(double epsint)
-        {
-            Interop.set_epsint(_lp, epsint);
-        }
+            => NativeMethods.set_epsint(_lp, epsint);
 
         /// <summary>
         /// Returns the value that is used as perturbation scalar for degenerative problems.
@@ -1872,9 +1711,7 @@ namespace LpSolveDotNet
         /// <remarks>The default epsperturb value is 1e-5</remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_epsperturb.htm">Full C API documentation.</seealso>
         public double get_epsperturb()
-        {
-            return Interop.get_epsperturb(_lp);
-        }
+            => NativeMethods.get_epsperturb(_lp);
 
         /// <summary>
         /// Specifies the value that is used as perturbation scalar for degenerative problems.
@@ -1883,9 +1720,7 @@ namespace LpSolveDotNet
         /// <remarks>The default epsperturb value is 1e-5</remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_epsperturb.htm">Full C API documentation.</seealso>
         public void set_epsperturb(double epsperturb)
-        {
-            Interop.set_epsperturb(_lp, epsperturb);
-        }
+            => NativeMethods.set_epsperturb(_lp, epsperturb);
 
         /// <summary>
         /// Returns the value that is used as a tolerance for the pivot element to determine whether a value should be considered as 0.
@@ -1901,9 +1736,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_epspivot.htm">Full C API documentation.</seealso>
         public double get_epspivot()
-        {
-            return Interop.get_epspivot(_lp);
-        }
+            => NativeMethods.get_epspivot(_lp);
 
         /// <summary>
         /// Specifies the value that is used as a tolerance pivot element to determine whether a value should be considered as 0.
@@ -1919,9 +1752,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_epspivot.htm">Full C API documentation.</seealso>
         public void set_epspivot(double epspivot)
-        {
-            Interop.set_epspivot(_lp, epspivot);
-        }
+            => NativeMethods.set_epspivot(_lp, epspivot);
 
         /// <summary>
         /// Specifies the MIP gap value.
@@ -1938,9 +1769,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_mip_gap.htm">Full C API documentation.</seealso>
         public void set_mip_gap(bool absolute, double mip_gap)
-        {
-            Interop.set_mip_gap(_lp, absolute, mip_gap);
-        }
+            => NativeMethods.set_mip_gap(_lp, absolute, mip_gap);
 
         /// <summary>
         /// Returns the MIP gap value.
@@ -1957,9 +1786,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_mip_gap.htm">Full C API documentation.</seealso>
         public double get_mip_gap(bool absolute)
-        {
-            return Interop.get_mip_gap(_lp, absolute);
-        }
+            => NativeMethods.get_mip_gap(_lp, absolute);
 
         /// <summary>
         /// This is a simplified way of specifying multiple eps thresholds that are "logically" consistent.
@@ -1972,13 +1799,11 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_epslevel.htm">Full C API documentation.</seealso>
         public bool set_epslevel(lpsolve_epsilon_level level)
-        {
-            return Interop.set_epslevel(_lp, level);
-        }
+            => NativeMethods.set_epslevel(_lp, level);
 
-#endregion
+        #endregion
 
-#region Basis
+        #region Basis
         /// <summary>
         /// Causes reinversion at next opportunity.
         /// </summary>
@@ -1997,18 +1822,14 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/reset_basis.htm">Full C API documentation.</seealso>
         public void reset_basis()
-        {
-            Interop.reset_basis(_lp);
-        }
+            => NativeMethods.reset_basis(_lp);
 
         /// <summary>
         /// Sets the starting base to an all slack basis (the default simplex starting basis).
         /// </summary>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/default_basis.htm">Full C API documentation.</seealso>
         public void default_basis()
-        {
-            Interop.default_basis(_lp);
-        }
+            => NativeMethods.default_basis(_lp);
 
         /// <summary>
         /// Read basis from a file and set as default basis.
@@ -2030,9 +1851,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/read_basis.htm">Full C API documentation.</seealso>
         public bool read_basis(string filename, string info)
-        {
-            return Interop.read_basis(_lp, filename, info);
-        }
+            => NativeMethods.read_basis(_lp, filename, info);
 
         /// <summary>
         /// Writes current basis to a file.
@@ -2051,9 +1870,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/write_basis.htm">Full C API documentation.</seealso>
         public bool write_basis(string filename)
-        {
-            return Interop.write_basis(_lp, filename);
-        }
+            => NativeMethods.write_basis(_lp, filename);
 
         /// <summary>
         /// Sets an initial basis of the model.
@@ -2085,9 +1902,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_basis.htm">Full C API documentation.</seealso>
         public bool set_basis(int[] bascolumn, bool nonbasic)
-        {
-            return Interop.set_basis(_lp, bascolumn, nonbasic);
-        }
+            => NativeMethods.set_basis(_lp, bascolumn, nonbasic);
 
         /// <summary>
         /// Returns the basis of the model.
@@ -2120,9 +1935,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_basis.htm">Full C API documentation.</seealso>
         public bool get_basis(int[] bascolumn, bool nonbasic)
-        {
-            return Interop.get_basis(_lp, bascolumn, nonbasic);
-        }
+            => NativeMethods.get_basis(_lp, bascolumn, nonbasic);
 
         /// <summary>
         /// Create a starting base from the provided guess vector.
@@ -2143,9 +1956,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/guess_basis.htm">Full C API documentation.</seealso>
         public bool guess_basis(double[] guessvector, int[] basisvector)
-        {
-            return Interop.guess_basis(_lp, guessvector, basisvector);
-        }
+            => NativeMethods.guess_basis(_lp, guessvector, basisvector);
 
         /// <summary>
         /// Returns which basis crash mode must be used.
@@ -2164,9 +1975,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_basiscrash.htm">Full C API documentation.</seealso>
         public lpsolve_basiscrash get_basiscrash()
-        {
-            return Interop.get_basiscrash(_lp);
-        }
+            => NativeMethods.get_basiscrash(_lp);
 
         /// <summary>
         /// Returns which basis crash mode must be used.
@@ -2185,9 +1994,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_basiscrash.htm">Full C API documentation.</seealso>
         public void set_basiscrash(lpsolve_basiscrash mode)
-        {
-            Interop.set_basiscrash(_lp, mode);
-        }
+            => NativeMethods.set_basiscrash(_lp, mode);
 
         /// <summary>
         /// Returns if there is a basis factorization package (BFP) available.
@@ -2200,9 +2007,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/has_BFP.htm">Full C API documentation.</seealso>
         public bool has_BFP()
-        {
-            return Interop.has_BFP(_lp);
-        }
+            => NativeMethods.has_BFP(_lp);
 
         /// <summary>
         /// Returns if the native (build-in) basis factorization package (BFP) is used, or an external package.
@@ -2214,9 +2019,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_nativeBFP.htm">Full C API documentation.</seealso>
         public bool is_nativeBFP()
-        {
-            return Interop.is_nativeBFP(_lp);
-        }
+            => NativeMethods.is_nativeBFP(_lp);
 
         /// <summary>
         /// Sets the basis factorization package.
@@ -2239,13 +2042,11 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_BFP.htm">Full C API documentation.</seealso>
         public bool set_BFP(string filename)
-        {
-            return Interop.set_BFP(_lp, filename);
-        }
+            => NativeMethods.set_BFP(_lp, filename);
 
-#endregion
+        #endregion
 
-#region Pivoting
+        #region Pivoting
 
         /// <summary>
         /// Returns the maximum number of pivots between a re-inversion of the matrix.
@@ -2256,9 +2057,7 @@ namespace LpSolveDotNet
         /// <para>The default is 250 for the LUSOL bfp and 42 for the other BFPs.</para></remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_maxpivot.htm">Full C API documentation.</seealso>
         public int get_maxpivot()
-        {
-            return Interop.get_maxpivot(_lp);
-        }
+            => NativeMethods.get_maxpivot(_lp);
 
         /// <summary>
         /// Sets the maximum number of pivots between a re-inversion of the matrix.
@@ -2269,9 +2068,7 @@ namespace LpSolveDotNet
         /// <para>The default is 250 for the LUSOL bfp and 42 for the other BFPs.</para></remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_maxpivot.htm">Full C API documentation.</seealso>
         public void set_maxpivot(int max_num_inv)
-        {
-            Interop.set_maxpivot(_lp, max_num_inv);
-        }
+            => NativeMethods.set_maxpivot(_lp, max_num_inv);
 
         /// <summary>
         /// Returns the pivot rule and modes. See <see cref="lpsolve_pivot_rule"/> and <see cref="lpsolve_pivot_modes"/> for possible values.
@@ -2286,7 +2083,7 @@ namespace LpSolveDotNet
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_pivoting.htm">Full C API documentation.</seealso>
         public PivotRuleAndModes get_pivoting()
         {
-            int pivoting = Interop.get_pivoting(_lp);
+            int pivoting = NativeMethods.get_pivoting(_lp);
             int mask = (int)lpsolve_pivot_rule.PRICER_STEEPESTEDGE;
             int rule = pivoting & mask;
             int modes = pivoting & ~mask;
@@ -2309,9 +2106,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_pivoting.htm">Full C API documentation.</seealso>
         public void set_pivoting(lpsolve_pivot_rule rule, lpsolve_pivot_modes modes)
-        {
-            Interop.set_pivoting(_lp, ((int)rule)| ((int)modes));
-        }
+            => NativeMethods.set_pivoting(_lp, ((int)rule) | ((int)modes));
 
         /// <summary>
         /// Checks if the specified pivot rule is active.
@@ -2326,9 +2121,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_piv_rule.htm">Full C API documentation.</seealso>
         public bool is_piv_rule(lpsolve_pivot_rule rule)
-        {
-            return Interop.is_piv_rule(_lp, rule);
-        }
+            => NativeMethods.is_piv_rule(_lp, rule);
 
 
         /// <summary>
@@ -2341,13 +2134,11 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_piv_mode.htm">Full C API documentation.</seealso>
         public bool is_piv_mode(lpsolve_pivot_modes testmask)
-        {
-            return Interop.is_piv_mode(_lp, testmask);
-        }
+            => NativeMethods.is_piv_mode(_lp, testmask);
 
-#endregion
+        #endregion
 
-#region Scaling
+        #region Scaling
 
         /// <summary>
         /// Gets the relative scaling convergence criterion for the active scaling mode.
@@ -2356,9 +2147,7 @@ namespace LpSolveDotNet
         /// the integer part specifies the maximum number of iterations.</returns>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_scalelimit.htm">Full C API documentation.</seealso>
         public double get_scalelimit()
-        {
-            return Interop.get_scalelimit(_lp);
-        }
+            => NativeMethods.get_scalelimit(_lp);
 
         /// <summary>
         /// Sets the relative scaling convergence criterion for the active scaling mode;
@@ -2371,9 +2160,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_scalelimit.htm">Full C API documentation.</seealso>
         public void set_scalelimit(double scalelimit)
-        {
-            Interop.set_scalelimit(_lp, scalelimit);
-        }
+            => NativeMethods.set_scalelimit(_lp, scalelimit);
 
         /// <summary>
         /// Specifies which scaling algorithm and parameters are used.
@@ -2389,7 +2176,7 @@ namespace LpSolveDotNet
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_scaling.htm">Full C API documentation.</seealso>
         public ScalingAlgorithmAndParameters get_scaling()
         {
-            int scaling = Interop.get_scaling(_lp);
+            int scaling = NativeMethods.get_scaling(_lp);
             int mask = (int)lpsolve_scale_algorithm.SCALE_CURTISREID;
             int algorithm = scaling & mask;
             int parameters = scaling & ~mask;
@@ -2413,9 +2200,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_scaling.htm">Full C API documentation.</seealso>
         public void set_scaling(lpsolve_scale_algorithm algorithm, lpsolve_scale_parameters parameters)
-        {
-            Interop.set_scaling(_lp, ((int)algorithm)|((int)parameters));
-        }
+            => NativeMethods.set_scaling(_lp, ((int)algorithm) | ((int)parameters));
 
         /// <summary>
         /// Returns if scaling algorithm and parameters specified are active.
@@ -2432,9 +2217,7 @@ namespace LpSolveDotNet
         public bool is_scalemode(
             lpsolve_scale_algorithm algorithmMask = lpsolve_scale_algorithm.SCALE_NONE,
             lpsolve_scale_parameters parameterMask = lpsolve_scale_parameters.SCALE_NONE)
-        {
-            return Interop.is_scalemode(_lp, ((int)algorithmMask) | ((int)parameterMask));
-        }
+            => NativeMethods.is_scalemode(_lp, ((int)algorithmMask) | ((int)parameterMask));
 
         /// <summary>
         /// Returns if scaling algorithm specified is active.
@@ -2446,9 +2229,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_scaletype.htm">Full C API documentation.</seealso>
         public bool is_scaletype(lpsolve_scale_algorithm algorithm)
-        {
-            return Interop.is_scaletype(_lp, algorithm);
-        }
+            => NativeMethods.is_scaletype(_lp, algorithm);
 
         /// <summary>
         /// Returns if integer scaling is active.
@@ -2460,9 +2241,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_integerscaling.htm">Full C API documentation.</seealso>
         public bool is_integerscaling()
-        {
-            return Interop.is_integerscaling(_lp);
-        }
+            => NativeMethods.is_integerscaling(_lp);
 
         /// <summary>
         /// Unscales the model.
@@ -2474,13 +2253,11 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/unscale.htm">Full C API documentation.</seealso>
         public void unscale()
-        {
-            Interop.unscale(_lp);
-        }
+            => NativeMethods.unscale(_lp);
 
-#endregion
+        #endregion
 
-#region Branching
+        #region Branching
 
         /// <summary>
         /// Returns, for the specified variable, which branch to take first in branch-and-bound algorithm.
@@ -2498,9 +2275,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_var_branch.htm">Full C API documentation.</seealso>
         public lpsolve_branch get_var_branch(int column)
-        {
-            return Interop.get_var_branch(_lp, column);
-        }
+            => NativeMethods.get_var_branch(_lp, column);
 
         /// <summary>
         /// Specifies, for the specified variable, which branch to take first in branch-and-bound algorithm.
@@ -2520,9 +2295,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_var_branch.htm">Full C API documentation.</seealso>
         public bool set_var_branch(int column, lpsolve_branch branch_mode)
-        {
-            return Interop.set_var_branch(_lp, column, branch_mode);
-        }
+            => NativeMethods.set_var_branch(_lp, column, branch_mode);
 
         /// <summary>
         /// Returns whether the branch-and-bound algorithm stops at first found solution or not.
@@ -2535,9 +2308,7 @@ namespace LpSolveDotNet
         /// <para>The default is <c>false</c>: not stop at first found solution.</para></remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_break_at_first.htm">Full C API documentation.</seealso>
         public bool is_break_at_first()
-        {
-            return Interop.is_break_at_first(_lp);
-        }
+            => NativeMethods.is_break_at_first(_lp);
 
         /// <summary>
         /// Specifies whether the branch-and-bound algorithm stops at first found solution or not.
@@ -2550,9 +2321,7 @@ namespace LpSolveDotNet
         /// <para>The default is <c>false</c>: not stop at first found solution.</para></remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_break_at_first.htm">Full C API documentation.</seealso>
         public void set_break_at_first(bool break_at_first)
-        {
-            Interop.set_break_at_first(_lp, break_at_first);
-        }
+            => NativeMethods.set_break_at_first(_lp, break_at_first);
 
         /// <summary>
         /// Returns the value which would cause the branch-and-bound algorithm to stop when the objective value reaches it.
@@ -2566,9 +2335,7 @@ namespace LpSolveDotNet
         /// <para>The default value is (-) infinity (or +infinity when maximizing).</para></remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_break_at_value.htm">Full C API documentation.</seealso>
         public double get_break_at_value()
-        {
-            return Interop.get_break_at_value(_lp);
-        }
+            => NativeMethods.get_break_at_value(_lp);
 
         /// <summary>
         /// Specifies the value which would cause the branch-and-bound algorithm to stop when the objective value reaches it.
@@ -2582,9 +2349,7 @@ namespace LpSolveDotNet
         /// <para>The default value is (-) infinity (or +infinity when maximizing).</para></remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_break_at_value.htm">Full C API documentation.</seealso>
         public void set_break_at_value(double break_at_value)
-        {
-            Interop.set_break_at_value(_lp, break_at_value);
-        }
+            => NativeMethods.set_break_at_value(_lp, break_at_value);
 
         /// <summary>
         /// Returns the branch-and-bound rule.
@@ -2598,9 +2363,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_bb_rule.htm">Full C API documentation.</seealso>
         public lpsolve_BBstrategies get_bb_rule()
-        {
-            return Interop.get_bb_rule(_lp);
-        }
+            => NativeMethods.get_bb_rule(_lp);
 
         /// <summary>
         /// Specifies the branch-and-bound rule.
@@ -2614,9 +2377,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_bb_rule.htm">Full C API documentation.</seealso>
         public void set_bb_rule(lpsolve_BBstrategies bb_rule)
-        {
-            Interop.set_bb_rule(_lp, bb_rule);
-        }
+            => NativeMethods.set_bb_rule(_lp, bb_rule);
 
         /// <summary>
         /// Returns the maximum branch-and-bound depth.
@@ -2638,9 +2399,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_bb_depthlimit.htm">Full C API documentation.</seealso>
         public int get_bb_depthlimit()
-        {
-            return Interop.get_bb_depthlimit(_lp);
-        }
+            => NativeMethods.get_bb_depthlimit(_lp);
 
         /// <summary>
         /// Sets the maximum branch-and-bound depth.
@@ -2662,9 +2421,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_bb_depthlimit.htm">Full C API documentation.</seealso>
         public void set_bb_depthlimit(int bb_maxlevel)
-        {
-            Interop.set_bb_depthlimit(_lp, bb_maxlevel);
-        }
+            => NativeMethods.set_bb_depthlimit(_lp, bb_maxlevel);
 
         /// <summary>
         /// Returns which branch to take first in branch-and-bound algorithm.
@@ -2678,9 +2435,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_bb_floorfirst.htm">Full C API documentation.</seealso>
         public lpsolve_branch get_bb_floorfirst()
-        {
-            return Interop.get_bb_floorfirst(_lp);
-        }
+            => NativeMethods.get_bb_floorfirst(_lp);
 
         /// <summary>
         /// Specifies which branch to take first in branch-and-bound algorithm.
@@ -2694,9 +2449,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_bb_floorfirst.htm">Full C API documentation.</seealso>
         public void set_bb_floorfirst(lpsolve_branch bb_floorfirst)
-        {
-            Interop.set_bb_floorfirst(_lp, bb_floorfirst);
-        }
+            => NativeMethods.set_bb_floorfirst(_lp, bb_floorfirst);
 
         /// <summary>
         /// Allows to set a user function that specifies which non-integer variable to select next to make integer in the B&amp;B solve.
@@ -2711,7 +2464,7 @@ namespace LpSolveDotNet
         /// This overrules the setting of <see cref="set_bb_rule"/>.</remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/put_bb_nodefunc.htm">Full C API documentation.</seealso>
         public void put_bb_nodefunc(BranchAndBoundNodeSelector nodeSelector)
-            => Interop.put_bb_nodefunc(_lp, (x, y, z) => nodeSelector(this), IntPtr.Zero);
+            => NativeMethods.put_bb_nodefunc(_lp, (x, y, z) => nodeSelector(this), IntPtr.Zero);
 
         /// <summary>
         /// Allows to set a user function that specifies which B&amp;B branching to use given a column to branch on.
@@ -2722,7 +2475,7 @@ namespace LpSolveDotNet
         /// This overrules the setting of <see cref="set_bb_floorfirst"/>.</remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/put_bb_branchfunc.htm">Full C API documentation.</seealso>
         public void put_bb_branchfunc(BranchAndBoundBranchSelector branchSelector)
-            => Interop.put_bb_branchfunc(_lp, (x, y, column) => branchSelector(this, column) == BranchSelectorResult.Floor, IntPtr.Zero);
+            => NativeMethods.put_bb_branchfunc(_lp, (x, y, column) => branchSelector(this, column) == BranchSelectorResult.Floor, IntPtr.Zero);
 
         #endregion
 
@@ -2735,9 +2488,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_improve.htm">Full C API documentation.</seealso>
         public lpsolve_improves get_improve()
-        {
-            return Interop.get_improve(_lp);
-        }
+            => NativeMethods.get_improve(_lp);
 
         /// <summary>
         /// Specifies the iterative improvement level.
@@ -2748,9 +2499,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_improve.htm">Full C API documentation.</seealso>
         public void set_improve(lpsolve_improves improve)
-        {
-            Interop.set_improve(_lp, improve);
-        }
+            => NativeMethods.set_improve(_lp, improve);
 
         /// <summary>
         /// Returns the negative value below which variables are split into a negative and a positive part.
@@ -2765,9 +2514,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_negrange.htm">Full C API documentation.</seealso>
         public double get_negrange()
-        {
-            return Interop.get_negrange(_lp);
-        }
+            => NativeMethods.get_negrange(_lp);
 
         /// <summary>
         /// Sets the negative value below which variables are split into a negative and a positive part.
@@ -2782,9 +2529,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_negrange.htm">Full C API documentation.</seealso>
         public void set_negrange(double negrange)
-        {
-            Interop.set_negrange(_lp, negrange);
-        }
+            => NativeMethods.set_negrange(_lp, negrange);
 
         /// <summary>
         /// Returns the used degeneracy rule.
@@ -2797,9 +2542,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_anti_degen.htm">Full C API documentation.</seealso>
         public lpsolve_anti_degen get_anti_degen()
-        {
-            return Interop.get_anti_degen(_lp);
-        }
+            => NativeMethods.get_anti_degen(_lp);
 
         /// <summary>
         /// Returns if the degeneracy rules specified in <paramref name="testmask"/> are active.
@@ -2808,9 +2551,7 @@ namespace LpSolveDotNet
         /// <returns><c>true</c> if all rules specified in <paramref name="testmask"/> are active, <c>false</c> otherwise.</returns>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_anti_degen.htm">Full C API documentation.</seealso>
         public bool is_anti_degen(lpsolve_anti_degen testmask)
-        {
-            return Interop.is_anti_degen(_lp, testmask);
-        }
+            => NativeMethods.is_anti_degen(_lp, testmask);
 
         /// <summary>
         /// Specifies if special handling must be done to reduce degeneracy/cycling while solving.
@@ -2824,18 +2565,14 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_anti_degen.htm">Full C API documentation.</seealso>
         public void set_anti_degen(lpsolve_anti_degen anti_degen)
-        {
-            Interop.set_anti_degen(_lp, anti_degen);
-        }
+            => NativeMethods.set_anti_degen(_lp, anti_degen);
 
         /// <summary>
         /// Resets parameters back to their default values.
         /// </summary>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/reset_params.htm">Full C API documentation.</seealso>
         public void reset_params()
-        {
-            Interop.reset_params(_lp);
-        }
+            => NativeMethods.reset_params(_lp);
 
         /// <summary>
         /// Read settings from a parameter file.
@@ -2906,9 +2643,7 @@ namespace LpSolveDotNet
         /// </example>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/read_params.htm">Full C API documentation.</seealso>
         public bool read_params(string filename, string options)
-        {
-            return Interop.read_params(_lp, filename, options);
-        }
+            => NativeMethods.read_params(_lp, filename, options);
 
         /// <summary>
         /// Write settings from a parameter file.
@@ -2979,9 +2714,7 @@ namespace LpSolveDotNet
         /// </example>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/write_params.htm">Full C API documentation.</seealso>
         public bool write_params(string filename, string options)
-        {
-            return Interop.write_params(_lp, filename, options);
-        }
+            => NativeMethods.write_params(_lp, filename, options);
 
         /// <summary>
         /// Returns the desired combination of primal and dual simplex algorithms.
@@ -2992,9 +2725,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_simplextype.htm">Full C API documentation.</seealso>
         public lpsolve_simplextypes get_simplextype()
-        {
-            return Interop.get_simplextype(_lp);
-        }
+            => NativeMethods.get_simplextype(_lp);
 
         /// <summary>
         /// Sets the desired combination of primal and dual simplex algorithms.
@@ -3005,9 +2736,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_simplextype.htm">Full C API documentation.</seealso>
         public void set_simplextype(lpsolve_simplextypes simplextype)
-        {
-            Interop.set_simplextype(_lp, simplextype);
-        }
+            => NativeMethods.set_simplextype(_lp, simplextype);
 
         /// <summary>
         /// Sets the desired combination of primal and dual simplex algorithms.
@@ -3023,9 +2752,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_preferdual.htm">Full C API documentation.</seealso>
         public void set_preferdual(bool dodual)
-        {
-            Interop.set_preferdual(_lp, dodual);
-        }
+            => NativeMethods.set_preferdual(_lp, dodual);
 
         /// <summary>
         /// Returns the solution number that must be returned.
@@ -3041,9 +2768,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_solutionlimit.htm">Full C API documentation.</seealso>
         public int get_solutionlimit()
-        {
-            return Interop.get_solutionlimit(_lp);
-        }
+            => NativeMethods.get_solutionlimit(_lp);
 
         /// <summary>
         /// Sets the solution number that must be returned.
@@ -3059,9 +2784,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_solutionlimit.htm">Full C API documentation.</seealso>
         public void set_solutionlimit(int limit)
-        {
-            Interop.set_solutionlimit(_lp, limit);
-        }
+            => NativeMethods.set_solutionlimit(_lp, limit);
 
         /// <summary>
         /// Gets the timeout.
@@ -3074,9 +2797,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_timeout.htm">Full C API documentation.</seealso>
         public int get_timeout()
-        {
-            return Interop.get_timeout(_lp);
-        }
+            => NativeMethods.get_timeout(_lp);
 
         /// <summary>
         /// Sets a timeout.
@@ -3092,9 +2813,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_timeout.htm">Full C API documentation.</seealso>
         public void set_timeout(int sectimeout)
-        {
-            Interop.set_timeout(_lp, sectimeout);
-        }
+            => NativeMethods.set_timeout(_lp, sectimeout);
 
         /// <summary>
         /// Returns if variable or constraint names are used.
@@ -3111,9 +2830,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_use_names.htm">Full C API documentation.</seealso>
         public bool is_use_names(bool isrow)
-        {
-            return Interop.is_use_names(_lp, isrow);
-        }
+            => NativeMethods.is_use_names(_lp, isrow);
 
         /// <summary>
         /// Sets if variable or constraint names are used.
@@ -3130,9 +2847,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_use_names.htm">Full C API documentation.</seealso>
         public void set_use_names(bool isrow, bool use_names)
-        {
-            Interop.set_use_names(_lp, isrow, use_names);
-        }
+            => NativeMethods.set_use_names(_lp, isrow, use_names);
 
         /// <summary>
         /// Returns if presolve level specified in <paramref name="testmask"/> is active.
@@ -3148,9 +2863,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_presolve.htm">Full C API documentation.</seealso>
         public bool is_presolve(lpsolve_presolve testmask)
-        {
-            return Interop.is_presolve(_lp, testmask);
-        }
+            => NativeMethods.is_presolve(_lp, testmask);
 
         /// <summary>
         /// Returns the number of times presolve is done.
@@ -3163,9 +2876,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_presolveloops.htm">Full C API documentation.</seealso>
         public int get_presolveloops()
-        {
-            return Interop.get_presolveloops(_lp);
-        }
+            => NativeMethods.get_presolveloops(_lp);
 
         /// <summary>
         /// Returns if a presolve must be done before solving.
@@ -3182,9 +2893,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_presolve.htm">Full C API documentation.</seealso>
         public lpsolve_presolve get_presolve()
-        {
-            return Interop.get_presolve(_lp);
-        }
+            => NativeMethods.get_presolve(_lp);
 
         /// <summary>
         /// Specifies if a presolve must be done before solving.
@@ -3212,13 +2921,11 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_presolve.htm">Full C API documentation.</seealso>
         public void set_presolve(lpsolve_presolve do_presolve, int maxloops)
-        {
-            Interop.set_presolve(_lp, do_presolve, maxloops);
-        }
+            => NativeMethods.set_presolve(_lp, do_presolve, maxloops);
 
-#endregion
+        #endregion
 
-#region Callback methods
+        #region Callback methods
 
         /// <summary>
         /// Sets a callback called regularly while solving the model to verify if solving should abort.
@@ -3235,9 +2942,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/put_abortfunc.htm">Full C API documentation.</seealso>
         public void put_abortfunc(ctrlcfunc newctrlc, IntPtr ctrlchandle)
-        {
-            Interop.put_abortfunc(_lp, newctrlc, ctrlchandle);
-        }
+            => NativeMethods.put_abortfunc(_lp, newctrlc, ctrlchandle);
 
         /// <summary>
         /// Sets a log callback.
@@ -3251,9 +2956,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/put_logfunc.htm">Full C API documentation.</seealso>
         public void put_logfunc(logfunc newlog, IntPtr loghandle)
-        {
-            Interop.put_logfunc(_lp, newlog, loghandle);
-        }
+            => NativeMethods.put_logfunc(_lp, newlog, loghandle);
 
         /// <summary>
         /// Sets a message callback called upon certain events.
@@ -3268,14 +2971,12 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/put_msgfunc.htm">Full C API documentation.</seealso>
         public void put_msgfunc(msgfunc newmsg, IntPtr msghandle, lpsolve_msgmask mask)
-        {
-            Interop.put_msgfunc(_lp, newmsg, msghandle, mask);
-        }
+            => NativeMethods.put_msgfunc(_lp, newmsg, msghandle, mask);
 
 
-#endregion
+        #endregion
 
-#region Solve
+        #region Solve
 
         /// <summary>
         /// Solve the model.
@@ -3299,13 +3000,11 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/solve.htm">Full C API documentation.</seealso>
         public lpsolve_return solve()
-        {
-            return Interop.solve(_lp);
-        }
+            => NativeMethods.solve(_lp);
 
-#endregion
+        #endregion
 
-#region Solution
+        #region Solution
 
         /// <summary>
         /// Gets the value of a constraint according to provided variable values.
@@ -3333,9 +3032,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_constr_value.htm">Full C API documentation.</seealso>
         public double get_constr_value(int row, int count, double[] primsolution, int[] nzindex)
-        {
-            return Interop.get_constr_value(_lp, row, count, primsolution, nzindex);
-        }
+            => NativeMethods.get_constr_value(_lp, row, count, primsolution, nzindex);
 
         /// <summary>
         /// Returns the values of the constraints.
@@ -3353,9 +3050,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_constraints.htm">Full C API documentation.</seealso>
         public bool get_constraints(double[] constr)
-        {
-            return Interop.get_constraints(_lp, constr);
-        }
+            => NativeMethods.get_constraints(_lp, constr);
 
         /// <summary>
         /// Returns the value(s) of the dual variables aka reduced costs.
@@ -3380,9 +3075,7 @@ namespace LpSolveDotNet
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_sensitivity_rhs.htm">Full C API documentation.</seealso>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/sensitivity.htm">Sensitivity explanation.</seealso>
         public bool get_dual_solution(double[] rc)
-        {
-            return Interop.get_dual_solution(_lp, rc);
-        }
+            => NativeMethods.get_dual_solution(_lp, rc);
 
         /// <summary>
         /// Returns the deepest Branch-and-bound level of the last solution.
@@ -3393,9 +3086,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_max_level.htm">Full C API documentation.</seealso>
         public int get_max_level()
-        {
-            return Interop.get_max_level(_lp);
-        }
+            => NativeMethods.get_max_level(_lp);
 
         /// <summary>
         /// Returns the value of the objective function.
@@ -3406,9 +3097,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_objective.htm">Full C API documentation.</seealso>
         public double get_objective()
-        {
-            return Interop.get_objective(_lp);
-        }
+            => NativeMethods.get_objective(_lp);
 
         /// <summary>
         /// Returns the solution of the model.
@@ -3431,9 +3120,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_primal_solution.htm">Full C API documentation.</seealso>
         public bool get_primal_solution(double[] pv)
-        {
-            return Interop.get_primal_solution(_lp, pv);
-        }
+            => NativeMethods.get_primal_solution(_lp, pv);
 
         /// <summary>
         /// Returns the sensitivity of the objective function.
@@ -3459,9 +3146,7 @@ namespace LpSolveDotNet
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_sensitivity_obj.htm">Full C API documentation.</seealso>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/sensitivity.htm">Sensitivity explanation.</seealso>
         public bool get_sensitivity_obj(double[] objfrom, double[] objtill)
-        {
-            return Interop.get_sensitivity_obj(_lp, objfrom, objtill);
-        }
+            => NativeMethods.get_sensitivity_obj(_lp, objfrom, objtill);
 
         /// <summary>
         /// Returns the sensitivity of the objective function.
@@ -3490,9 +3175,7 @@ namespace LpSolveDotNet
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/sensitivity.htm">Sensitivity explanation.</seealso>
         public bool get_sensitivity_objex(double[] objfrom, double[] objtill, double[] objfromvalue,
             double[] objtillvalue)
-        {
-            return Interop.get_sensitivity_objex(_lp, objfrom, objtill, objfromvalue, objtillvalue);
-        }
+            => NativeMethods.get_sensitivity_objex(_lp, objfrom, objtill, objfromvalue, objtillvalue);
 
         /// <summary>
         /// Returns the sensitivity of the constraints and the variables.
@@ -3518,9 +3201,7 @@ namespace LpSolveDotNet
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_sensitivity_rhs.htm">Full C API documentation.</seealso>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/sensitivity.htm">Sensitivity explanation.</seealso>
         public bool get_sensitivity_rhs(double[] duals, double[] dualsfrom, double[] dualstill)
-        {
-            return Interop.get_sensitivity_rhs(_lp, duals, dualsfrom, dualstill);
-        }
+            => NativeMethods.get_sensitivity_rhs(_lp, duals, dualsfrom, dualstill);
 
         /// <summary>
         /// Returns the number of equal solutions.
@@ -3534,9 +3215,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_solutioncount.htm">Full C API documentation.</seealso>
         public int get_solutioncount()
-        {
-            return Interop.get_solutioncount(_lp);
-        }
+            => NativeMethods.get_solutioncount(_lp);
 
         /// <summary>
         /// Returns the total number of iterations.
@@ -3548,9 +3227,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_total_iter.htm">Full C API documentation.</seealso>
         public long get_total_iter()
-        {
-            return Interop.get_total_iter(_lp);
-        }
+            => NativeMethods.get_total_iter(_lp);
 
         /// <summary>
         /// Returns the total number of nodes processed in branch-and-bound of the last solution.
@@ -3561,9 +3238,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_total_nodes.htm">Full C API documentation.</seealso>
         public long get_total_nodes()
-        {
-            return Interop.get_total_nodes(_lp);
-        }
+            => NativeMethods.get_total_nodes(_lp);
 
         /// <summary>
         /// Returns the reduced cost on a variable.
@@ -3586,9 +3261,7 @@ namespace LpSolveDotNet
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_sensitivity_rhs.htm">Full C API documentation.</seealso>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/sensitivity.htm">Sensitivity explanation.</seealso>
         public double get_var_dualresult(int index)
-        {
-            return Interop.get_var_dualresult(_lp, index);
-        }
+            => NativeMethods.get_var_dualresult(_lp, index);
 
         /// <summary>
         /// Returns the solution of the model.
@@ -3597,9 +3270,7 @@ namespace LpSolveDotNet
         /// <returns>The value of the solution for variable at <paramref name="index"/>.</returns>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_primal_solution.htm">Full C API documentation.</seealso>
         public double get_var_primalresult(int index)
-        {
-            return Interop.get_var_primalresult(_lp, index);
-        }
+            => NativeMethods.get_var_primalresult(_lp, index);
 
         /// <summary>
         /// Returns the values of the variables.
@@ -3613,9 +3284,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_variables.htm">Full C API documentation.</seealso>
         public bool get_variables(double[] var)
-        {
-            return Interop.get_variables(_lp, var);
-        }
+            => NativeMethods.get_variables(_lp, var);
 
         /// <summary>
         /// Returns the value of the objective function.
@@ -3624,9 +3293,7 @@ namespace LpSolveDotNet
         /// <remarks>This value can be retrieved while solving in a callback method.</remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_working_objective.htm">Full C API documentation.</seealso>
         public double get_working_objective()
-        {
-            return Interop.get_working_objective(_lp);
-        }
+            => NativeMethods.get_working_objective(_lp);
 
         /// <summary>
         /// Checks if provided solution is a feasible solution.
@@ -3643,13 +3310,11 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_feasible.htm">Full C API documentation.</seealso>
         public bool is_feasible(double[] values, double threshold)
-        {
-            return Interop.is_feasible(_lp, values, threshold);
-        }
+            => NativeMethods.is_feasible(_lp, values, threshold);
 
-#endregion
+        #endregion
 
-#region Debug/print settings
+        #region Debug/print settings
 
         /// <summary>
         /// Defines the output when lp_solve has something to report.
@@ -3671,9 +3336,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_output.htm">Full C API documentation.</seealso>
         public bool set_outputfile(string filename)
-        {
-            return Interop.set_outputfile(_lp, filename);
-        }
+            => NativeMethods.set_outputfile(_lp, filename);
 
         /// <summary>
         /// Returns  a flag if all intermediate valid solutions must be printed while solving.
@@ -3684,9 +3347,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_print_sol.htm">Full C API documentation.</seealso>
         public lpsolve_print_sol_option get_print_sol()
-        {
-            return Interop.get_print_sol(_lp);
-        }
+            => NativeMethods.get_print_sol(_lp);
 
         /// <summary>
         /// Sets a flag if all intermediate valid solutions must be printed while solving.
@@ -3697,9 +3358,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_print_sol.htm">Full C API documentation.</seealso>
         public void set_print_sol(lpsolve_print_sol_option print_sol)
-        {
-            Interop.set_print_sol(_lp, print_sol);
-        }
+            => NativeMethods.set_print_sol(_lp, print_sol);
 
         /// <summary>
         /// Returns the verbose level.
@@ -3718,9 +3377,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_verbose.htm">Full C API documentation.</seealso>
         public lpsolve_verbosity get_verbose()
-        {
-            return Interop.get_verbose(_lp);
-        }
+            => NativeMethods.get_verbose(_lp);
 
         /// <summary>
         /// Set the verbose level.
@@ -3739,9 +3396,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_verbose.htm">Full C API documentation.</seealso>
         public void set_verbose(lpsolve_verbosity verbose)
-        {
-            Interop.set_verbose(_lp, verbose);
-        }
+            => NativeMethods.set_verbose(_lp, verbose);
 
         /// <summary>
         /// Returns a flag if all intermediate results and the branch-and-bound decisions must be printed while solving.
@@ -3752,9 +3407,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_debug.htm">Full C API documentation.</seealso>
         public bool is_debug()
-        {
-            return Interop.is_debug(_lp);
-        }
+            => NativeMethods.is_debug(_lp);
 
         /// <summary>
         /// Sets a flag if all intermediate results and the branch-and-bound decisions must be printed while solving.
@@ -3765,9 +3418,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_debug.htm">Full C API documentation.</seealso>
         public void set_debug(bool debug)
-        {
-            Interop.set_debug(_lp, debug);
-        }
+            => NativeMethods.set_debug(_lp, debug);
 
         /// <summary>
         /// Returns a flag if pivot selection must be printed while solving.
@@ -3778,9 +3429,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_trace.htm">Full C API documentation.</seealso>
         public bool is_trace()
-        {
-            return Interop.is_trace(_lp);
-        }
+            => NativeMethods.is_trace(_lp);
 
         /// <summary>
         /// Sets a flag if pivot selection must be printed while solving.
@@ -3791,13 +3440,11 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_trace.htm">Full C API documentation.</seealso>
         public void set_trace(bool trace)
-        {
-            Interop.set_trace(_lp, trace);
-        }
+            => NativeMethods.set_trace(_lp, trace);
 
-#endregion
+        #endregion
 
-#region Debug/print
+        #region Debug/print
 
         /// <summary>
         /// Prints the values of the constraints of the lp model.
@@ -3810,9 +3457,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_constraints.htm">Full C API documentation.</seealso>
         public void print_constraints(int columns)
-        {
-            Interop.print_constraints(_lp, columns);
-        }
+            => NativeMethods.print_constraints(_lp, columns);
 
         /// <summary>
         /// Do a generic readable data dump of key lp_solve model variables; principally for run difference and debugging purposes.
@@ -3824,9 +3469,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_debugdump.htm">Full C API documentation.</seealso>
         public bool print_debugdump(string filename)
-        {
-            return Interop.print_debugdump(_lp, filename);
-        }
+            => NativeMethods.print_debugdump(_lp, filename);
 
         /// <summary>
         /// Prints the values of the duals of the lp model.
@@ -3838,9 +3481,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_duals.htm">Full C API documentation.</seealso>
         public void print_duals()
-        {
-            Interop.print_duals(_lp);
-        }
+            => NativeMethods.print_duals(_lp);
 
         /// <summary>
         /// Prints the lp model.
@@ -3851,9 +3492,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_lp.htm">Full C API documentation.</seealso>
         public void print_lp()
-        {
-            Interop.print_lp(_lp);
-        }
+            => NativeMethods.print_lp(_lp);
 
         /// <summary>
         /// Prints the objective value of the lp model.
@@ -3865,9 +3504,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_objective.htm">Full C API documentation.</seealso>
         public void print_objective()
-        {
-            Interop.print_objective(_lp);
-        }
+            => NativeMethods.print_objective(_lp);
 
         /// <summary>
         /// Prints the scales of the lp model.
@@ -3880,9 +3517,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_scales.htm">Full C API documentation.</seealso>
         public void print_scales()
-        {
-            Interop.print_scales(_lp);
-        }
+            => NativeMethods.print_scales(_lp);
 
         /// <summary>
         /// Prints the solution (variables) of the lp model.
@@ -3895,9 +3530,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_solution.htm">Full C API documentation.</seealso>
         public void print_solution(int columns)
-        {
-            Interop.print_solution(_lp, columns);
-        }
+            => NativeMethods.print_solution(_lp, columns);
 
         /// <summary>
         /// Prints a string.
@@ -3909,9 +3542,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_str.htm">Full C API documentation.</seealso>
         public void print_str(string str)
-        {
-            Interop.print_str(_lp, str);
-        }
+            => NativeMethods.print_str(_lp, str);
 
         /// <summary>
         /// Prints the tableau.
@@ -3923,13 +3554,11 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_tableau.htm">Full C API documentation.</seealso>
         public void print_tableau()
-        {
-            Interop.print_tableau(_lp);
-        }
+            => NativeMethods.print_tableau(_lp);
 
-#endregion
+        #endregion
 
-#region Write model to file
+        #region Write model to file
 
         /// <summary>
         /// Write the model in the lp format to <paramref name="filename"/>.
@@ -3942,9 +3571,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/write_lp.htm">Full C API documentation.</seealso>
         public bool write_lp(string filename)
-        {
-            return Interop.write_lp(_lp, filename);
-        }
+            => NativeMethods.write_lp(_lp, filename);
 
         /// <summary>
         /// Write the model in the Free MPS format to <paramref name="filename"/> or 
@@ -3960,9 +3587,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/write_mps.htm">Full C API documentation.</seealso>
         public bool write_freemps(string filename)
-        {
-            return Interop.write_freemps(_lp, filename);
-        }
+            => NativeMethods.write_freemps(_lp, filename);
 
         /// <summary>
         /// Write the model in the Fixed MPS format to <paramref name="filename"/> or 
@@ -3978,9 +3603,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/write_mps.htm">Full C API documentation.</seealso>
         public bool write_mps(string filename)
-        {
-            return Interop.write_mps(_lp, filename);
-        }
+            => NativeMethods.write_mps(_lp, filename);
 
         /// <summary>
         /// Returns if a built-in External Language Interfaces (XLI) is available or not.
@@ -3993,9 +3616,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_nativeXLI.htm">Full C API documentation.</seealso>
         public bool is_nativeXLI()
-        {
-            return Interop.is_nativeXLI(_lp);
-        }
+            => NativeMethods.is_nativeXLI(_lp);
 
         /// <summary>
         /// Returns if there is an external language interface (XLI) set.
@@ -4007,9 +3628,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/has_XLI.htm">Full C API documentation.</seealso>
         public bool has_XLI()
-        {
-            return Interop.has_XLI(_lp);
-        }
+            => NativeMethods.has_XLI(_lp);
 
         /// <summary>
         /// Sets External Language Interfaces package.
@@ -4024,9 +3643,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_XLI.htm">Full C API documentation.</seealso>
         public bool set_XLI(string filename)
-        {
-            return Interop.set_XLI(_lp, filename);
-        }
+            => NativeMethods.set_XLI(_lp, filename);
 
         /// <summary>
         /// Writes a model to a file via the External Language Interface.
@@ -4042,13 +3659,11 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/write_XLI.htm">Full C API documentation.</seealso>
         public bool write_XLI(string filename, string options, bool results)
-        {
-            return Interop.write_XLI(_lp, filename, options, results);
-        }
+            => NativeMethods.write_XLI(_lp, filename, options, results);
 
-#endregion
+        #endregion
 
-#region Miscellaneous methods
+        #region Miscellaneous methods
 
         /// <summary>
         /// Returns the version of the lpsolve library loaded ar runtime.
@@ -4061,7 +3676,7 @@ namespace LpSolveDotNet
                 int minor = 0;
                 int release = 0;
                 int build = 0;
-                Interop.lp_solve_version(ref major, ref minor, ref release, ref build);
+                NativeMethods.lp_solve_version(ref major, ref minor, ref release, ref build);
                 return new Version(major, minor, release, build);
             }
         }
@@ -4078,9 +3693,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/column_in_lp.htm">Full C API documentation.</seealso>
         public int column_in_lp(double[] column)
-        {
-            return Interop.column_in_lp(_lp, column);
-        }
+            => NativeMethods.column_in_lp(_lp, column);
 
         /// <summary>
         /// Creates the dual of the current model.
@@ -4088,9 +3701,7 @@ namespace LpSolveDotNet
         /// <returns><c>true</c> if succeeded, <c>false</c> otherwise.</returns>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/dualize_lp.htm">Full C API documentation.</seealso>
         public bool dualize_lp()
-        {
-            return Interop.dualize_lp(_lp);
-        }
+            => NativeMethods.dualize_lp(_lp);
 
         /// <summary>
         /// Returns the number of non-zero elements in the matrix.
@@ -4098,9 +3709,7 @@ namespace LpSolveDotNet
         /// <returns>The number of non-zeros in the matrix.</returns>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_nonzeros.htm">Full C API documentation.</seealso>
         public int get_nonzeros()
-        {
-            return Interop.get_nonzeros(_lp);
-        }
+            => NativeMethods.get_nonzeros(_lp);
 
         /// <summary>
         /// Returns the number of columns (variables) in the lp model.
@@ -4114,9 +3723,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_Ncolumns.htm">Full C API documentation.</seealso>
         public int get_Ncolumns()
-        {
-            return Interop.get_Ncolumns(_lp);
-        }
+            => NativeMethods.get_Ncolumns(_lp);
 
         /// <summary>
         /// Returns the number of original columns (variables) in the lp model.
@@ -4129,9 +3736,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_Norig_columns.htm">Full C API documentation.</seealso>
         public int get_Norig_columns()
-        {
-            return Interop.get_Norig_columns(_lp);
-        }
+            => NativeMethods.get_Norig_columns(_lp);
 
         /// <summary>
         /// Returns the number of original rows (constraints) in the lp model.
@@ -4143,9 +3748,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_Norig_rows.htm">Full C API documentation.</seealso>
         public int get_Norig_rows()
-        {
-            return Interop.get_Norig_rows(_lp);
-        }
+            => NativeMethods.get_Norig_rows(_lp);
 
         /// <summary>
         /// Returns the number of rows (constraints) in the lp model.
@@ -4158,9 +3761,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_Nrows.htm">Full C API documentation.</seealso>
         public int get_Nrows()
-        {
-            return Interop.get_Nrows(_lp);
-        }
+            => NativeMethods.get_Nrows(_lp);
 
         /// <summary>
         /// Returns an extra status after a call to a method.
@@ -4172,9 +3773,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_status.htm">Full C API documentation.</seealso>
         public int get_status()
-        {
-            return Interop.get_status(_lp);
-        }
+            => NativeMethods.get_status(_lp);
 
         /// <summary>
         /// Returns the description of a returncode of the <see cref="solve"/> method.
@@ -4183,9 +3782,7 @@ namespace LpSolveDotNet
         /// <returns>The description of a returncode of the <see cref="solve"/> method</returns>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_statustext.htm">Full C API documentation.</seealso>
         public string get_statustext(int statuscode)
-        {
-            return Interop.get_statustext(_lp, statuscode);
-        }
+            => NativeMethods.get_statustext(_lp, statuscode);
 
         /// <summary>
         /// Gets the time elapsed since start of solve.
@@ -4193,9 +3790,7 @@ namespace LpSolveDotNet
         /// <returns>The number of seconds after <see cref="solve"/> has started.</returns>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/time_elapsed.htm">Full C API documentation.</seealso>
         public double time_elapsed()
-        {
-            return Interop.time_elapsed(_lp);
-        }
+            => NativeMethods.time_elapsed(_lp);
 
         /// <summary>
         /// Returns the index in the lp of the original row/column.
@@ -4214,9 +3809,7 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_lp_index.htm">Full C API documentation.</seealso>
         public int get_lp_index(int orig_index)
-        {
-            return Interop.get_lp_index(_lp, orig_index);
-        }
+            => NativeMethods.get_lp_index(_lp, orig_index);
 
         /// <summary>
         /// Returns the original row/column where a constraint/variable was before presolve.
@@ -4234,10 +3827,8 @@ namespace LpSolveDotNet
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_orig_index.htm">Full C API documentation.</seealso>
         public int get_orig_index(int lp_index)
-        {
-            return Interop.get_orig_index(_lp, lp_index);
-        }
+            => NativeMethods.get_orig_index(_lp, lp_index);
 
-#endregion
+        #endregion
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace LpSolveDotNet
+﻿using System;
+
+namespace LpSolveDotNet
 {
     /// <summary>
     /// Represents both scaling algorithm and parameters together.
@@ -35,6 +37,7 @@
     /// </remarks>
     /// </summary>
     public struct ScalingAlgorithmAndParameters
+        : IEquatable<ScalingAlgorithmAndParameters>
     {
         internal ScalingAlgorithmAndParameters(lpsolve_scale_algorithm algorithm, lpsolve_scale_parameters parameters)
         {
@@ -51,5 +54,32 @@
         /// The scaling parameters (modifiers to the <see cref="Algorithm"/>).
         /// </summary>
         public lpsolve_scale_parameters Parameters { get; }
+
+
+
+        #region Equals
+
+        /// <inheritdoc/>
+        public override bool Equals(object obj) => obj is ScalingAlgorithmAndParameters other && Equals(other);
+
+        /// <inheritdoc/>
+        public override int GetHashCode()
+        {
+            int hashCode = -863896258;
+            hashCode = hashCode * -1521134295 + Algorithm.GetHashCode();
+            hashCode = hashCode * -1521134295 + Parameters.GetHashCode();
+            return hashCode;
+        }
+
+        /// <inheritdoc/>
+        public static bool operator ==(ScalingAlgorithmAndParameters left, ScalingAlgorithmAndParameters right) => left.Equals(right);
+
+        /// <inheritdoc/>
+        public static bool operator !=(ScalingAlgorithmAndParameters left, ScalingAlgorithmAndParameters right) => !(left == right);
+
+        /// <inheritdoc/>
+        public bool Equals(ScalingAlgorithmAndParameters other) => Algorithm == other.Algorithm && Parameters == other.Parameters;
+
+        #endregion
     }
 }

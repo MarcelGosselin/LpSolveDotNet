@@ -6,7 +6,7 @@ namespace LpSolveDotNet.Demo
     /// <summary>
     /// This is almost identical to the demo provided with lp_solve_5.5.2.5_cs.net.zip file from lp_solve's sourceforge web site.
     /// </summary>
-    class OriginalSample
+    internal class OriginalSample
     {
         /* unsafe is needed to make sure that these function are not relocated in memory by the CLR. If that would happen, a crash occurs */
         /* go to the project property page and in “configuration properties>build” set Allow Unsafe Code Blocks to True. */
@@ -29,7 +29,7 @@ namespace LpSolveDotNet.Demo
 
         private static void ThreadProc(object filename)
         {
-            using (var lp = LpSolve.read_LP((string) filename, 0, ""))
+            using (var lp = LpSolve.read_LP((string)filename, 0, ""))
             {
                 lpsolve_return ret = lp.solve();
                 double o = lp.get_objective();
@@ -62,7 +62,7 @@ namespace LpSolveDotNet.Demo
                 lp.put_logfunc(logfunc, IntPtr.Zero);
                 lp.print_str("lp_solve " + version + " demo" + NewLine + NewLine);
                 lp.solve(); /* just to see that a message is send via the logfunc routine ... */
-                            /* ok, that is enough, no more callback */
+                /* ok, that is enough, no more callback */
                 lp.put_logfunc(null, IntPtr.Zero);
 
                 /* Now redirect all output to a file */

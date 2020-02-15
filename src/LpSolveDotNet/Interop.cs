@@ -42,6 +42,11 @@
 using System;
 using System.Runtime.InteropServices;
 
+#pragma warning disable IDE1006 // Naming rule violations
+#pragma warning disable CA1707 // Identifiers should not contain underscores
+#pragma warning disable CA1717 // Only FlagsAttribute enums should have plural names
+#pragma warning disable CA1714 // Flags enums should have plural names
+
 // ReSharper disable InconsistentNaming
 namespace LpSolveDotNet
 {
@@ -396,7 +401,7 @@ namespace LpSolveDotNet
 
         /// <summary>No basis factorization package</summary>
         NOBFP = -3,
-        
+
         /// <summary>
         /// Out of memory
         /// </summary>
@@ -644,7 +649,7 @@ namespace LpSolveDotNet
     /// <returns>Returns <c>true</c> if floor branch is to be used first or <c>false</c> if ceiling branch is to be used first.</returns>
     public delegate bool bbbranchfunc(IntPtr lp, IntPtr userhandle, int column);
 
-    internal static class Interop
+    internal static class NativeMethods
     {
         /// <summary>
         /// The name of the library to load, without its extension.
@@ -898,7 +903,7 @@ namespace LpSolveDotNet
         [DllImport(LibraryName, SetLastError = true)]
         public static extern void print_constraints(IntPtr lp, int columns);
         [DllImport(LibraryName, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
-        public static extern bool print_debugdump(IntPtr lp,  [MarshalAs(UnmanagedType.LPStr)] string filename);
+        public static extern bool print_debugdump(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string filename);
         [DllImport(LibraryName, SetLastError = true)]
         public static extern void print_duals(IntPtr lp);
         [DllImport(LibraryName, SetLastError = true)]
@@ -910,7 +915,7 @@ namespace LpSolveDotNet
         [DllImport(LibraryName, SetLastError = true)]
         public static extern void print_solution(IntPtr lp, int columns);
         [DllImport(LibraryName, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
-        public static extern void print_str(IntPtr lp,  [MarshalAs(UnmanagedType.LPStr)] string str);
+        public static extern void print_str(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string str);
         [DllImport(LibraryName, SetLastError = true)]
         public static extern void print_tableau(IntPtr lp);
         [DllImport(LibraryName, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
@@ -1102,40 +1107,22 @@ namespace LpSolveDotNet
         [DllImport(LibraryName, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
         public static extern bool write_XLI(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string filename, [MarshalAs(UnmanagedType.LPStr)] string options, bool results);
         [DllImport(LibraryName, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
-        public static extern bool write_params(IntPtr lp, [MarshalAs(UnmanagedType.LPStr) ] string filename, [MarshalAs(UnmanagedType.LPStr)] string options);
+        public static extern bool write_params(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string filename, [MarshalAs(UnmanagedType.LPStr)] string options);
 
-        public static string get_col_name(IntPtr lp, int column)
-        {
-            return (Marshal.PtrToStringAnsi(get_col_name_c(lp, column)));
-        }
+        public static string get_col_name(IntPtr lp, int column) => (Marshal.PtrToStringAnsi(get_col_name_c(lp, column)));
 
-        public static string get_lp_name(IntPtr lp)
-        {
-            return (Marshal.PtrToStringAnsi(get_lp_name_c(lp)));
-        }
+        public static string get_lp_name(IntPtr lp) => (Marshal.PtrToStringAnsi(get_lp_name_c(lp)));
 
-        public static string get_origcol_name(IntPtr lp, int column)
-        {
-            return (Marshal.PtrToStringAnsi(get_origcol_name_c(lp, column)));
-        }
+        public static string get_origcol_name(IntPtr lp, int column) => (Marshal.PtrToStringAnsi(get_origcol_name_c(lp, column)));
 
-        public static string get_origrow_name(IntPtr lp, int row)
-        {
-            return (Marshal.PtrToStringAnsi(get_origrow_name_c(lp, row)));
-        }
+        public static string get_origrow_name(IntPtr lp, int row) => (Marshal.PtrToStringAnsi(get_origrow_name_c(lp, row)));
 
-        public static string get_row_name(IntPtr lp, int row)
-        {
-            return (Marshal.PtrToStringAnsi(get_row_name_c(lp, row)));
-        }
+        public static string get_row_name(IntPtr lp, int row) => (Marshal.PtrToStringAnsi(get_row_name_c(lp, row)));
 
-        public static string get_statustext(IntPtr lp, int statuscode)
-        {
-            return (Marshal.PtrToStringAnsi(get_statustext_c(lp, statuscode)));
-        }
+        public static string get_statustext(IntPtr lp, int statuscode) => (Marshal.PtrToStringAnsi(get_statustext_c(lp, statuscode)));
     }
 
-    #pragma warning disable 1591
+#pragma warning disable 1591
     [Obsolete("Replaced by lpsolve_pivot_rule and lpsolve_pivot_modes. Will be removed completely in LpSolveDotNet 5.0.", true)]
     public enum lpsolve_piv_rules
     {
@@ -1204,5 +1191,9 @@ namespace LpSolveDotNet
         [Obsolete("Replaced by lpsolve_scale_parameters.SCALE_COLSONLY. Will be removed completely in LpSolveDotNet 5.0.", true)]
         SCALE_COLSONLY = 1024,
     }
-    #pragma warning restore 1591
+#pragma warning restore 1591
 }
+#pragma warning restore IDE1006 // Naming rule violations
+#pragma warning restore CA1707 // Identifiers should not contain underscores
+#pragma warning restore CA1717 // Only FlagsAttribute enums should have plural names
+#pragma warning restore CA1714 // Flags enums should have plural names

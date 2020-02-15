@@ -7,7 +7,7 @@ namespace LpSolveDotNet.Demo
     /// This class demonstrates how to reproduce the example model from http://lpsolve.sourceforge.net/5.5/formulate.htm#CS.NET
     /// using LpSolveDotNet.
     /// </summary>
-    class FormulateSample
+    internal class FormulateSample
     {
         public static int Test()
         {
@@ -97,7 +97,7 @@ namespace LpSolveDotNet.Demo
                 {
                     return 4;
                 }
-                
+
                 // set the object direction to maximize
                 lp.set_maxim();
 

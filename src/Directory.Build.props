@@ -47,4 +47,11 @@
     -->
     <TargetFrameworks>net20;net471;netstandard20;netstandard15;netcoreapp30</TargetFrameworks>
   </PropertyGroup>
+  <!-- For editor config with FxCop https://docs.microsoft.com/en-us/visualstudio/code-quality/configure-fxcop-analyzers?view=vs-2019#shared-configuration -->
+  <PropertyGroup>
+    <SkipDefaultEditorConfigAsAdditionalFile>true</SkipDefaultEditorConfigAsAdditionalFile>
+  </PropertyGroup>
+  <ItemGroup Condition="Exists('$(MSBuildThisFileDirectory).editorconfig')" >
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory).editorconfig" />
+  </ItemGroup>
 </Project>

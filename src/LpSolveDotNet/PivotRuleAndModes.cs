@@ -1,4 +1,6 @@
-﻿namespace LpSolveDotNet
+﻿using System;
+
+namespace LpSolveDotNet
 {
     /// <summary>
     /// Represents both pivot rule and pivot modes together.
@@ -11,6 +13,7 @@
     /// </remarks>
     /// </summary>
     public struct PivotRuleAndModes
+        : IEquatable<PivotRuleAndModes>
     {
         internal PivotRuleAndModes(lpsolve_pivot_rule rule, lpsolve_pivot_modes modes)
         {
@@ -27,5 +30,30 @@
         /// The pivot modes (modifiers to the <see cref="Rule"/>).
         /// </summary>
         public lpsolve_pivot_modes Modes { get; }
+
+        #region Equals
+
+        /// <inheritdoc/>
+        public override bool Equals(object obj) => obj is PivotRuleAndModes other && Equals(other);
+
+        /// <inheritdoc/>
+        public override int GetHashCode()
+        {
+            int hashCode = -863896258;
+            hashCode = hashCode * -1521134295 + Rule.GetHashCode();
+            hashCode = hashCode * -1521134295 + Modes.GetHashCode();
+            return hashCode;
+        }
+
+        /// <inheritdoc/>
+        public static bool operator ==(PivotRuleAndModes left, PivotRuleAndModes right) => left.Equals(right);
+
+        /// <inheritdoc/>
+        public static bool operator !=(PivotRuleAndModes left, PivotRuleAndModes right) => !(left == right);
+
+        /// <inheritdoc/>
+        public bool Equals(PivotRuleAndModes other) => Rule == other.Rule && Modes == other.Modes;
+
+        #endregion
     }
 }
