@@ -3,6 +3,7 @@
   <Import Project="../Directory.Build.props" />
   <PropertyGroup>
     <IncludeBuildOutput>false</IncludeBuildOutput>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../LpSolveDotNet/LpSolveDotNet.csproj" />
