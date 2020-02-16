@@ -22,15 +22,4 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-
-  <!-- This needs to be here instead of standard PropertyGroup because in PropertyGroup the $(RuntimeID) is not defined yet.-->
-  <!-- BeforeTargets="Build" is used and not Pack because Pack is too late.-->
-  <Target Name="FixNuGetPackageProperties" BeforeTargets="Build">
-    <CreateProperty Value="Native library for platform $(RuntimeID) for NuGet package LpSolveDotNet.">
-      <Output TaskParameter="Value" PropertyName="Title"/>
-    </CreateProperty>
-    <CreateProperty Value="Packages the native library necessary to run an application with NuGet package LpSolveDotNet on platform $(RuntimeID).">
-      <Output TaskParameter="Value" PropertyName="Description"/>
-    </CreateProperty>
-  </Target>
 </Project>

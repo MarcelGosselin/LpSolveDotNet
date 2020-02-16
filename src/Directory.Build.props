@@ -1,20 +1,23 @@
 ﻿<Project>
   <!-- Assembly and NuGet package Properties -->
   <PropertyGroup>
-    <Copyright>Copyright © Marcel Gosselin 2019</Copyright>
+    <Copyright>Copyright © Marcel Gosselin 2016-2020</Copyright>
     <Version>4.0.0-alpha1</Version>
   </PropertyGroup>
   <!-- NuGet Package properties -->
   <PropertyGroup>
     <Authors>Marcel Gosselin</Authors>
-    <Title>Mixed Integer Linear Programming (MILP) solver lp_solve wrapped for .NET use.</Title>
+    <Title>Mixed Integer Linear Programming (MILP) solver 'lp_solve' wrapped for .NET use.</Title>
     <Description>
-      .NET wrapper of native library lp_solve.
-      Mixed Integer Linear Programming (MILP) solver lp_solve solves pure linear, (mixed) integer/binary, semi-cont and special ordered sets (SOS) models.
+      'LpSolveDotNet' allow running the Mixed Integer Linear Programming (MILP) solver 'lp_solve' in .NET.
+      That can solve pure linear, (mixed) integer/binary, semi-continuous and special ordered sets (SOS) models.
+
+      This package needs one of the 'LpSolveDotNet.Native.*' packages to run, you should reference them instead.
+      Another option would be to bring your own native library and allow 'LpSolveDotNet' to find it at runtime.
     </Description>
     <PackageLicenseExpression>LGPL-2.1-or-later</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/MarcelGosselin/LpSolveDotNet</PackageProjectUrl>
-    <PackageTags>lpsolve lp_solve milp</PackageTags>
+    <PackageTags>lpsolve;lp_solve;milp;solver</PackageTags>
     <PackageReleaseNotes>
       Complete release notes can be found at https://github.com/MarcelGosselin/LpSolveDotNet/blob/master/ReleaseNotes.md
       This release contains:
@@ -27,6 +30,7 @@
     <PackageOutputPath>..\..\build\output</PackageOutputPath>
     <RepositoryUrl>https://github.com/MarcelGosselin/LpSolveDotNet.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+    <MinClientVersion>2.5</MinClientVersion>
   </PropertyGroup>
   <!-- Assembly-Only Properties -->
   <PropertyGroup>
