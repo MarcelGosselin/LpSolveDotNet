@@ -40,4 +40,4 @@ jobs:
     - name: Push to nuget.org
       env:
         NUGET_APIKEY: ${{ secrets.NUGET_APIKEY }}
-      run: "nuget push build\output\LpSolveDotNet.*.nupkg -Source https://www.nuget.org -ApiKey %NUGET_APIKEY%"
+      run: nuget push "build\output\LpSolveDotNet.*.nupkg" -Source https://www.nuget.org -ApiKey %NUGET_APIKEY%
