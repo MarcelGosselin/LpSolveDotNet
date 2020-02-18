@@ -5,8 +5,8 @@ on:
     types: [assigned, opened, synchronize, reopened]
   push:
     branches:
-      master
-      release/*
+      - master
+      - release/*
 
 jobs:
   build:
