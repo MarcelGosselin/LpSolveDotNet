@@ -1,3 +1,5 @@
+![CI](https://github.com/MarcelGosselin/LpSolveDotNet/workflows/CI/badge.svg)
+
 # LpSolveDotNet
 LpSolveDotNet is a .NET wrapper for the Mixed Integer Linear Programming (MILP) solver lp_solve. The solver lp_solve solves pure linear, (mixed) integer/binary, semi-cont and special ordered sets (SOS) models.
 
