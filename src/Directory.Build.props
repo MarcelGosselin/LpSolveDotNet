@@ -30,7 +30,7 @@
     <PackageOutputPath>..\..\build\output</PackageOutputPath>
     <RepositoryUrl>https://github.com/MarcelGosselin/LpSolveDotNet.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <MinClientVersion>2.5</MinClientVersion>
+    <MinClientVersion>4.3</MinClientVersion>
   </PropertyGroup>
   <!-- Assembly-Only Properties -->
   <PropertyGroup>
