@@ -2,14 +2,20 @@
 
 ## vNext -- not released yet
 
+## 4.0.0
+
+To see all commits for this version, [click here](https://github.com/MarcelGosselin/LpSolveDotNet/compare/v3.1.0...v4.0.0).
+
 ### New Features/Improvements
 * Support for .NET Core and more (.NET Standard 1.5 and 2.0).
-* Document enum values.
+* Issue #1: Add API documentation for Intellisense.
 * **Breaking see below** Add missing enum values to be equal to those in lpsolve's source code.
 * **Breaking see below** The native libraries have been extracted to separate NuGet packages.
+* Add missing methods `put_bb_nodefunc` and `put_bb_branchfunc`.
 
 ### Bug Fixes
-* Fixes issue #6: Missing enum value `lpsolve_return.ACCURACYERROR` with value `25`
+* Fix issue #4: Loading native library from wrong location when running with NUnit.
+* Fix issue #6: Missing enum value `lpsolve_return.ACCURACYERROR` with value `25`.
 * Fix all enum values to be equal to those in lpsolve's source code.
 
 ### API changes
@@ -43,9 +49,13 @@
 
 ## 3.1.0
 
+To see all commits for this version, [click here](https://github.com/MarcelGosselin/LpSolveDotNet/compare/v3.0.1...v3.1.0).
+
 * Update lpsolve dlls to [5.5.2.5](http://lp-solve.2324885.n4.nabble.com/lpsolve-version-5-5-2-5-released-td10331.html)
 
 ## 3.0.1
+
+To see all commits for this version, [click here](https://github.com/MarcelGosselin/LpSolveDotNet/compare/v3.0.0...v3.0.1).
 
 * Fixes issue #3: Native binaries are not copied when project is built with property OutDir=some_path.
 
@@ -62,6 +72,8 @@ To see all commits for this version, [click here](https://github.com/MarcelGosse
 ## 2.0.1 (built after 3.0.0)
 
 * Fixes issue #3: Native binaries are not copied when project is built with property OutDir=some_path.
+
+To see all commits for this version, [click here](https://github.com/MarcelGosselin/LpSolveDotNet/compare/v2.0.0...v2.0.1).
 
 ##  2.0.0 ~~1.1.0~~
 

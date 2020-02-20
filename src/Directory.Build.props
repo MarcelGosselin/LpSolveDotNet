@@ -21,16 +21,19 @@
     <PackageReleaseNotes>
       Complete release notes can be found at https://github.com/MarcelGosselin/LpSolveDotNet/blob/master/ReleaseNotes.md
       This release contains:
-      - Support for .NET Core and .NET Standard
-      - Add missing enum values to be equal to those in lpsolve's source code.
+      - Support for .NET Core and more (.NET Standard 1.5 and 2.0).
+      - Issue #6: Add missing enum values to be equal to those in lpsolve's source code.
+      - Issue #4: Loading native library from wrong location when running with NUnit.
+      - Issue #1: Add API documentation for Intellisense.
       - (Breaking changes) Fix all enum values to be equal to those in lpsolve's source code.
       - (Breaking changes) The native libraries have been extracted to separate NuGet packages `LpSolveDotNet.Native.win-x64`, `LpSolveDotNet.Native.win-x86`, ...
+      - Add missing methods put_bb_nodefunc and put_bb_branchfunc.
         See https://github.com/MarcelGosselin/LpSolveDotNet/blob/master/README.md for details.
     </PackageReleaseNotes>
     <PackageOutputPath>..\..\build\output</PackageOutputPath>
     <RepositoryUrl>https://github.com/MarcelGosselin/LpSolveDotNet.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <MinClientVersion>4.3</MinClientVersion>
+    <MinClientVersion>2.5</MinClientVersion>
   </PropertyGroup>
   <!-- Assembly-Only Properties -->
   <PropertyGroup>
