@@ -45,12 +45,12 @@ namespace LpSolveDotNet
         /// <param name="nativeLibraryFolderPath">The (optional) folder where the native library is located.
         /// When <paramref name="nativeLibraryFolderPath"/> is <c>null</c>, it will infer one of
         /// <list type="bullet">
-        /// <item>basedir/NativeBinaries/win-x64</item>
-        /// <item>basedir/NativeBinaries/win-x86</item>
-        /// <item>basedir/NativeBinaries/linux-x64</item>
-        /// <item>basedir/NativeBinaries/linux-x86</item>
-        /// <item>basedir/NativeBinaries/osx-x64</item>
-        /// <item>basedir/NativeBinaries/osx-x86</item>
+        /// <item><description><c>basedir/NativeBinaries/win-x64</c></description></item>
+        /// <item><description><c>basedir/NativeBinaries/win-x86</c></description></item>
+        /// <item><description><c>basedir/NativeBinaries/linux-x64</c></description></item>
+        /// <item><description><c>basedir/NativeBinaries/linux-x86</c></description></item>
+        /// <item><description><c>basedir/NativeBinaries/osx-x64</c></description></item>
+        /// <item><description><c>basedir/NativeBinaries/osx-x86</c></description></item>
         /// </list>
         /// </param>
         /// <param name="nativeLibraryNamePrefix">The prefix for the native library file name. It defaults to <c>null</c> but when left <c>null</c>,
@@ -63,8 +63,8 @@ namespace LpSolveDotNet
         /// <remarks>
         /// If you use this method with a platform other than .NET framework or for a version of .NET Core before 3.0,
         /// you <strong>must</strong> either:<list>
-        /// <item>provide a value for <see cref="CustomLoadNativeLibrary"/></item>
-        /// <item>put the native library in a place where the runtime will pick it up.</item>
+        /// <item><description>provide a value for <see cref="CustomLoadNativeLibrary"/></description></item>
+        /// <item><description>put the native library in a place where the runtime will pick it up.</description></item>
         /// </list> 
         /// </remarks>
         public static bool Init(string nativeLibraryFolderPath = null, string nativeLibraryNamePrefix = null, string nativeLibraryExtension = null)
@@ -1347,11 +1347,11 @@ namespace LpSolveDotNet
         /// Don't call other API methods while in row entry mode.
         /// No other data matrix access is allowed while in row entry mode.
         /// After adding the contraints, turn row entry mode back off.
-        /// Once turned of, you cannot switch back to row entry mode. So in short:<list type="bullet">
-        /// <item>turn row entry mode on</item>
-        /// <item>set the objective function</item>
-        /// <item>create the constraints</item>
-        /// <item>turn row entry mode off</item>
+        /// Once turned of, you cannot switch back to row entry mode. So in short:<list type="number">
+        /// <item><description>turn row entry mode on</description></item>
+        /// <item><description>set the objective function</description></item>
+        /// <item><description>create the constraints</description></item>
+        /// <item><description>turn row entry mode off</description></item>
         /// </list>
         /// </para>
         /// </remarks>
@@ -1380,11 +1380,11 @@ namespace LpSolveDotNet
         /// Don't call other API methods while in row entry mode.
         /// No other data matrix access is allowed while in row entry mode.
         /// After adding the contraints, turn row entry mode back off.
-        /// Once turned of, you cannot switch back to row entry mode. So in short:<list type="bullet">
-        /// <item>turn row entry mode on</item>
-        /// <item>set the objective function</item>
-        /// <item>create the constraints</item>
-        /// <item>turn row entry mode off</item>
+        /// Once turned of, you cannot switch back to row entry mode. So in short:<list type="number">
+        /// <item><description>turn row entry mode on</description></item>
+        /// <item><description>set the objective function</description></item>
+        /// <item><description>create the constraints</description></item>
+        /// <item><description>turn row entry mode off</description></item>
         /// </list>
         /// </para>
         /// </remarks>
@@ -2026,12 +2026,10 @@ namespace LpSolveDotNet
         /// </summary>
         /// <param name="filename">The name of the BFP package. Currently following BFPs are implemented:
         /// <list type="table">
-        /// <item>
-        /// <term>"bfp_etaPFI"</term><description>original lp_solve product form of the inverse.</description>
-        /// <term>"bfp_LUSOL"</term><description>LU decomposition.</description>
-        /// <term>"bfp_GLPK"</term><description>GLPK LU decomposition.</description>
-        /// <term><c>null</c></term><description>The default BFP package.</description>
-        /// </item>
+        /// <item><term>"bfp_etaPFI"</term><description>original lp_solve product form of the inverse.</description></item>
+        /// <item><term>"bfp_LUSOL"</term><description>LU decomposition.</description></item>
+        /// <item><term>"bfp_GLPK"</term><description>GLPK LU decomposition.</description></item>
+        /// <item><term><c>null</c></term><description>The default BFP package.</description></item>
         /// </list>
         /// However the user can also build his own BFP packages ...
         /// </param>
@@ -2631,8 +2629,8 @@ namespace LpSolveDotNet
         ///  These options can be made active and will be read by <see cref="read_params"/> but note again that they are possible 
         ///  dangerous to be used in general (except for the debug/trace/print options). Note that there are two kind of entries:
         ///  <list type="bullet">
-        ///  <item>Numerical values</item>
-        ///  <item>Options</item>
+        ///  <item><description>Numerical values</description></item>
+        ///  <item><description>Options</description></item>
         ///  </list>
         ///  Numerical values can be integer values like <c>maxpivot</c> or floating point values like <c>epsel</c></para>
         ///  <para>Options are a combination of constants as defined in the manual.
@@ -2702,8 +2700,8 @@ namespace LpSolveDotNet
         ///  These options can be made active and will be read by <see cref="read_params"/> but note again that they are possible 
         ///  dangerous to be used in general (except for the debug/trace/print options). Note that there are two kind of entries:
         ///  <list type="bullet">
-        ///  <item>Numerical values</item>
-        ///  <item>Options</item>
+        ///  <item><description>Numerical values</description></item>
+        ///  <item><description>Options</description></item>
         ///  </list>
         ///  Numerical values can be integer values like <c>maxpivot</c> or floating point values like <c>epsel</c></para>
         ///  <para>Options are a combination of constants as defined in the manual.
