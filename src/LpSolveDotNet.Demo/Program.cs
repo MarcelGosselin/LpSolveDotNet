@@ -15,6 +15,8 @@ namespace LpSolveDotNet.Demo
             {
                 "original" => OriginalSample.Test(),
                 "formulate" => FormulateSample.Test(),
+                "idiom-original" => Idiomatic.OriginalSample.Test(),
+                "idiom-formulate" => Idiomatic.FormulateSample.Test(),
                 _ => -1
             };
         }
