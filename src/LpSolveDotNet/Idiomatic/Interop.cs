@@ -609,7 +609,7 @@ namespace LpSolveDotNet.Idiomatic
     /// <param name="lp">Pointer to LP model.</param>
     /// <param name="userhandle">A parameter that will be provided to the abort callback.</param>
     /// <returns>If <c>true</c> then lp_solve aborts the solver and returns with an appropriate code.</returns>
-    public delegate bool ctrlcfunc(IntPtr lp, IntPtr userhandle);
+    internal delegate bool ctrlcfunc(IntPtr lp, IntPtr userhandle);
 
     /// <summary>
     /// Defines a callback called when certain events occur. Set up by <see cref="LpSolve.put_msgfunc"/>.
@@ -617,7 +617,7 @@ namespace LpSolveDotNet.Idiomatic
     /// <param name="lp">Pointer to LP model.</param>
     /// <param name="userhandle">A parameter that will be provided to the message callback.</param>
     /// <param name="message">The event that triggered a call to this callback method.</param>
-    public delegate void msgfunc(IntPtr lp, IntPtr userhandle, lpsolve_msgmask message);
+    internal delegate void msgfunc(IntPtr lp, IntPtr userhandle, lpsolve_msgmask message);
 
     /// <summary>
     /// Defines a callback called when certain log events occur. Set up by <see cref="LpSolve.put_logfunc"/>.
@@ -625,7 +625,7 @@ namespace LpSolveDotNet.Idiomatic
     /// <param name="lp">Pointer to LP model.</param>
     /// <param name="userhandle">A parameter that will be provided to the log callback.</param>
     /// <param name="buf">The log message.</param>
-    public delegate void logfunc(IntPtr lp, IntPtr userhandle, [MarshalAs(UnmanagedType.LPStr)] string buf);
+    internal delegate void logfunc(IntPtr lp, IntPtr userhandle, [MarshalAs(UnmanagedType.LPStr)] string buf);
 
     /// <summary>
     /// Defines a callback called by branch and bound solve to select which 
@@ -637,7 +637,7 @@ namespace LpSolveDotNet.Idiomatic
     /// <returns>Returns the node (column number) to make integer.
     /// When <c>0</c> is returned then it indicates that all variables are integer.
     /// When a negative value is returned, lp_solve will determine the next variable to make integer as if the routine is not set.</returns>
-    public delegate int bbnodefunc(IntPtr lp, IntPtr userhandle, int vartype);
+    internal delegate int bbnodefunc(IntPtr lp, IntPtr userhandle, int vartype);
 
     /// <summary>
     /// User function that specifies which B&amp;B branching to use given a column to branch on.
@@ -647,7 +647,7 @@ namespace LpSolveDotNet.Idiomatic
     /// <param name="userhandle">A parameter that will be provided to the callback and set by <see cref="LpSolve.put_bb_nodefunc"/>.</param>
     /// <param name="column">The column on which to branch.</param>
     /// <returns>Returns <c>true</c> if floor branch is to be used first or <c>false</c> if ceiling branch is to be used first.</returns>
-    public delegate bool bbbranchfunc(IntPtr lp, IntPtr userhandle, int column);
+    internal delegate bool bbbranchfunc(IntPtr lp, IntPtr userhandle, int column);
 
     internal static class NativeMethods
     {

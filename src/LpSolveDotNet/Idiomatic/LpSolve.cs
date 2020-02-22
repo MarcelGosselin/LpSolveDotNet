@@ -36,7 +36,7 @@ namespace LpSolveDotNet.Idiomatic
     /// </remarks>
     [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Need to keep same names as C library.")]
     [SuppressMessage("Naming", "CA1707:Identifiers should not contain underscores", Justification = "Need to keep same names as C library.")]
-    public sealed class LpSolve
+    public sealed partial class LpSolve
         : IDisposable
     {
         #region Library initialization
@@ -2483,7 +2483,7 @@ namespace LpSolveDotNet.Idiomatic
             => NativeMethods.set_bb_floorfirst(_lp, bb_floorfirst);
 
         /// <summary>
-        /// Allows to set a user function that specifies which non-integer variable to select next to make integer in the B&amp;B solve.
+        /// Sets a user function that specifies which non-integer variable to select next to make integer in the B&amp;B solve.
         /// </summary>
         /// <param name="nodeSelector">
         /// <para>The node selection method.</para>
@@ -2494,18 +2494,18 @@ namespace LpSolveDotNet.Idiomatic
         /// <remarks>Via this routine the user can implement his own rule to select the next non-integer variable to make integer.
         /// This overrules the setting of <see cref="set_bb_rule"/>.</remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/put_bb_nodefunc.htm">Full C API documentation.</seealso>
-        public void put_bb_nodefunc(BranchAndBoundNodeSelector nodeSelector)
+        public void PutBranchAndBoundNodeSelector(BranchAndBoundNodeSelector nodeSelector)
             => NativeMethods.put_bb_nodefunc(_lp, (x, y, z) => nodeSelector(this), IntPtr.Zero);
 
         /// <summary>
-        /// Allows to set a user function that specifies which B&amp;B branching to use given a column to branch on.
+        /// Sets a user function that specifies which B&amp;B branching to use given a column to branch on.
         /// </summary>
         /// <param name="branchSelector">The branch selection method.</param>
         /// <remarks>With this function you can specify which branch must be taken first in the B&amp;B algorithm.
         /// The floor or the ceiling.
         /// This overrules the setting of <see cref="set_bb_floorfirst"/>.</remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/put_bb_branchfunc.htm">Full C API documentation.</seealso>
-        public void put_bb_branchfunc(BranchAndBoundBranchSelector branchSelector)
+        public void PutBranchAndBoundBranchSelector(BranchAndBoundBranchSelector branchSelector)
             => NativeMethods.put_bb_branchfunc(_lp, (x, y, column) => branchSelector(this, column) == BranchSelectorResult.Floor, IntPtr.Zero);
 
         #endregion
@@ -2959,50 +2959,47 @@ namespace LpSolveDotNet.Idiomatic
         #region Callback methods
 
         /// <summary>
-        /// Sets a callback called regularly while solving the model to verify if solving should abort.
+        /// Sets a handler called regularly while solving the model to verify if solving should abort.
         /// </summary>
-        /// <param name="newctrlc">The handler to call regularly while solving the model to verify if solving should abort.</param>
-        /// <param name="ctrlchandle">A parameter that will be provided back to the abort callback.</param>
+        /// <param name="handler">The handler to call regularly while solving the model to verify if solving should abort.</param>
         /// <remarks>
-        /// <para>When set, the abort callback is called regularly.
-        /// The user can do whatever he wants in this callback.
+        /// <para>When set, the abort handler is called regularly.
+        /// The user can do whatever he wants in this handler.
         /// For example check if the user pressed abort.
-        /// When the return value of this callback is <c>true</c>, then lp_solve aborts the solver and returns with an appropriate code.
-        /// The abort callback can be cleared by specifying <c>null</c> as <paramref name="newctrlc"/>.</para>
-        /// <para>The default is no abort callback (<c>null</c>).</para>
+        /// When the return value of this handler is <c>true</c>, then lp_solve aborts the solver and returns with an appropriate code.
+        /// The abort handler can be cleared by specifying <c>null</c> as <paramref name="handler"/>.</para>
+        /// <para>The default is no abort handler (<c>null</c>).</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/put_abortfunc.htm">Full C API documentation.</seealso>
-        public void put_abortfunc(ctrlcfunc newctrlc, IntPtr ctrlchandle)
-            => NativeMethods.put_abortfunc(_lp, newctrlc, ctrlchandle);
+        public void PutAbortHandler(AbortHandler handler)
+            => NativeMethods.put_abortfunc(_lp, (x, y) => handler(this), IntPtr.Zero);
 
         /// <summary>
-        /// Sets a log callback.
+        /// Sets a log handler.
         /// </summary>
-        /// <param name="newlog">The log callback.</param>
-        /// <param name="loghandle">A parameter that will be provided back to the log callback.</param>
+        /// <param name="handler">The log handler.</param>
         /// <remarks>
-        /// <para>When set, the log callback is called when lp_solve has someting to report.
-        /// The log callback can be cleared by specifying <c>null</c> as <paramref name="newlog"/>.</para>
+        /// <para>When set, the log handler is called when lp_solve has someting to report.
+        /// The log handler can be cleared by specifying <c>null</c> as <paramref name="handler"/>.</para>
         /// <para>This method is called at the same time as something is written to the file set via <see cref="set_outputfile"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/put_logfunc.htm">Full C API documentation.</seealso>
-        public void put_logfunc(logfunc newlog, IntPtr loghandle)
-            => NativeMethods.put_logfunc(_lp, newlog, loghandle);
+        public void PutLogHandler(LogHandler handler)
+            => NativeMethods.put_logfunc(_lp, (x, y, message) => handler(this, message), IntPtr.Zero);
 
         /// <summary>
-        /// Sets a message callback called upon certain events.
+        /// Sets a message handler called upon certain events.
         /// </summary>
-        /// <param name="newmsg">A handler to call when events defined in <paramref name="mask"/> occur.</param>
-        /// <param name="msghandle">A parameter that will be provided back to the message handler.</param>
-        /// <param name="mask">The mask of event types that should trigger a call to the <paramref name="newmsg"/> handler.</param>
+        /// <param name="handler">A handler to call when events defined in <paramref name="mask"/> occur.</param>
+        /// <param name="mask">The mask of event types that should trigger a call to the <paramref name="handler"/> handler.</param>
         /// <remarks>
-        /// This callback is called when a situation specified in mask occurs.
-        /// Note that this callback is called while solving the model.
+        /// This handler is called when a situation specified in mask occurs.
+        /// Note that this handler is called while solving the model.
         /// This can be useful to follow the solving progress.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/put_msgfunc.htm">Full C API documentation.</seealso>
-        public void put_msgfunc(msgfunc newmsg, IntPtr msghandle, lpsolve_msgmask mask)
-            => NativeMethods.put_msgfunc(_lp, newmsg, msghandle, mask);
+        public void PutMessageHandler(MessageHandler handler, lpsolve_msgmask mask)
+            => NativeMethods.put_msgfunc(_lp, (x, y, mask)=>handler(this,mask), IntPtr.Zero, mask);
 
 
         #endregion
