@@ -20,24 +20,24 @@ namespace LpSolveDotNet.Demo.Idiomatic
             Debug.Write(Buf);
         }
 
-        private /* unsafe */ static bool ctrlcfunc(LpSolve lpe)
+        private /* unsafe */ static bool ctrlcfunc(LpSolve lp)
         {
             // 'If set to true, then solve is aborted and returncode will indicate this.
             return (false);
         }
 
-        private /* unsafe */ static void msgfunc(LpSolve lp, lpsolve_msgmask message)
+        private /* unsafe */ static void msgfunc(LpSolve lp, MessageMasks message)
         {
             Debug.WriteLine(message);
         }
 
         private static void ThreadProc(object filename)
         {
-            using (var lp = LpSolve.read_LP((string)filename, 0, ""))
+            using (var lp = LpSolve.read_LP((string)filename, Verbosity.Neutral, ""))
             {
-                lpsolve_return ret = lp.solve();
+                SolveResult ret = lp.Solve();
                 double o = lp.get_objective();
-                Debug.Assert(ret == lpsolve_return.OPTIMAL && Math.Round(o, 13) == 1779.4810350637485);
+                Debug.Assert(ret == SolveResult.Optimal && Math.Round(o, 13) == 1779.4810350637485);
             }
         }
 
@@ -65,7 +65,7 @@ namespace LpSolveDotNet.Demo.Idiomatic
                 /* let's first demonstrate the logfunc callback feature */
                 lp.PutLogHandler(logfunc);
                 lp.print_str("lp_solve " + version + " demo" + NewLine + NewLine);
-                lp.solve(); /* just to see that a message is send via the logfunc routine ... */
+                lp.Solve(); /* just to see that a message is send via the logfunc routine ... */
                 /* ok, that is enough, no more callback */
                 lp.PutLogHandler(null);
 
@@ -76,7 +76,7 @@ namespace LpSolveDotNet.Demo.Idiomatic
                 lp.PutAbortHandler(ctrlcfunc);
 
                 /* set a message function. Again optional */
-                lp.PutMessageHandler(msgfunc, lpsolve_msgmask.MSG_PRESOLVE | lpsolve_msgmask.MSG_LPFEASIBLE | lpsolve_msgmask.MSG_LPOPTIMAL | lpsolve_msgmask.MSG_MILPEQUAL | lpsolve_msgmask.MSG_MILPFEASIBLE | lpsolve_msgmask.MSG_MILPBETTER);
+                lp.PutMessageHandler(msgfunc, MessageMasks.PreSolve | MessageMasks.LPFeasible | MessageMasks.LPOptimal | MessageMasks.MILPEqual | MessageMasks.MILPFeasible | MessageMasks.MILPBetter);
 
                 lp.print_str("lp_solve " + version + " demo" + NewLine + NewLine);
                 lp.print_str("This demo will show most of the features of lp_solve " + version + NewLine);
@@ -92,13 +92,13 @@ namespace LpSolveDotNet.Demo.Idiomatic
                 lp.print_str("Now we add some constraints" + NewLine);
                 lp.print_str("lp.add_constraint(Row, lpsolve_constr_types.LE, 4);" + NewLine);
                 // pay attention to the 1 base and ignored 0 column for constraints
-                lp.add_constraint(new double[] { 0, 3, 2, 2, 1 }, lpsolve_constr_types.LE, 4);
+                lp.add_constraint(new double[] { 0, 3, 2, 2, 1 }, ConstraintOperator.LessOrEqual, 4);
                 lp.print_lp();
 
                 // check ROW array works
                 Row = new double[] { 0, 0, 4, 3, 1 };
                 lp.print_str("lp.add_constraint(Row, lpsolve_constr_types.GE, 3);" + NewLine);
-                lp.add_constraint(Row, lpsolve_constr_types.GE, 3);
+                lp.add_constraint(Row, ConstraintOperator.GreaterOrEqual, 3);
                 lp.print_lp();
 
                 lp.print_str("Set the objective function" + NewLine);
@@ -107,7 +107,7 @@ namespace LpSolveDotNet.Demo.Idiomatic
                 lp.print_lp();
 
                 lp.print_str("Now solve the problem with lp.solve();" + NewLine);
-                lp.print_str(lp.solve() + ": " + lp.get_objective() + NewLine);
+                lp.print_str(lp.Solve() + ": " + lp.get_objective() + NewLine);
 
                 Col = new double[lp.get_Ncolumns()];
                 lp.get_variables(Col);
@@ -147,7 +147,7 @@ namespace LpSolveDotNet.Demo.Idiomatic
                 lp.print_lp();
 
                 lp.print_str("after solving this gives us:" + NewLine);
-                lp.solve();
+                lp.Solve();
                 lp.print_objective();
                 lp.print_solution(1);
                 lp.print_constraints(1);
@@ -156,7 +156,7 @@ namespace LpSolveDotNet.Demo.Idiomatic
                 lp.print_str("Change the value of a rhs element with lp.set_rh(1, 7.45);" + NewLine);
                 lp.set_rh(1, 7.45);
                 lp.print_lp();
-                lp.solve();
+                lp.Solve();
                 lp.print_objective();
                 lp.print_solution(1);
                 lp.print_constraints(1);
@@ -171,7 +171,7 @@ namespace LpSolveDotNet.Demo.Idiomatic
                 lp.set_debug(true);
                 lp.print_str("and solve..." + NewLine);
 
-                lp.solve();
+                lp.Solve();
                 lp.print_objective();
                 lp.print_solution(1);
                 lp.print_constraints(1);
@@ -182,7 +182,7 @@ namespace LpSolveDotNet.Demo.Idiomatic
                 lp.set_upbo(4, 5.3);
                 lp.print_lp();
 
-                lp.solve();
+                lp.Solve();
                 lp.print_objective();
                 lp.print_solution(1);
                 lp.print_constraints(1);
@@ -192,7 +192,7 @@ namespace LpSolveDotNet.Demo.Idiomatic
                 lp.print_lp();
                 lp.print_str("Add an equality constraint" + NewLine);
                 Row = new double[] { 0, 1, 2, 1, 4 };
-                lp.add_constraint(Row, lpsolve_constr_types.EQ, 8);
+                lp.add_constraint(Row, ConstraintOperator.Equal, 8);
                 lp.print_lp();
 
                 lp.print_str("A column can be added with:" + NewLine);
@@ -207,7 +207,7 @@ namespace LpSolveDotNet.Demo.Idiomatic
 
                 lp.print_str("We can use automatic scaling with:" + NewLine);
                 lp.print_str("lp.set_scaling(lpsolve_scale_algorithm.SCALE_MEAN, lpsolve_scale_parameters.SCALE_NONE);" + NewLine);
-                lp.set_scaling(lpsolve_scale_algorithm.SCALE_MEAN, lpsolve_scale_parameters.SCALE_NONE);
+                lp.set_scaling(ScaleAlgorithm.Mean, ScaleParameters.None);
                 lp.print_lp();
 
                 lp.print_str("The function lp.get_mat(row, column); returns a single" + NewLine);
@@ -220,7 +220,7 @@ namespace LpSolveDotNet.Demo.Idiomatic
                 lp.set_int(3, false);
                 lp.print_lp();
 
-                lp.solve();
+                lp.Solve();
                 lp.print_str("print_solution gives the solution to the original problem" + NewLine);
                 lp.print_objective();
                 lp.print_solution(1);
@@ -235,13 +235,13 @@ namespace LpSolveDotNet.Demo.Idiomatic
                 lp.set_debug(false);
                 lp.set_trace(true);
 
-                lp.solve();
+                lp.Solve();
                 lp.print_str("Where possible, lp_solve will start at the last found basis" + NewLine);
                 lp.print_str("We can reset the problem to the initial basis with" + NewLine);
                 lp.print_str("default_basis lp. Now solve it again..." + NewLine);
 
                 lp.default_basis();
-                lp.solve();
+                lp.Solve();
 
                 lp.print_str("It is possible to give variables and constraints names" + NewLine);
                 lp.print_str("lp.set_row_name(1, \"speed\"); lp.set_col_name(2, \"money\");" + NewLine);
@@ -261,7 +261,7 @@ namespace LpSolveDotNet.Demo.Idiomatic
                 lp.set_outputfile(null);
             }
 
-            using (var lp = LpSolve.read_LP("lp.lp", 0, "test"))
+            using (var lp = LpSolve.read_LP("lp.lp", Verbosity.Neutral, "test"))
             {
                 if (lp == null)
                 {
@@ -280,7 +280,7 @@ namespace LpSolveDotNet.Demo.Idiomatic
 
                 lp.print_str("solution:" + NewLine);
                 lp.set_debug(true);
-                lpsolve_return statuscode = lp.solve();
+                SolveResult statuscode = lp.Solve();
                 string status = lp.get_statustext((int)statuscode);
                 Debug.WriteLine(status);
 

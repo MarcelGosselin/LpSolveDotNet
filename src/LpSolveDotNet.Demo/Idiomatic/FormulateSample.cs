@@ -53,7 +53,7 @@ namespace LpSolveDotNet.Demo.Idiomatic
                 row[j++] = 210;
 
                 // add the row to lpsolve
-                if (lp.add_constraintex(j, row, colno, lpsolve_constr_types.LE, 15000) == false)
+                if (lp.add_constraintex(j, row, colno, ConstraintOperator.LessOrEqual, 15000) == false)
                 {
                     return 3;
                 }
@@ -67,7 +67,7 @@ namespace LpSolveDotNet.Demo.Idiomatic
                 row[j++] = 30;
 
                 // add the row to lpsolve
-                if (lp.add_constraintex(j, row, colno, lpsolve_constr_types.LE, 4000) == false)
+                if (lp.add_constraintex(j, row, colno, ConstraintOperator.LessOrEqual, 4000) == false)
                 {
                     return 3;
                 }
@@ -81,7 +81,7 @@ namespace LpSolveDotNet.Demo.Idiomatic
                 row[j++] = 1;
 
                 // add the row to lpsolve
-                if (lp.add_constraintex(j, row, colno, lpsolve_constr_types.LE, 75) == false)
+                if (lp.add_constraintex(j, row, colno, ConstraintOperator.LessOrEqual, 75) == false)
                 {
                     return 3;
                 }
@@ -110,11 +110,11 @@ namespace LpSolveDotNet.Demo.Idiomatic
                 lp.write_lp("model.lp");
 
                 // I only want to see important messages on screen while solving
-                lp.set_verbose(lpsolve_verbosity.IMPORTANT);
+                lp.Verbosity = Verbosity.Important;
 
                 // Now let lpsolve calculate a solution
-                lpsolve_return s = lp.solve();
-                if (s != lpsolve_return.OPTIMAL)
+                SolveResult s = lp.Solve();
+                if (s != SolveResult.Optimal)
                 {
                     return 5;
                 }

@@ -50,12 +50,6 @@ using System.Runtime.InteropServices;
 // ReSharper disable InconsistentNaming
 namespace LpSolveDotNet.Idiomatic
 {
-    internal delegate bool ctrlcfunc(IntPtr lp, IntPtr userhandle);
-    internal delegate void msgfunc(IntPtr lp, IntPtr userhandle, MessageMasks message);
-    internal delegate void logfunc(IntPtr lp, IntPtr userhandle, [MarshalAs(UnmanagedType.LPStr)] string buf);
-    internal delegate int bbnodefunc(IntPtr lp, IntPtr userhandle, int vartype);
-    internal delegate bool bbbranchfunc(IntPtr lp, IntPtr userhandle, int column);
-
     internal static class NativeMethods
     {
         /// <summary>
@@ -533,6 +527,12 @@ namespace LpSolveDotNet.Idiomatic
         public static string get_row_name(IntPtr lp, int row) => (Marshal.PtrToStringAnsi(get_row_name_c(lp, row)));
 
         public static string get_statustext(IntPtr lp, int statuscode) => (Marshal.PtrToStringAnsi(get_statustext_c(lp, statuscode)));
+
+        internal delegate bool ctrlcfunc(IntPtr lp, IntPtr userhandle);
+        internal delegate void msgfunc(IntPtr lp, IntPtr userhandle, MessageMasks message);
+        internal delegate void logfunc(IntPtr lp, IntPtr userhandle, [MarshalAs(UnmanagedType.LPStr)] string buf);
+        internal delegate int bbnodefunc(IntPtr lp, IntPtr userhandle, int vartype);
+        internal delegate bool bbbranchfunc(IntPtr lp, IntPtr userhandle, int column);
     }
 }
 #pragma warning restore IDE1006 // Naming rule violations
