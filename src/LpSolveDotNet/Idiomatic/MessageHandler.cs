@@ -5,5 +5,5 @@ namespace LpSolveDotNet.Idiomatic
     /// </summary>
     /// <param name="lp">Model being solved.</param>
     /// <param name="message">The event that triggered a call to this handler method.</param>
-    public delegate void MessageHandler(LpSolve lp, lpsolve_msgmask message);
+    public delegate void MessageHandler(LpSolve lp, MessageMasks message);
 }

@@ -269,9 +269,10 @@ namespace LpSolveDotNet.Idiomatic
         /// Creates and initialises a new <see cref="LpSolve"/> model.
         /// </summary>
         /// <param name="rows">Initial number of rows. Can be <c>0</c> as new rows can be added via 
-        /// <see cref="add_constraint"/>, <see cref="add_constraintex"/>, <see cref="str_add_constraint"/>.</param>
+        /// <see cref="add_constraint(double[], ConstraintOperator, double)"/> or
+        /// <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>.</param>
         /// <param name="columns">Initial number of columns. Can be <c>0</c> as new columns can be added via
-        /// <see cref="add_column"/>, <see cref="add_columnex"/>, <see cref="str_add_column"/>.</param>
+        /// <see cref="add_column"/> or <see cref="add_columnex"/>.</param>
         /// <returns>A new <see cref="LpSolve"/> model with <paramref name="rows"/> rows and <paramref name="columns"/> columns.
         /// A <c>null</c> return value indicates an error. Specifically not enough memory available to setup an lprec structure.</returns>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/make_lp.htm">Full C API documentation.</seealso>
@@ -285,15 +286,15 @@ namespace LpSolveDotNet.Idiomatic
         /// Creates and initialises a new <see cref="LpSolve"/> model from a LP model file.
         /// </summary>
         /// <param name="fileName">Filename to read the LP model from.</param>
-        /// <param name="verbose">The verbose level. See also <see cref="set_verbose"/> and <see cref="get_verbose"/>.</param>
+        /// <param name="verbosity">The verbosity level. See also <see cref="Verbosity"/>.</param>
         /// <param name="lpName">Initial name of the model. May be <c>null</c> if the model has no name. See also <see cref="set_lp_name"/> and <see cref="get_lp_name"/>.</param>
         /// <returns>A new <see cref="LpSolve"/> model matching the one in the file.
         /// A <c>null</c> return value indicates an error. Specifically file could not be opened, has wrong structure or not enough memory is available.</returns>
         /// <remarks>The model in the file must be in <see href="http://lpsolve.sourceforge.net/5.5/lp-format.htm">lp-format</see>.</remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/read_lp.htm">Full C API documentation.</seealso>
-        public static LpSolve read_LP(string fileName, lpsolve_verbosity verbose, string lpName)
+        public static LpSolve read_LP(string fileName, Verbosity verbosity, string lpName)
         {
-            IntPtr lp = NativeMethods.read_LP(fileName, verbose, lpName);
+            IntPtr lp = NativeMethods.read_LP(fileName, verbosity, lpName);
             return CreateFromLpRecStructurePointer(lp);
         }
 
@@ -301,16 +302,16 @@ namespace LpSolveDotNet.Idiomatic
         /// Creates and initialises a new <see cref="LpSolve"/> model from an MPS model file.
         /// </summary>
         /// <param name="fileName">Filename to read the MPS model from.</param>
-        /// <param name="verbose">Specifies the verbose level. See also <see cref="set_verbose"/> and <see cref="get_verbose"/>.</param>
+        /// <param name="verbosity">Specifies the verbosity level. See also <see cref="Verbosity"/>.</param>
         /// <param name="options">Specifies how to interprete the MPS layout. You can use multiple values.</param>
         /// <returns>A new <see cref="LpSolve"/> model matching the one in the file.
         /// A <c>null</c> return value indicates an error. Specifically file could not be opened, has wrong structure or not enough memory is available.</returns>
         /// <remarks>The model in the file must be in <see href="http://lpsolve.sourceforge.net/5.5/mps-format.htm">mps-format</see>.</remarks>
-        /// <para>This method is different from C API because <paramref name="verbose"/> is separate from <paramref name="options"/></para>
+        /// <para>This method is different from C API because <paramref name="verbosity"/> is separate from <paramref name="options"/></para>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/read_mps.htm">Full C API documentation.</seealso>
-        public static LpSolve read_MPS(string fileName, lpsolve_verbosity verbose, lpsolve_mps_options options)
+        public static LpSolve read_MPS(string fileName, Verbosity verbosity, MPSOptions options)
         {
-            IntPtr lp = NativeMethods.read_MPS(fileName, ((int)verbose) | ((int)options));
+            IntPtr lp = NativeMethods.read_MPS(fileName, ((int)verbosity) | ((int)options));
             return CreateFromLpRecStructurePointer(lp);
         }
 
@@ -321,15 +322,15 @@ namespace LpSolveDotNet.Idiomatic
         /// <param name="modelName">Filename to read the model from.</param>
         /// <param name="dataName">Filename to read the data from. This may be optional. In that case, set the parameter to <c>null</c>.</param>
         /// <param name="options">Extra options that can be used by the reader.</param>
-        /// <param name="verbose">The verbose level. See also <see cref="set_verbose"/> and <see cref="get_verbose"/>.</param>
+        /// <param name="verbosity">The verbosity level. See also <see cref="Verbosity"/>.</param>
         /// <returns>A new <see cref="LpSolve"/> model matching the one in the file.
         /// A <c>null</c> return value indicates an error.</returns>
         /// <remarks>The method constructs a new <see cref="LpSolve"/> model by reading model from <paramref name="modelName"/> via the specified XLI.
         /// See <see href="http://lpsolve.sourceforge.net/5.5/XLI.htm">External Language Interfaces</see>for a complete description on XLIs.</remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/read_XLI.htm">Full C API documentation.</seealso>
-        public static LpSolve read_XLI(string xliName, string modelName, string dataName, string options, lpsolve_verbosity verbose)
+        public static LpSolve read_XLI(string xliName, string modelName, string dataName, string options, Verbosity verbosity)
         {
-            IntPtr lp = NativeMethods.read_XLI(xliName, modelName, dataName, options, verbose);
+            IntPtr lp = NativeMethods.read_XLI(xliName, modelName, dataName, options, verbosity);
             return CreateFromLpRecStructurePointer(lp);
         }
 
@@ -431,18 +432,6 @@ namespace LpSolveDotNet.Idiomatic
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_column.htm">Full C API documentation.</seealso>
         public bool add_columnex(int count, double[] column, int[] rowno)
             => NativeMethods.add_columnex(_lp, count, column, rowno);
-
-        /// <summary>
-        /// Adds a column to the model.
-        /// </summary>
-        /// <param name="col_string">A string with row elements that contains the values of the column. Each element must be separated by space(s).</param>
-        /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
-        /// <remarks>This should only be used in small or demo code since it is not performant and uses more memory.
-        /// Instead use <see cref="add_columnex"/> or <see cref="add_column"/>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_column.htm">Full C API documentation.</seealso>
-        public bool str_add_column(string col_string)
-            => NativeMethods.str_add_column(_lp, col_string);
 
         /// <summary>
         /// Deletes a column from the model.
@@ -557,7 +546,7 @@ namespace LpSolveDotNet.Idiomatic
         /// If no column name was specified, the method returns Cx with x the column number.
         /// </para>
         /// <para>
-        /// The difference between <see cref="get_col_name"/> and <see cref="get_origcol_name"/> is only visible when a presolve (<see cref="set_presolve"/>) was done. 
+        /// The difference between <see cref="get_col_name"/> and <see cref="get_origcol_name"/> is only visible when a presolve (<see cref="PreSolveLevels"/>) was done. 
         /// Presolve can result in deletion of columns in the model. In <see cref="get_col_name"/>, column specifies the column number after presolve was done.
         /// In <see cref="get_origcol_name"/>, column specifies the column number before presolve was done, ie the original column number. 
         /// If presolve is not active then both methods are equal.
@@ -577,7 +566,7 @@ namespace LpSolveDotNet.Idiomatic
         /// If no column name was specified, the method returns Cx with x the column number.
         /// </para>
         /// <para>
-        /// The difference between <see cref="get_col_name"/> and <see cref="get_origcol_name"/> is only visible when a presolve (<see cref="set_presolve"/>) was done. 
+        /// The difference between <see cref="get_col_name"/> and <see cref="get_origcol_name"/> is only visible when a presolve (<see cref="PreSolveLevels"/>) was done. 
         /// Presolve can result in deletion of columns in the model. In <see cref="get_col_name"/>, column specifies the column number after presolve was done.
         /// In <see cref="get_origcol_name"/>, column specifies the column number before presolve was done, ie the original column number. 
         /// If presolve is not active then both methods are equal.
@@ -817,21 +806,23 @@ namespace LpSolveDotNet.Idiomatic
         /// Adds a constraint to the model.
         /// </summary>
         /// <param name="row">An array with 1+<see cref="get_Ncolumns"/> elements that contains the values of the row.</param>
-        /// <param name="constr_type">The type of the constraint.</param>
+        /// <param name="constraintOperator">The type of the constraint.</param>
         /// <param name="rh">The value of the right-hand side (RHS) fo the constraint (in)equation</param>
         /// <returns><c>true</c> if operation was successful, <c>false</c> otherwise.</returns>
         /// <remarks>
         /// <para>This method adds a row to the model (at the end) and sets all values of the row at once.</para>
         /// <para>Note that element 0 of the array is not considered (i.e. ignored). Column 1 is element 1, column 2 is element 2, ...</para>
-        /// <para>It is almost always better to use <see cref="add_constraintex"/> instead of <see cref="add_constraint"/>. <see cref="add_constraintex"/> is always at least as performant as <see cref="add_constraint"/>.</para>
-        /// <para>Note that it is advised to set the objective function (via <see cref="set_obj_fn"/>, <see cref="set_obj_fnex"/>, <see cref="str_set_obj_fn"/>, <see cref="set_obj"/>)
+        /// <para>It is almost always better to use <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/> instead
+        /// of <see cref="add_constraint(double[], ConstraintOperator, double)"/>.
+        /// <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/> is always at least as performant as <see cref="add_constraint(double[], ConstraintOperator, double)"/>.</para>
+        /// <para>Note that it is advised to set the objective function (via <see cref="set_obj_fn"/>, <see cref="set_obj_fnex"/> or <see cref="set_obj"/>)
         /// before adding rows. This especially for larger models. This will be much more performant than adding the objective function afterwards.</para>
         /// <para>Note that these methods will perform much better when <see cref="set_add_rowmode"/> is called before adding constraints.</para>
         /// <para>Note that if you have to add many constraints, performance can be improved by a call to <see cref="resize_lp"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_constraint.htm">Full C API documentation.</seealso>
-        public bool add_constraint(double[] row, lpsolve_constr_types constr_type, double rh)
-            => NativeMethods.add_constraint(_lp, row, constr_type, rh);
+        public bool add_constraint(double[] row, ConstraintOperator constraintOperator, double rh)
+            => NativeMethods.add_constraint(_lp, row, constraintOperator, rh);
 
 
         /// <summary>
@@ -841,7 +832,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <param name="row">An array with <paramref name="count"/> elements (or 1+<see cref="get_Ncolumns"/> elements if <paramref name="row"/> is <c>null</c>) that contains the values of the row.</param>
         /// <param name="colno">An array with <paramref name="count"/> elements that contains the column numbers of the row. However this variable can also be <c>null</c>.
         /// In that case element <c>i</c> in the variable row is column <c>i</c> and values start at element 1.</param>
-        /// <param name="constr_type">The type of the constraint.</param>
+        /// <param name="constraintOperator">The type of the constraint.</param>
         /// <param name="rh">The value of the right-hand side (RHS) fo the constraint (in)equation</param>
         /// <returns><c>true</c> if operation was successful, <c>false</c> otherwise.</returns>
         /// <remarks>
@@ -850,33 +841,19 @@ namespace LpSolveDotNet.Idiomatic
         /// <para>This method has the possibility to specify only the non-zero elements. In that case <paramref name="colno"/> specifies the column numbers of 
         /// the non-zero elements. Both <paramref name="row"/> and <paramref name="colno"/> are then zero-based arrays.
         /// This will speed up building the model considerably if there are a lot of zero values. In most cases the matrix is sparse and has many zero value.
-        /// Note that <see cref="add_constraintex"/> behaves the same as <see cref="add_constraint"/> when <paramref name="colno"/> is <c>null</c>.</para>
-        /// <para>It is almost always better to use <see cref="add_constraintex"/> instead of <see cref="add_constraint"/>. <see cref="add_constraintex"/> is always at least as performant as <see cref="add_constraint"/>.</para>
-        /// <para>Note that it is advised to set the objective function (via <see cref="set_obj_fn"/>, <see cref="set_obj_fnex"/>, <see cref="str_set_obj_fn"/>, <see cref="set_obj"/>)
+        /// Note that <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/> behaves the same as
+        /// <see cref="add_constraint(double[], ConstraintOperator, double)"/> when <paramref name="colno"/> is <c>null</c>.</para>
+        /// <para>It is almost always better to use <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/> instead of
+        /// <see cref="add_constraint(double[], ConstraintOperator, double)"/>. <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>
+        /// is always at least as performant as <see cref="add_constraint(double[], ConstraintOperator, double)"/>.</para>
+        /// <para>Note that it is advised to set the objective function (via <see cref="set_obj_fn"/>, <see cref="set_obj_fnex"/> or <see cref="set_obj"/>)
         /// before adding rows. This especially for larger models. This will be much more performant than adding the objective function afterwards.</para>
         /// <para>Note that these methods will perform much better when <see cref="set_add_rowmode"/> is called before adding constraints.</para>
         /// <para>Note that if you have to add many constraints, performance can be improved by a call to <see cref="resize_lp"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_constraint.htm">Full C API documentation.</seealso>
-        public bool add_constraintex(int count, double[] row, int[] colno, lpsolve_constr_types constr_type, double rh)
-            => NativeMethods.add_constraintex(_lp, count, row, colno, constr_type, rh);
-
-        /// <summary>
-        /// Adds a constraint to the model.
-        /// </summary>
-        /// <param name="row_string">A string with column elements that contains the values of the row. Each element must be separated by space(s).</param>
-        /// <param name="constr_type">The type of the constraint.</param>
-        /// <param name="rh">The value of the right-hand side (RHS) fo the constraint (in)equation</param>
-        /// <returns><c>true</c> if operation was successful, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>This method adds a row to the model (at the end) and sets all values of the row at once.</para>
-        /// <para>This method should only be used in small or demo code since it is not performant and uses more memory than <see cref="add_constraint"/> and <see cref="add_constraintex"/>.</para>
-        /// <para>Note that these methods will perform much better when <see cref="set_add_rowmode"/> is called before adding constraints.</para>
-        /// <para>Note that if you have to add many constraints, performance can be improved by a call to <see cref="resize_lp"/>.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_constraint.htm">Full C API documentation.</seealso>
-        public bool str_add_constraint(string row_string, lpsolve_constr_types constr_type, double rh)
-            => NativeMethods.str_add_constraint(_lp, row_string, constr_type, rh);
+        public bool add_constraintex(int count, double[] row, int[] colno, ConstraintOperator constraintOperator, double rh)
+            => NativeMethods.add_constraintex(_lp, count, row, colno, constraintOperator, rh);
 
         /// <summary>
         /// Removes a constraint from the model.
@@ -989,7 +966,7 @@ namespace LpSolveDotNet.Idiomatic
         /// In <see cref="get_origrow_name"/>, row specifies the row number before presolve was done, ie the original row number.</param>
         /// <returns><see cref="get_row_name"/> and <see cref="get_origrow_name"/> return the name of the specified row.
         /// A return value of <c>null</c> indicates an error.
-        /// The difference between <see cref="get_row_name"/> and <see cref="get_origrow_name"/> is only visible when a presolve (<see cref="set_presolve"/>) was done.
+        /// The difference between <see cref="get_row_name"/> and <see cref="get_origrow_name"/> is only visible when a presolve (<see cref="PreSolveLevels"/>) was done.
         /// resolve can result in deletion of rows in the model. In <see cref="get_row_name"/>, row specifies the row number after presolve was done.
         /// In <see cref="get_origrow_name"/>, row specifies the row number before presolve was done, ie the original row number.
         /// If presolve is not active then both methods are equal.</returns>
@@ -1008,7 +985,7 @@ namespace LpSolveDotNet.Idiomatic
         /// In <see cref="get_origrow_name"/>, row specifies the row number before presolve was done, ie the original row number.</param>
         /// <returns><see cref="get_row_name"/> and <see cref="get_origrow_name"/> return the name of the specified row.
         /// A return value of <c>null</c> indicates an error.
-        /// The difference between <see cref="get_row_name"/> and <see cref="get_origrow_name"/> is only visible when a presolve (<see cref="set_presolve"/>) was done.
+        /// The difference between <see cref="get_row_name"/> and <see cref="get_origrow_name"/> is only visible when a presolve (<see cref="PreSolveLevels"/>) was done.
         /// resolve can result in deletion of rows in the model. In <see cref="get_row_name"/>, row specifies the row number after presolve was done.
         /// In <see cref="get_origrow_name"/>, row specifies the row number before presolve was done, ie the original row number.
         /// If presolve is not active then both methods are equal.</returns>
@@ -1026,17 +1003,17 @@ namespace LpSolveDotNet.Idiomatic
         /// <param name="mask">The type of the constraint to check in <paramref name="row"/></param>
         /// <returns><c>true</c> if the containt types match, <c>false</c> otherwise.</returns>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_constr_type.htm">Full C API documentation.</seealso>
-        public bool is_constr_type(int row, lpsolve_constr_types mask)
+        public bool is_constr_type(int row, ConstraintOperator mask)
             => NativeMethods.is_constr_type(_lp, row, mask);
 
         /// <summary>
-        /// Gets the type of a constraint.
+        /// Gets the operator used in the equation/inequation representing the constraint.
         /// </summary>
-        /// <param name="row">The row for which the constraint type must be retrieved. Must be between 1 and number of rows in the model.</param>
+        /// <param name="row">The row for which the operator must be retrieved. Must be between 1 and number of rows in the model.</param>
         /// <returns>The type of the constraint on row <paramref name="row"/>.</returns>
-        /// <remarks>The default constraint type is <see cref="lpsolve_constr_types.LE"/>.</remarks>
+        /// <remarks>The default constraint type is <see cref="ConstraintOperator.LessOrEqual"/>.</remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_constr_type.htm">Full C API documentation.</seealso>
-        public lpsolve_constr_types get_constr_type(int row)
+        public ConstraintOperator GetConstraintOperator(int row)
             => NativeMethods.get_constr_type(_lp, row);
 
         /// <summary>
@@ -1046,14 +1023,14 @@ namespace LpSolveDotNet.Idiomatic
         /// <param name="con_type">The type of the constraint.</param>
         /// <returns><c>true</c> if operation was successful, <c>false</c> otherwise.</returns>
         /// <remarks>
-        /// <para>The default constraint type is <see cref="lpsolve_constr_types.LE"/>.</para>
-        /// <para>A free constraint (<see cref="lpsolve_constr_types.FR"/>) will act as if the constraint is not there.
+        /// <para>The default constraint type is <see cref="ConstraintOperator.LessOrEqual"/>.</para>
+        /// <para>A free constraint (<see cref="ConstraintOperator.Free"/>) will act as if the constraint is not there.
         /// The lower bound is -Infinity and the upper bound is +Infinity.
         /// This can be used to temporary disable a constraint without having to delete it from the model
         /// .Note that the already set RHS and range on this constraint is overruled with Infinity by this.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_constr_type.htm">Full C API documentation.</seealso>
-        public bool set_constr_type(int row, lpsolve_constr_types con_type)
+        public bool set_constr_type(int row, ConstraintOperator con_type)
             => NativeMethods.set_constr_type(_lp, row, con_type);
 
         /// <summary>
@@ -1077,7 +1054,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <remarks>
         /// <para>Note that row can also be 0 with this method.
         /// In that case an initial value for the objective value is set.
-        /// methods <see cref="set_rh_vec"/>, <see cref="str_set_rh_vec"/> ignore row 0 (for historical reasons) in the specified RHS vector,
+        /// Methods <see cref="set_rh_vec"/> ignores row 0 (for historical reasons) in the specified RHS vector,
         /// but it is possible to first call one of these methods and then set the value of the objective with <see cref="set_rh"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_rh.htm">Full C API documentation.</seealso>
@@ -1131,20 +1108,6 @@ namespace LpSolveDotNet.Idiomatic
         public void set_rh_vec(double[] rh)
             => NativeMethods.set_rh_vec(_lp, rh);
 
-        /// <summary>
-        /// Sets the value of the right hand side (RHS) vector (column 0).
-        /// </summary>
-        /// <param name="rh_string">A string with row elements that contains the values of the RHS. Each element must be separated by space(s).</param>
-        /// <returns><c>true</c> if operation was successful, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>The method sets all values of the RHS vector (column 0) at once.</para>
-        /// <para>Note that element 0 of the array is not considered (i.e. ignored). Row 1 is element 1, row 2 is element 2, ...</para>
-        /// <para>If the initial value of the objective function must also be set, use <see cref="set_rh"/>.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_rh_vec.htm">Full C API documentation.</seealso>
-        public bool str_set_rh_vec(string rh_string)
-            => NativeMethods.str_set_rh_vec(_lp, rh_string);
-
         #endregion
 
         #region Objective
@@ -1158,7 +1121,8 @@ namespace LpSolveDotNet.Idiomatic
         /// <remarks>
         /// <para>Note that element 0 of the array is not considered (i.e. ignored). Column 1 is element 1, column 2 is element 2, ...</para>
         /// <para>It is better to use <see cref="set_obj_fnex"/> or <see cref="set_obj_fn"/>.</para>
-        /// <para>Note that it is advised to set the objective function before adding rows via <see cref="add_constraint"/>, <see cref="add_constraintex"/>, <see cref="str_add_constraint"/>.
+        /// <para>Note that it is advised to set the objective function before adding rows via
+        /// <see cref="add_constraint(double[], ConstraintOperator, double)"/> or <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>.
         /// This especially for larger models. This will be much more performant than adding the objective function afterwards.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_obj_fn.htm">Full C API documentation.</seealso>
@@ -1202,7 +1166,8 @@ namespace LpSolveDotNet.Idiomatic
         /// <para>Note that element 0 of the array is not considered (i.e. ignored). Column 1 is element 1, column 2 is element 2, ...</para>
         /// <para>It is almost always better to use <see cref="set_obj_fnex"/> instead of <see cref="set_obj_fn"/>. <see cref="set_obj_fnex"/> is always at least as performant as <see cref="set_obj_fnex"/>.</para>
         /// <para>It is more performant to call these methods than multiple times <see cref="set_obj"/>.</para>
-        /// <para>Note that it is advised to set the objective function before adding rows via <see cref="add_constraint"/>, <see cref="add_constraintex"/>, <see cref="str_add_constraint"/>.
+        /// <para>Note that it is advised to set the objective function before adding rows via <see cref="add_constraint(double[], ConstraintOperator, double)"/>,
+        /// <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>.
         /// This especially for larger models. This will be much more performant than adding the objective function afterwards.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_obj_fn.htm">Full C API documentation.</seealso>
@@ -1223,7 +1188,8 @@ namespace LpSolveDotNet.Idiomatic
         /// This will speed up building the model considerably if there are a lot of zero values. In most cases the matrix is sparse and has many zero value.</para>
         /// <para>It is almost always better to use <see cref="set_obj_fnex"/> instead of <see cref="set_obj_fn"/>. <see cref="set_obj_fnex"/> is always at least as performant as <see cref="set_obj_fnex"/>.</para>
         /// <para>It is more performant to call these methods than multiple times <see cref="set_obj"/>.</para>
-        /// <para>Note that it is advised to set the objective function before adding rows via <see cref="add_constraint"/>, <see cref="add_constraintex"/>, <see cref="str_add_constraint"/>.
+        /// <para>Note that it is advised to set the objective function before adding rows via <see cref="add_constraint(double[], ConstraintOperator, double)"/>,
+        /// <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>.
         /// This especially for larger models. This will be much more performant than adding the objective function afterwards.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_obj_fn.htm">Full C API documentation.</seealso>
@@ -1231,24 +1197,11 @@ namespace LpSolveDotNet.Idiomatic
             => NativeMethods.set_obj_fnex(_lp, count, row, colno);
 
         /// <summary>
-        /// Sets the objective function (row 0) of the matrix.
-        /// </summary>
-        /// <param name="row_string">A string with column elements that contains the values of the objective function. Each element must be separated by space(s).</param>
-        /// <returns><c>true</c> if operation was successful, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>This method set the values of the objective function in the model at once.</para>
-        /// <para>This method should only be used in small or demo code since it is not performant and uses more memory than <see cref="set_obj_fnex"/> or <see cref="set_obj_fn"/></para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_obj_fn.htm">Full C API documentation.</seealso>
-        public bool str_set_obj_fn(string row_string)
-            => NativeMethods.str_set_obj_fn(_lp, row_string);
-
-        /// <summary>
         /// Returns objective function direction.
         /// </summary>
         /// <returns><c>true</c> if the objective function is maximize, <c>false</c> if it is minimize.</returns>
         /// <remarks>
-        /// The default of lp_solve is to minimize, except for <see cref="read_LP"/> where the default is to maximize.
+        /// The default of lp_solve is to minimize, except for <see cref="read_LP(string, Verbosity, string)"/> where the default is to maximize.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_maxim.htm">Full C API documentation.</seealso>
         public bool is_maxim()
@@ -1258,7 +1211,7 @@ namespace LpSolveDotNet.Idiomatic
         /// Sets the objective function to <c>maximize</c>.
         /// </summary>
         /// <remarks>
-        /// The default of lp_solve is to minimize, except for <see cref="read_LP"/> where the default is to maximize.
+        /// The default of lp_solve is to minimize, except for <see cref="read_LP(string, Verbosity, string)"/> where the default is to maximize.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_maxim.htm">Full C API documentation.</seealso>
         public void set_maxim()
@@ -1268,7 +1221,7 @@ namespace LpSolveDotNet.Idiomatic
         /// Sets the objective function to <c>minimize</c>.
         /// </summary>
         /// <remarks>
-        /// The default of lp_solve is to minimize, except for <see cref="read_LP"/> where the default is to maximize.
+        /// The default of lp_solve is to minimize, except for <see cref="read_LP(string, Verbosity, string)"/> where the default is to maximize.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_minim.htm">Full C API documentation.</seealso>
         public void set_minim()
@@ -1279,7 +1232,7 @@ namespace LpSolveDotNet.Idiomatic
         /// </summary>
         /// <param name="maximize">When <c>true</c>, the objective function sense is maximize, when <c>false</c> it is minimize.</param>
         /// <remarks>
-        /// The default of lp_solve is to minimize, except for <see cref="read_LP"/> where the default is to maximize.
+        /// The default of lp_solve is to minimize, except for <see cref="read_LP(string, Verbosity, string)"/> where the default is to maximize.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_sense.htm">Full C API documentation.</seealso>
         public void set_sense(bool maximize)
@@ -1320,8 +1273,9 @@ namespace LpSolveDotNet.Idiomatic
         /// <para>This method deletes the last rows/columns of the model if the new number of rows/columns is less than the number of rows/columns before the call.</para>
         /// <para>However, the function does **not** add rows/columns to the model if the new number of rows/columns is larger.
         /// It does however changes internal memory allocations to the new specified sizes.
-        /// This to make the <see cref="add_constraint"/>, <see cref="add_constraintex"/>, <see cref="str_add_constraint"/> and <see cref="add_column"/>,
-        /// <see cref="add_columnex"/>, <see cref="str_add_column"/> methods faster. Without <see cref="resize_lp"/>, these methods have to reallocated
+        /// This to make the <see cref="add_constraint(double[], ConstraintOperator, double)"/>,
+        /// <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/> and <see cref="add_column"/>,
+        /// <see cref="add_columnex"/> methods faster. Without <see cref="resize_lp"/>, these methods have to reallocated
         /// memory at each call for the new dimensions. However if <see cref="resize_lp "/> is used, then memory reallocation
         /// must be done only once resulting in better performance. So if the number of rows/columns that will be added is known in advance, then performance can be improved by using this method.</para>
         /// </remarks>
@@ -1330,22 +1284,22 @@ namespace LpSolveDotNet.Idiomatic
             => NativeMethods.resize_lp(_lp, rows, columns);
 
         /// <summary>
-        /// Returns a flag telling which of the add methods perform best. Whether <see cref="add_column"/>, <see cref="add_columnex"/>, <see cref="str_add_column"/>
-        /// or <see cref="add_constraint"/>, <see cref="add_constraintex"/>, <see cref="str_add_constraint"/>.
+        /// Returns a flag telling which of the add methods perform best. Whether <see cref="add_column"/>, <see cref="add_columnex"/>
+        /// or <see cref="add_constraint(double[], ConstraintOperator, double)"/>, <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>.
         /// </summary>
-        /// <returns>If <c>false</c> then <see cref="add_column"/>, <see cref="add_columnex"/>, <see cref="str_add_column"/>
-        /// perform best. If <c>true</c> then <see cref="add_constraint"/>, <see cref="add_constraintex"/>, <see cref="str_add_constraint"/>
+        /// <returns>If <c>false</c> then <see cref="add_column"/>, <see cref="add_columnex"/>
+        /// perform best. If <c>true</c> then <see cref="add_constraint(double[], ConstraintOperator, double)"/>, <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>
         /// perform best.</returns>
         /// <remarks>
-        /// <para>Default, this is <c>false</c>, meaning that <see cref="add_column"/>, <see cref="add_columnex"/>, <see cref="str_add_column"/> perform best.
-        /// If the model is build via <see cref="add_constraint"/>, <see cref="add_constraintex"/>, <see cref="str_add_constraint"/> calls,
+        /// <para>Default, this is <c>false</c>, meaning that <see cref="add_column"/>, <see cref="add_columnex"/> perform best.
+        /// If the model is build via <see cref="add_constraint(double[], ConstraintOperator, double)"/>, <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/> calls,
         /// then these methods will be much faster if this method returns <c>true</c>.
         /// This is also called row entry mode. The speed improvement is spectacular, especially for bigger models, so it is 
         /// advisable to call this method to set the mode. Normally a model is build either column by column or row by row.</para>
         /// <para>Note that there are several restrictions with this mode:
         /// Only use this method after a <see cref="make_lp"/> call. Not when the model is read from file.
-        /// Also, if this method is used, first add the objective function via <see cref="set_obj_fn"/>, <see cref="set_obj_fnex"/>, <see cref="str_set_obj_fn"/>
-        /// and after that add the constraints via <see cref="add_constraint"/>, <see cref="add_constraintex"/>, <see cref="str_add_constraint"/>.
+        /// Also, if this method is used, first add the objective function via <see cref="set_obj_fn"/>, <see cref="set_obj_fnex"/>
+        /// and after that add the constraints via <see cref="add_constraint(double[], ConstraintOperator, double)"/>, <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>.
         /// Don't call other API methods while in row entry mode.
         /// No other data matrix access is allowed while in row entry mode.
         /// After adding the contraints, turn row entry mode back off.
@@ -1362,23 +1316,23 @@ namespace LpSolveDotNet.Idiomatic
             => NativeMethods.is_add_rowmode(_lp);
 
         /// <summary>
-        /// Specifies which add methods perform best. Whether <see cref="add_column"/>, <see cref="add_columnex"/>, <see cref="str_add_column"/>
-        /// or <see cref="add_constraint"/>, <see cref="add_constraintex"/>, <see cref="str_add_constraint"/>.
+        /// Specifies which add methods perform best. Whether <see cref="add_column"/>, <see cref="add_columnex"/>
+        /// or <see cref="add_constraint(double[], ConstraintOperator, double)"/>, <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>.
         /// </summary>
-        /// <param name="turnon">If <c>false</c> then <see cref="add_column"/>, <see cref="add_columnex"/>, <see cref="str_add_column"/>
-        /// perform best. If <c>true</c> then <see cref="add_constraint"/>, <see cref="add_constraintex"/>, <see cref="str_add_constraint"/>
+        /// <param name="turnon">If <c>false</c> then <see cref="add_column"/>, <see cref="add_columnex"/>
+        /// perform best. If <c>true</c> then <see cref="add_constraint(double[], ConstraintOperator, double)"/>, <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>
         /// perform best.</param>
         /// <returns><c>true</c> if the rowmode was changed, <c>false</c> if the given mode was already set.</returns>
         /// <remarks>
-        /// <para>Default, this is <c>false</c>, meaning that <see cref="add_column"/>, <see cref="add_columnex"/>, <see cref="str_add_column"/> perform best.
-        /// If the model is build via <see cref="add_constraint"/>, <see cref="add_constraintex"/>, <see cref="str_add_constraint"/> calls,
+        /// <para>Default, this is <c>false</c>, meaning that <see cref="add_column"/>, <see cref="add_columnex"/> perform best.
+        /// If the model is build via <see cref="add_constraint(double[], ConstraintOperator, double)"/>, <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/> calls,
         /// then these methods will be much faster if this method is called with <paramref name="turnon"/> set to <c>true</c>.
         /// This is also called row entry mode. The speed improvement is spectacular, especially for bigger models, so it is 
         /// advisable to call this method to set the mode. Normally a model is build either column by column or row by row.</para>
         /// <para>Note that there are several restrictions with this mode:
         /// Only use this method after a <see cref="make_lp"/> call. Not when the model is read from file.
-        /// Also, if this method is used, first add the objective function via <see cref="set_obj_fn"/>, <see cref="set_obj_fnex"/>, <see cref="str_set_obj_fn"/>
-        /// and after that add the constraints via <see cref="add_constraint"/>, <see cref="add_constraintex"/>, <see cref="str_add_constraint"/>.
+        /// Also, if this method is used, first add the objective function via <see cref="set_obj_fn"/>, <see cref="set_obj_fnex"/>
+        /// and after that add the constraints via <see cref="add_constraint(double[], ConstraintOperator, double)"/>, <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>.
         /// Don't call other API methods while in row entry mode.
         /// No other data matrix access is allowed while in row entry mode.
         /// After adding the contraints, turn row entry mode back off.
@@ -1481,10 +1435,10 @@ namespace LpSolveDotNet.Idiomatic
         /// <remarks>
         /// <para>If there was already a value for this element, it is replaced and if there was no value, it is added.</para>
         /// <para>This method is not efficient if many values are to be set.
-        /// Consider to use <see cref="add_constraint"/>, <see cref="add_constraintex"/>, <see cref="str_add_constraint"/>,
+        /// Consider to use <see cref="add_constraint(double[], ConstraintOperator, double)"/>, <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>,
         /// <see cref="set_row"/>, <see cref="set_rowex"/>, <see cref="set_obj_fn"/>, <see cref="set_obj_fnex"/>,
-        /// <see cref="str_set_obj_fn"/>, <see cref="set_obj"/>, <see cref="add_column"/>, <see cref="add_columnex"/>,
-        /// <see cref="str_add_column"/>, <see cref="set_column"/>, <see cref="set_columnex"/>.</para>
+        /// <see cref="set_obj"/>, <see cref="add_column"/>, <see cref="add_columnex"/>,
+        /// <see cref="set_column"/>, <see cref="set_columnex"/>.</para>
         /// <para>
         /// If row and/or column are outside the allowed range, the method returns 0.
         /// </para>
@@ -1828,10 +1782,10 @@ namespace LpSolveDotNet.Idiomatic
         /// <returns><c>true</c> if level is accepted and <c>false</c> if an invalid epsilon level was provided.</returns>
         /// <remarks>
         /// <para>It sets the following values: <see cref="set_epsel"/>, <see cref="set_epsb"/>, <see cref="set_epsd"/>, <see cref="set_epspivot"/>, <see cref="set_epsint"/>, <see cref="set_mip_gap"/>.</para>
-        /// <para>The default is <see cref="lpsolve_epsilon_level.EPS_TIGHT"/>.</para>
+        /// <para>The default is <see cref="ToleranceEpsilonLevel.Tight"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_epslevel.htm">Full C API documentation.</seealso>
-        public bool set_epslevel(lpsolve_epsilon_level level)
+        public bool set_epslevel(ToleranceEpsilonLevel level)
             => NativeMethods.set_epslevel(_lp, level);
 
         #endregion
@@ -1994,9 +1948,8 @@ namespace LpSolveDotNet.Idiomatic
         /// <summary>
         /// Returns which basis crash mode must be used.
         /// </summary>
-        /// <returns><c>true</c> if a valid base could be determined, <c>false</c> otherwise.</returns>
         /// <remarks>
-        /// <para>Default is <see cref="lpsolve_basiscrash.CRASH_NONE"/></para>
+        /// <para>Default is <see cref="BasisCrashMode.None"/></para>
         /// <para>When no base crash is done (the default), the initial basis from which lp_solve 
         /// starts to solve the model is the basis containing all slack or artificial variables that 
         /// is automatically associated with each constraint.</para>
@@ -2006,29 +1959,14 @@ namespace LpSolveDotNet.Idiomatic
         /// iterations are skipped.
         /// lp_solve starts iterating from this basis until optimality.</para>
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_basiscrash.htm">Full C API documentation.</seealso>
-        public lpsolve_basiscrash get_basiscrash()
-            => NativeMethods.get_basiscrash(_lp);
-
-        /// <summary>
-        /// Returns which basis crash mode must be used.
-        /// </summary>
-        /// <param name="mode">Specifies which basis crash mode must be used.</param>
-        /// <remarks>
-        /// <para>Default is <see cref="lpsolve_basiscrash.CRASH_NONE"/></para>
-        /// <para>When no base crash is done (the default), the initial basis from which lp_solve 
-        /// starts to solve the model is the basis containing all slack or artificial variables that 
-        /// is automatically associated with each constraint.</para>
-        /// <para>When base crash is enabled, a heuristic "crash procedure" is executed before the 
-        /// first simplex iteration to quickly choose a basis matrix that has fewer artificial variables.
-        /// This procedure tends to reduce the number of iterations to optimality since a number of 
-        /// iterations are skipped.
-        /// lp_solve starts iterating from this basis until optimality.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_basiscrash.htm">Full C API documentation.</seealso>
-        public void set_basiscrash(lpsolve_basiscrash mode)
-            => NativeMethods.set_basiscrash(_lp, mode);
-
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_basiscrash.htm">Full C API documentation (get).</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_basiscrash.htm">Full C API documentation (set).</seealso>
+        public BasisCrashMode BasisCrashMode
+        {
+            get => NativeMethods.get_basiscrash(_lp);
+            set => NativeMethods.set_basiscrash(_lp, value);
+        }
+ 
         /// <summary>
         /// Returns if there is a basis factorization package (BFP) available.
         /// </summary>
@@ -2102,41 +2040,41 @@ namespace LpSolveDotNet.Idiomatic
             => NativeMethods.set_maxpivot(_lp, max_num_inv);
 
         /// <summary>
-        /// Returns the pivot rule and modes. See <see cref="lpsolve_pivot_rule"/> and <see cref="lpsolve_pivot_modes"/> for possible values.
+        /// Returns the pivot rule and modes. See <see cref="PivotRule"/> and <see cref="PivotModes"/> for possible values.
         /// </summary>
         /// <returns>The pivot rule (rule for selecting row and column entering/leaving) and mode.</returns>
         /// <remarks>
         /// <para>The rule is an exclusive option and the mode is a modifier to the rule.
         /// This rule/mode can influence solving times considerably.
         /// Depending on the model one rule/mode can be best and for another model another rule/mode.</para>
-        /// <para>The default rule is <see cref="lpsolve_pivot_rule.PRICER_DEVEX"/> and the default mode is <see cref="lpsolve_pivot_modes.PRICE_ADAPTIVE"/>.</para>
+        /// <para>The default rule is <see cref="PivotRule.Devex"/> and the default mode is <see cref="PivotModes.Adaptive"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_pivoting.htm">Full C API documentation.</seealso>
         public PivotRuleAndModes get_pivoting()
         {
             int pivoting = NativeMethods.get_pivoting(_lp);
-            int mask = (int)lpsolve_pivot_rule.PRICER_STEEPESTEDGE;
+            int mask = (int)PivotRule.SteepestEdge;
             int rule = pivoting & mask;
             int modes = pivoting & ~mask;
             return new PivotRuleAndModes(
-                (lpsolve_pivot_rule)rule,
-                (lpsolve_pivot_modes)modes
+                (PivotRule)rule,
+                (PivotModes)modes
                 );
         }
 
         /// <summary>
         /// Sets the pivot rule and modes.
         /// </summary>
-        /// <param name="rule">The pivot <see cref="lpsolve_pivot_rule">rule</see> (rule for selecting row and column entering/leaving).</param>
-        /// <param name="modes">The <see cref="lpsolve_pivot_modes">modes</see> modifying the <see cref="lpsolve_pivot_rule">rule</see>.</param>
+        /// <param name="rule">The pivot <see cref="PivotRule">rule</see> (rule for selecting row and column entering/leaving).</param>
+        /// <param name="modes">The <see cref="PivotModes">modes</see> modifying the <see cref="PivotRule">rule</see>.</param>
         /// <remarks>
         /// <para>The rule is an exclusive option and the mode is a modifier to the rule.
         /// This rule/mode can influence solving times considerably.
         /// Depending on the model one rule/mode can be best and for another model another rule/mode.</para>
-        /// <para>The default rule is <see cref="lpsolve_pivot_rule.PRICER_DEVEX"/> and the default mode is <see cref="lpsolve_pivot_modes.PRICE_ADAPTIVE"/>.</para>
+        /// <para>The default rule is <see cref="PivotRule.Devex"/> and the default mode is <see cref="PivotModes.Adaptive"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_pivoting.htm">Full C API documentation.</seealso>
-        public void set_pivoting(lpsolve_pivot_rule rule, lpsolve_pivot_modes modes)
+        public void set_pivoting(PivotRule rule, PivotModes modes)
             => NativeMethods.set_pivoting(_lp, ((int)rule) | ((int)modes));
 
         /// <summary>
@@ -2148,23 +2086,23 @@ namespace LpSolveDotNet.Idiomatic
         /// <para>
         /// This rule/mode can influence solving times considerably.
         /// Depending on the model one rule can be best and for another model another rule.</para>
-        /// <para>The default is <see cref="lpsolve_pivot_rule.PRICER_DEVEX"/>.</para>
+        /// <para>The default is <see cref="PivotRule.Devex"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_piv_rule.htm">Full C API documentation.</seealso>
-        public bool is_piv_rule(lpsolve_pivot_rule rule)
+        public bool is_piv_rule(PivotRule rule)
             => NativeMethods.is_piv_rule(_lp, rule);
 
 
         /// <summary>
         /// Checks if the pivot mode specified in <paramref name="testmask"/> is active.
         /// </summary>
-        /// <param name="testmask">Any combination of <see cref="lpsolve_pivot_modes"/> to check if they are active.</param>
+        /// <param name="testmask">Any combination of <see cref="PivotModes"/> to check if they are active.</param>
         /// <returns><c>true</c> if all the specified modes are active, <c>false</c> otherwise.</returns>
         /// <remarks>
         /// The pivot mode is an extra modifier to the pivot rule. Any combination (OR) of the defined values is possible.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_piv_mode.htm">Full C API documentation.</seealso>
-        public bool is_piv_mode(lpsolve_pivot_modes testmask)
+        public bool is_piv_mode(PivotModes testmask)
             => NativeMethods.is_piv_mode(_lp, testmask);
 
         #endregion
@@ -2201,19 +2139,19 @@ namespace LpSolveDotNet.Idiomatic
         /// <para>
         /// This can influence numerical stability considerably.
         /// It is advisable to always use some sort of scaling.</para>
-        /// <para><see cref="set_scaling"/> must be called before solve is called.</para>
+        /// <para><see cref="set_scaling(ScaleAlgorithm, ScaleParameters)"/> must be called before solve is called.</para>
         /// See <see cref="ScalingAlgorithmAndParameters" /> for more information on scaling.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_scaling.htm">Full C API documentation.</seealso>
         public ScalingAlgorithmAndParameters get_scaling()
         {
             int scaling = NativeMethods.get_scaling(_lp);
-            int mask = (int)lpsolve_scale_algorithm.SCALE_CURTISREID;
+            int mask = (int)ScaleAlgorithm.CurtisReid;
             int algorithm = scaling & mask;
             int parameters = scaling & ~mask;
             return new ScalingAlgorithmAndParameters(
-                (lpsolve_scale_algorithm)algorithm,
-                (lpsolve_scale_parameters)parameters
+                (ScaleAlgorithm)algorithm,
+                (ScaleParameters)parameters
                 );
         }
 
@@ -2226,28 +2164,28 @@ namespace LpSolveDotNet.Idiomatic
         /// <para>
         /// This can influence numerical stability considerably.
         /// It is advisable to always use some sort of scaling.</para>
-        /// <para><see cref="set_scaling"/> must be called before solve is called.</para>
+        /// <para>This method must be called before <see cref="Solve"/> is called.</para>
         /// See <see cref="ScalingAlgorithmAndParameters" /> for more information on scaling.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_scaling.htm">Full C API documentation.</seealso>
-        public void set_scaling(lpsolve_scale_algorithm algorithm, lpsolve_scale_parameters parameters)
+        public void set_scaling(ScaleAlgorithm algorithm, ScaleParameters parameters)
             => NativeMethods.set_scaling(_lp, ((int)algorithm) | ((int)parameters));
 
         /// <summary>
         /// Returns if scaling algorithm and parameters specified are active.
         /// </summary>
         /// <param name="algorithmMask">Specifies which scaling algorithm to verify.
-        /// Optional with default = <see cref="lpsolve_scale_algorithm.SCALE_NONE"/></param>
+        /// Optional with default = <see cref="ScaleAlgorithm.None"/></param>
         /// <param name="parameterMask">Specifies which parameters must be verified.
-        /// Optional with default = <see cref="lpsolve_scale_parameters.SCALE_NONE"/></param>
+        /// Optional with default = <see cref="ScaleParameters.None"/></param>
         /// <returns><c>true</c> if scaling algorithm and parameters specified are active, <c>false</c> otherwise.</returns>
         /// <remarks>
         /// See <see cref="ScalingAlgorithmAndParameters" /> for more information on scaling.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_scalemode.htm">Full C API documentation.</seealso>
         public bool is_scalemode(
-            lpsolve_scale_algorithm algorithmMask = lpsolve_scale_algorithm.SCALE_NONE,
-            lpsolve_scale_parameters parameterMask = lpsolve_scale_parameters.SCALE_NONE)
+            ScaleAlgorithm algorithmMask = ScaleAlgorithm.None,
+            ScaleParameters parameterMask = ScaleParameters.None)
             => NativeMethods.is_scalemode(_lp, ((int)algorithmMask) | ((int)parameterMask));
 
         /// <summary>
@@ -2259,16 +2197,16 @@ namespace LpSolveDotNet.Idiomatic
         /// See <see cref="ScalingAlgorithmAndParameters" /> for more information on scaling.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_scaletype.htm">Full C API documentation.</seealso>
-        public bool is_scaletype(lpsolve_scale_algorithm algorithm)
+        public bool is_scaletype(ScaleAlgorithm algorithm)
             => NativeMethods.is_scaletype(_lp, algorithm);
 
         /// <summary>
         /// Returns if integer scaling is active.
         /// </summary>
-        /// <returns><c>true</c> if <see cref="lpsolve_scale_parameters.SCALE_INTEGERS"/> was set with <see cref="set_scaling"/>.</returns>
+        /// <returns><c>true</c> if <see cref="ScaleParameters.Integers"/> was set with <see cref="set_scaling(ScaleAlgorithm, ScaleParameters)"/>.</returns>
         /// <remarks>
-        /// By default, integers are not scaled, you mus call <see cref="set_scaling"/>
-        /// with <see cref="lpsolve_scale_parameters.SCALE_INTEGERS"/> to activate this feature.
+        /// By default, integers are not scaled, you mus call <see cref="set_scaling(ScaleAlgorithm, ScaleParameters)"/>
+        /// with <see cref="ScaleParameters.Integers"/> to activate this feature.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_integerscaling.htm">Full C API documentation.</seealso>
         public bool is_integerscaling()
@@ -2295,17 +2233,17 @@ namespace LpSolveDotNet.Idiomatic
         /// </summary>
         /// <param name="column">The column number of the variable on which the mode must be returned.
         /// It must be between 1 and the number of columns in the model.
-        /// If it is not within this range, the return value is the value of <see cref="get_bb_floorfirst"/>.</param>
+        /// If it is not within this range, the return value is the value of <see cref="FirstBranch"/>.</param>
         /// <returns>Returns which branch to take first in branch-and-bound algorithm.</returns>
         /// <remarks>
         /// This method returns which branch to take first in branch-and-bound algorithm.
         /// This can influence solving times considerably.
         /// Depending on the model one rule can be best and for another model another rule.
-        /// When no value was set via <see cref="set_var_branch"/>, the return value is the value of <see cref="get_bb_floorfirst"/>.
-        /// It also returns the value of <see cref="get_bb_floorfirst"/> when <see cref="set_var_branch"/> was called with branch mode <see cref="lpsolve_branch.BRANCH_DEFAULT">BRANCH_DEFAULT (3)</see>.
+        /// When no value was set via <see cref="set_var_branch(int, BranchMode)"/>, the return value is the value of <see cref="FirstBranch"/>.
+        /// It also returns the value of <see cref="FirstBranch"/> when <see cref="set_var_branch(int, BranchMode)"/> was called with branch mode <see cref="BranchMode.Default" />.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_var_branch.htm">Full C API documentation.</seealso>
-        public lpsolve_branch get_var_branch(int column)
+        public BranchMode get_var_branch(int column)
             => NativeMethods.get_var_branch(_lp, column);
 
         /// <summary>
@@ -2313,7 +2251,7 @@ namespace LpSolveDotNet.Idiomatic
         /// </summary>
         /// <param name="column">The column number of the variable on which the mode must be set.
         /// It must be between 1 and the number of columns in the model.</param>
-        /// <param name="branch_mode">Specifies, for the specified variable, which branch to take first in branch-and-bound algorithm.</param>
+        /// <param name="branchMode">Specifies, for the specified variable, which branch to take first in branch-and-bound algorithm.</param>
         /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
         /// <remarks>
         /// <para>
@@ -2321,12 +2259,12 @@ namespace LpSolveDotNet.Idiomatic
         /// This can influence solving times considerably.
         /// Depending on the model one rule can be best and for another model another rule.
         /// </para>
-        /// <para>The default is <see cref="lpsolve_branch.BRANCH_DEFAULT">BRANCH_DEFAULT (3)</see> which means that 
-        /// the branch mode specified with <see cref="set_bb_floorfirst"/> method must be used.</para>
+        /// <para>The default is <see cref="BranchMode.Default" /> which means that 
+        /// the branch mode specified with <see cref="FirstBranch"/> method must be used.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_var_branch.htm">Full C API documentation.</seealso>
-        public bool set_var_branch(int column, lpsolve_branch branch_mode)
-            => NativeMethods.set_var_branch(_lp, column, branch_mode);
+        public bool set_var_branch(int column, BranchMode branchMode)
+            => NativeMethods.set_var_branch(_lp, column, branchMode);
 
         /// <summary>
         /// Returns whether the branch-and-bound algorithm stops at first found solution or not.
@@ -2385,30 +2323,42 @@ namespace LpSolveDotNet.Idiomatic
         /// <summary>
         /// Returns the branch-and-bound rule.
         /// </summary>
-        /// <returns>Returns the <see cref="lpsolve_BBstrategies">branch-and-bound rule</see>.</returns>
+        /// <returns>Returns the <see cref="BranchAndBoundRuleAndModes">branch-and-bound rule</see>.</returns>
         /// <remarks>
         /// <para>The method returns the branch-and-bound rule for choosing which non-integer variable is to be selected.
         /// This rule can influence solving times considerably.
         /// Depending on the model one rule can be best and for another model another rule.</para>
         /// <para>The default is NODE_PSEUDONONINTSELECT + NODE_GREEDYMODE + NODE_DYNAMICMODE + NODE_RCOSTFIXING(17445).</para>
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_bb_rule.htm">Full C API documentation.</seealso>
-        public lpsolve_BBstrategies get_bb_rule()
-            => NativeMethods.get_bb_rule(_lp);
 
         /// <summary>
-        /// Specifies the branch-and-bound rule.
+        /// Specifies the branch-and-bound rule and modes
+        /// which define which non-integer variable is to be selected.
         /// </summary>
-        /// <param name="bb_rule">The <see cref="lpsolve_BBstrategies">branch-and-bound rule</see> to set.</param>
         /// <remarks>
-        /// <para>The method specifies the branch-and-bound rule for choosing which non-integer variable is to be selected.
-        /// This rule can influence solving times considerably.
-        /// Depending on the model one rule can be best and for another model another rule.</para>
-        /// <para>The default is NODE_PSEUDONONINTSELECT + NODE_GREEDYMODE + NODE_DYNAMICMODE + NODE_RCOSTFIXING(17445).</para>
+        /// <para>
+        /// This rule/mode can influence solving times considerably.
+        /// Depending on the model one rule/mode can be best and for another model another rule/mode.</para>
+        /// <para>The default rule is <see cref="BranchAndBoundRule.PseudoNonIntegerSelect"/>
+        /// and the default modes are <see cref="BranchAndBoundModes.GreedyMode"/> | <see cref="BranchAndBoundModes.DynamicMode"/> | <see cref="BranchAndBoundModes.RCostFixing"/>.</para>
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_bb_rule.htm">Full C API documentation.</seealso>
-        public void set_bb_rule(lpsolve_BBstrategies bb_rule)
-            => NativeMethods.set_bb_rule(_lp, bb_rule);
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_bb_rule.htm">Full C API documentation (get).</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_bb_rule.htm">Full C API documentation (set).</seealso>
+        public BranchAndBoundRuleAndModes BranchAndBoundRuleAndModes
+        {
+            get
+            {
+                int ruleAndModes = NativeMethods.get_pivoting(_lp);
+                int mask = (int)BranchAndBoundRule.UserSelect;
+                int rule = ruleAndModes & mask;
+                int modes = ruleAndModes & ~mask;
+                return new BranchAndBoundRuleAndModes(
+                    (BranchAndBoundRule)rule,
+                    (BranchAndBoundModes)modes
+                    );
+            }
+            set => NativeMethods.set_bb_rule(_lp, ((int)value.Rule) | ((int)value.Modes));
+        }
 
         /// <summary>
         /// Returns the maximum branch-and-bound depth.
@@ -2455,32 +2405,21 @@ namespace LpSolveDotNet.Idiomatic
             => NativeMethods.set_bb_depthlimit(_lp, bb_maxlevel);
 
         /// <summary>
-        /// Returns which branch to take first in branch-and-bound algorithm.
+        /// Defines which branch to take first in branch-and-bound algorithm.
         /// </summary>
-        /// <returns>Returns which branch to take first in branch-and-bound algorithm.</returns>
         /// <remarks>
-        /// <para>The method returns which branch to take first in branch-and-bound algorithm.
+        /// <para>
         /// This can influence solving times considerably.
         /// Depending on the model one rule can be best and for another model another rule.</para>
-        /// <para>The default is <see cref="lpsolve_branch.BRANCH_AUTOMATIC"/>.</para>
+        /// <para>The default is <see cref="BranchMode.Automatic"/>.</para>
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_bb_floorfirst.htm">Full C API documentation.</seealso>
-        public lpsolve_branch get_bb_floorfirst()
-            => NativeMethods.get_bb_floorfirst(_lp);
-
-        /// <summary>
-        /// Specifies which branch to take first in branch-and-bound algorithm.
-        /// </summary>
-        /// <param name="bb_floorfirst">Specifies which branch to take first in branch-and-bound algorithm.</param>
-        /// <remarks>
-        /// <para>The method specifies which branch to take first in branch-and-bound algorithm.
-        /// This can influence solving times considerably.
-        /// Depending on the model one rule can be best and for another model another rule.</para>
-        /// <para>The default is <see cref="lpsolve_branch.BRANCH_AUTOMATIC"/>.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_bb_floorfirst.htm">Full C API documentation.</seealso>
-        public void set_bb_floorfirst(lpsolve_branch bb_floorfirst)
-            => NativeMethods.set_bb_floorfirst(_lp, bb_floorfirst);
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_bb_floorfirst.htm">Full C API documentation (get).</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_bb_floorfirst.htm">Full C API documentation (set).</seealso>
+        public BranchMode FirstBranch
+        {
+            get => NativeMethods.get_bb_floorfirst(_lp);
+            set => NativeMethods.set_bb_floorfirst(_lp, value);
+        }
 
         /// <summary>
         /// Sets a user function that specifies which non-integer variable to select next to make integer in the B&amp;B solve.
@@ -2492,7 +2431,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <para>When a negative value is returned, lp_solve will determine the next variable to make integer as if the routine is not set.</para>
         /// </param>
         /// <remarks>Via this routine the user can implement his own rule to select the next non-integer variable to make integer.
-        /// This overrules the setting of <see cref="set_bb_rule"/>.</remarks>
+        /// This overrules the setting of <see cref="BranchAndBoundRuleAndModes"/>.</remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/put_bb_nodefunc.htm">Full C API documentation.</seealso>
         public void PutBranchAndBoundNodeSelector(BranchAndBoundNodeSelector nodeSelector)
             => NativeMethods.put_bb_nodefunc(_lp, (x, y, z) => nodeSelector(this), IntPtr.Zero);
@@ -2503,7 +2442,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <param name="branchSelector">The branch selection method.</param>
         /// <remarks>With this function you can specify which branch must be taken first in the B&amp;B algorithm.
         /// The floor or the ceiling.
-        /// This overrules the setting of <see cref="set_bb_floorfirst"/>.</remarks>
+        /// This overrules the setting of <see cref="FirstBranch"/>.</remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/put_bb_branchfunc.htm">Full C API documentation.</seealso>
         public void PutBranchAndBoundBranchSelector(BranchAndBoundBranchSelector branchSelector)
             => NativeMethods.put_bb_branchfunc(_lp, (x, y, column) => branchSelector(this, column) == BranchSelectorResult.Floor, IntPtr.Zero);
@@ -2511,40 +2450,32 @@ namespace LpSolveDotNet.Idiomatic
         #endregion
 
         /// <summary>
-        /// Returns the iterative improvement level.
-        /// </summary>
-        /// <returns>The iterative improvement level</returns>
-        /// <remarks>
-        /// The default is <see cref="lpsolve_improves.IMPROVE_DUALFEAS"/> + <see cref="lpsolve_improves.IMPROVE_THETAGAP"/>.
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_improve.htm">Full C API documentation.</seealso>
-        public lpsolve_improves get_improve()
-            => NativeMethods.get_improve(_lp);
-
-        /// <summary>
         /// Specifies the iterative improvement level.
         /// </summary>
-        /// <param name="improve">The iterative improvement level.</param>
         /// <remarks>
-        /// The default is <see cref="lpsolve_improves.IMPROVE_DUALFEAS"/> + <see cref="lpsolve_improves.IMPROVE_THETAGAP"/>.
+        /// The default is <see cref="IterativeImprovementLevels.DualFeasibility"/> + <see cref="IterativeImprovementLevels.ThetaGap"/>.
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_improve.htm">Full C API documentation.</seealso>
-        public void set_improve(lpsolve_improves improve)
-            => NativeMethods.set_improve(_lp, improve);
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_improve.htm">Full C API documentation (get).</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_improve.htm">Full C API documentation (set).</seealso>
+        public IterativeImprovementLevels IterativeImprovementLevels
+        {
+            get => NativeMethods.get_improve(_lp);
+            set => NativeMethods.set_improve(_lp, value);
+        }
 
-        /// <summary>
-        /// Returns the negative value below which variables are split into a negative and a positive part.
-        /// </summary>
-        /// <return>The negative value below which variables are split into a negative and a positive part.</return>
-        /// <remarks>
-        ///  <para>This value is always zero or negative.</para>
-        ///  <para>In some cases, negative variables must be split in a positive part and a negative part.
-        ///  This is when a negative lower or upper bound is set on a variable.
-        ///  If a bound is less than this value, it is <strong>possibly</strong> split.</para>
-        ///  <para>The default is -1e6.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_negrange.htm">Full C API documentation.</seealso>
-        public double get_negrange()
+    /// <summary>
+    /// Returns the negative value below which variables are split into a negative and a positive part.
+    /// </summary>
+    /// <return>The negative value below which variables are split into a negative and a positive part.</return>
+    /// <remarks>
+    ///  <para>This value is always zero or negative.</para>
+    ///  <para>In some cases, negative variables must be split in a positive part and a negative part.
+    ///  This is when a negative lower or upper bound is set on a variable.
+    ///  If a bound is less than this value, it is <strong>possibly</strong> split.</para>
+    ///  <para>The default is -1e6.</para>
+    /// </remarks>
+    /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_negrange.htm">Full C API documentation.</seealso>
+    public double get_negrange()
             => NativeMethods.get_negrange(_lp);
 
         /// <summary>
@@ -2563,40 +2494,30 @@ namespace LpSolveDotNet.Idiomatic
             => NativeMethods.set_negrange(_lp, negrange);
 
         /// <summary>
-        /// Returns the used degeneracy rule.
-        /// </summary>
-        /// <returns>The used degeneracy rule (can be any combination of <see cref="lpsolve_anti_degen"/>).</returns>
-        /// <remarks>
-        ///  <para>The default is <see cref="lpsolve_anti_degen.ANTIDEGEN_INFEASIBLE"/>
-        ///  + <see cref="lpsolve_anti_degen.ANTIDEGEN_STALLING"/>
-        ///  + <see cref="lpsolve_anti_degen.ANTIDEGEN_FIXEDVARS"/>.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_anti_degen.htm">Full C API documentation.</seealso>
-        public lpsolve_anti_degen get_anti_degen()
-            => NativeMethods.get_anti_degen(_lp);
-
-        /// <summary>
         /// Returns if the degeneracy rules specified in <paramref name="testmask"/> are active.
         /// </summary>
-        /// <param name="testmask">Any combination of <see cref="lpsolve_anti_degen"/> to check if they are active.</param>
+        /// <param name="testmask">Any combination of <see cref="AntiDegeneracyRules"/> to check if they are active.</param>
         /// <returns><c>true</c> if all rules specified in <paramref name="testmask"/> are active, <c>false</c> otherwise.</returns>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_anti_degen.htm">Full C API documentation.</seealso>
-        public bool is_anti_degen(lpsolve_anti_degen testmask)
+        public bool is_anti_degen(AntiDegeneracyRules testmask)
             => NativeMethods.is_anti_degen(_lp, testmask);
 
         /// <summary>
         /// Specifies if special handling must be done to reduce degeneracy/cycling while solving.
         /// </summary>
-        /// <param name="anti_degen">The degeneracy rule that must be used (can be any combination of <see cref="lpsolve_anti_degen"/>).</param>
         /// <remarks>
         ///  <para>Setting this flag can avoid cycling, but can also increase numerical instability.</para>
-        ///  <para>The default is <see cref="lpsolve_anti_degen.ANTIDEGEN_INFEASIBLE"/>
-        ///  + <see cref="lpsolve_anti_degen.ANTIDEGEN_STALLING"/>
-        ///  + <see cref="lpsolve_anti_degen.ANTIDEGEN_FIXEDVARS"/>.</para>
+        ///  <para>The default is <see cref="AntiDegeneracyRules.Infeasible"/>
+        ///  + <see cref="AntiDegeneracyRules.Stalling"/>
+        ///  + <see cref="AntiDegeneracyRules.FixedVariables"/>.</para>
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_anti_degen.htm">Full C API documentation.</seealso>
-        public void set_anti_degen(lpsolve_anti_degen anti_degen)
-            => NativeMethods.set_anti_degen(_lp, anti_degen);
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_anti_degen.htm">Full C API documentation (get).</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_anti_degen.htm">Full C API documentation (set).</seealso>
+        public AntiDegeneracyRules AntiDegeneracyRules
+        {
+            get => NativeMethods.get_anti_degen(_lp);
+            set => NativeMethods.set_anti_degen(_lp, value);
+        }
 
         /// <summary>
         /// Resets parameters back to their default values.
@@ -2748,42 +2669,18 @@ namespace LpSolveDotNet.Idiomatic
             => NativeMethods.write_params(_lp, filename, options);
 
         /// <summary>
-        /// Returns the desired combination of primal and dual simplex algorithms.
+        /// Defines the desired combination of primal and dual simplex algorithms.
         /// </summary>
-        /// <returns>The desired combination of primal and dual simplex algorithms.</returns>
         /// <remarks>
-        ///  The default is <see cref="lpsolve_simplextypes.SIMPLEX_DUAL_PRIMAL"/>.
+        ///  The default is <see cref="SimplexType.DualPrimal"/>.
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_simplextype.htm">Full C API documentation.</seealso>
-        public lpsolve_simplextypes get_simplextype()
-            => NativeMethods.get_simplextype(_lp);
-
-        /// <summary>
-        /// Sets the desired combination of primal and dual simplex algorithms.
-        /// </summary>
-        /// <param name="simplextype">The desired combination of primal and dual simplex algorithms.</param>
-        /// <remarks>
-        ///  The default is <see cref="lpsolve_simplextypes.SIMPLEX_DUAL_PRIMAL"/>.
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_simplextype.htm">Full C API documentation.</seealso>
-        public void set_simplextype(lpsolve_simplextypes simplextype)
-            => NativeMethods.set_simplextype(_lp, simplextype);
-
-        /// <summary>
-        /// Sets the desired combination of primal and dual simplex algorithms.
-        /// </summary>
-        /// <param name="dodual">
-        ///  <para>When <c>true</c>, the simplex strategy is set to <see cref="lpsolve_simplextypes.SIMPLEX_DUAL_DUAL"/>.</para>
-        ///  <para>When <c>false</c>, the simplex strategy is set to <see cref="lpsolve_simplextypes.SIMPLEX_PRIMAL_PRIMAL"/>.</para>
-        /// </param>
-        /// <remarks>
-        ///  <para>The method <see cref="set_preferdual"/> with <paramref name="dodual"/> = <c>true</c> is a shortcut for <c>set_simplextype(lpsolve_simplextypes.SIMPLEX_DUAL_DUAL)</c></para>
-        ///  <para>The method <see cref="set_preferdual"/> with <paramref name="dodual"/> = <c>false</c> is a shortcut for <c>set_simplextype(lpsolve_simplextypes.SIMPLEX_PRIMAL_PRIMAL)</c></para>
-        ///  <para>The default is <see cref="lpsolve_simplextypes.SIMPLEX_DUAL_PRIMAL"/></para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_preferdual.htm">Full C API documentation.</seealso>
-        public void set_preferdual(bool dodual)
-            => NativeMethods.set_preferdual(_lp, dodual);
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_simplextype.htm">Full C API documentation (get).</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_simplextype.htm">Full C API documentation (set).</seealso>
+        public SimplexType SimplexType
+        {
+            get => NativeMethods.get_simplextype(_lp);
+            set => NativeMethods.set_simplextype(_lp, value);
+        }
 
         /// <summary>
         /// Returns the solution number that must be returned.
@@ -2822,7 +2719,7 @@ namespace LpSolveDotNet.Idiomatic
         /// </summary>
         /// <returns>The number of seconds after which a timeout occurs.</returns>
         /// <remarks>
-        /// <para>The <see cref="solve"/> method may not last longer than this time or
+        /// <para>The <see cref="Solve"/> method may not last longer than this time or
         /// the method returns with a timeout. There is no valid solution at this time.
         /// The default timeout is 0, resulting in no timeout.</para>
         /// </remarks>
@@ -2835,12 +2732,12 @@ namespace LpSolveDotNet.Idiomatic
         /// </summary>
         /// <param name="sectimeout">The number of seconds after which a timeout occurs. If zero, then no timeout will occur.</param>
         /// <remarks>
-        /// <para>The <see cref="solve"/> method may not last longer than this time or
+        /// <para>The <see cref="Solve"/> method may not last longer than this time or
         /// the method returns with a timeout. The default timeout is 0, resulting in no timeout.</para>
         /// <para>If a timout occurs, but there was already an integer solution found (that is possibly not the best),
-        /// then solve will return <see cref="lpsolve_return.SUBOPTIMAL"/>.
+        /// then solve will return <see cref="SolveResult.SubOptimal"/>.
         /// If there was no integer solution found yet or there are no integers or the solvers is still in the
-        /// first phase where a REAL optimal solution is searched for, then solve will return <see cref="lpsolve_return.TIMEOUT"/>.</para>
+        /// first phase where a REAL optimal solution is searched for, then solve will return <see cref="SolveResult.TimedOut"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_timeout.htm">Full C API documentation.</seealso>
         public void set_timeout(int sectimeout)
@@ -2883,77 +2780,57 @@ namespace LpSolveDotNet.Idiomatic
         /// <summary>
         /// Returns if presolve level specified in <paramref name="testmask"/> is active.
         /// </summary>
-        /// <param name="testmask">The combination of any of the <see cref="lpsolve_presolve"/> values to check whether they are active or not.</param>
+        /// <param name="testmask">The combination of any of the <see cref="PreSolveLevels"/> values to check whether they are active or not.</param>
         /// <returns><c>true</c>, if all levels specified in <paramref name="testmask"/> are active, <c>false</c> otherwise.</returns>
         /// <remarks>
         /// <para>Presolve looks at the model and tries to simplify it so that solving times are shorter.
         /// For example a constraint on only one variable is converted to a bound on this variable
         /// (and the constraint is deleted). Note that the model dimensions can change because of this,
         /// so be careful with this. Both rows and columns can be deleted by the presolve.</para>
-        /// <para>The default is not (<see cref="lpsolve_presolve.PRESOLVE_NONE"/>) doing a presolve.</para>
+        /// <para>The default is not (<see cref="PreSolveLevels.None"/>) doing a presolve.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_presolve.htm">Full C API documentation.</seealso>
-        public bool is_presolve(lpsolve_presolve testmask)
+        public bool is_presolve(PreSolveLevels testmask)
             => NativeMethods.is_presolve(_lp, testmask);
 
         /// <summary>
-        /// Returns the number of times presolve is done.
+        /// Specifies if a presolve must be done before solving.
+        /// Can be the combination of any of the <see cref="PreSolveLevels"/> values.
         /// </summary>
-        /// <returns>The number of times presolve is done.</returns>
+        /// <remarks>
+        /// <para>Presolve looks at the model and tries to simplify it so that solving times are shorter.
+        /// For example a constraint on only one variable is converted to a bound on this variable
+        /// (and the constraint is deleted). Note that the model dimensions can change because of this,
+        /// so be careful with this. Both rows and columns can be deleted by the presolve.</para>
+        /// <para>Note that <see cref="PreSolveLevels.LinearlyDependentRows"/> can result in deletion of rows
+        /// (the linear dependent ones).
+        /// <see cref="get_constraints"/> will then return only the values of the rows that are
+        /// kept and the values of the deleted rows are not known anymore.
+        /// </para>
+        /// <para>
+        /// The default is (<see cref="PreSolveLevels.None"/>) which does not presolve.
+        /// </para>
+        /// </remarks>
+        public PreSolveLevels PreSolveLevels
+        {
+            get => NativeMethods.get_presolve(_lp);
+            set => NativeMethods.set_presolve(_lp, value, PreSolveMaxLoops);
+        }
+
+        /// <summary>
+        /// The maximum number of times presolve is done.
+        /// </summary>
         /// <remarks>
         /// After a presolve is done, another presolve can again result in elimination of extra rows and/or columns.
         /// This number specifies the maximum number of times this process is repeated.
         /// By default this is until presolve has nothing to do anymore.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_presolveloops.htm">Full C API documentation.</seealso>
-        public int get_presolveloops()
-            => NativeMethods.get_presolveloops(_lp);
-
-        /// <summary>
-        /// Returns if a presolve must be done before solving.
-        /// </summary>
-        /// <returns>Can be the combination of any of the <see cref="lpsolve_presolve"/> values.</returns>
-        /// <remarks>
-        /// <para>Presolve looks at the model and tries to simplify it so that solving times are shorter.
-        /// For example a constraint on only one variable is converted to a bound on this variable
-        /// (and the constraint is deleted). Note that the model dimensions can change because of this,
-        /// so be careful with this. Both rows and columns can be deleted by the presolve.</para>
-        /// <para>
-        /// The default is not (<see cref="lpsolve_presolve.PRESOLVE_NONE"/>) doing a presolve.
-        /// </para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_presolve.htm">Full C API documentation.</seealso>
-        public lpsolve_presolve get_presolve()
-            => NativeMethods.get_presolve(_lp);
-
-        /// <summary>
-        /// Specifies if a presolve must be done before solving.
-        /// </summary>
-        /// <param name="do_presolve">Specifies presolve level. Can be the combination of any of the <see cref="lpsolve_presolve"/> values.</param>
-        /// <param name="maxloops">The maximum number of times presolve may be done.
-        /// Use <see cref="get_presolveloops"/> if you don't want to change this value.</param>
-        /// <remarks>
-        /// <para>Presolve looks at the model and tries to simplify it so that solving times are shorter.
-        /// For example a constraint on only one variable is converted to a bound on this variable
-        /// (and the constraint is deleted). Note that the model dimensions can change because of this,
-        /// so be careful with this. Both rows and columns can be deleted by the presolve.</para>
-        /// <para>The <paramref name="maxloops"/> variable specifies the maximum number of times presolve
-        /// is done. After a presolve is done, another presolve can again result in elimination of
-        /// extra rows and/or columns.
-        /// This number specifies the maximum number of times this process is repeated.
-        /// By default this is until presolve has nothing to do anymore.
-        /// Use <see cref="get_presolveloops"/> if you don't want to change this value.</para>
-        /// <para>Note that <see cref="lpsolve_presolve.PRESOLVE_LINDEP"/> can result in deletion of rows
-        /// (the linear dependent ones).
-        /// <see cref="get_constraints"/> will then return only the values of the rows that are
-        /// kept and the values of the deleted rows are not known anymore.
-        /// The default is not (<see cref="lpsolve_presolve.PRESOLVE_NONE"/>) doing a presolve.
-        /// </para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_presolve.htm">Full C API documentation.</seealso>
-        public void set_presolve(lpsolve_presolve do_presolve, int maxloops)
-            => NativeMethods.set_presolve(_lp, do_presolve, maxloops);
-
+        public int PreSolveMaxLoops
+        {
+            get => NativeMethods.get_presolveloops(_lp);
+            set => NativeMethods.set_presolve(_lp, PreSolveLevels, value);
+        }
         #endregion
 
         #region Callback methods
@@ -2998,7 +2875,7 @@ namespace LpSolveDotNet.Idiomatic
         /// This can be useful to follow the solving progress.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/put_msgfunc.htm">Full C API documentation.</seealso>
-        public void PutMessageHandler(MessageHandler handler, lpsolve_msgmask mask)
+        public void PutMessageHandler(MessageHandler handler, MessageMasks mask)
             => NativeMethods.put_msgfunc(_lp, (x, y, mask)=>handler(this,mask), IntPtr.Zero, mask);
 
 
@@ -3009,25 +2886,25 @@ namespace LpSolveDotNet.Idiomatic
         /// <summary>
         /// Solve the model.
         /// </summary>
-        /// <returns>One of the <see cref="lpsolve_return"/> enum values.</returns>
+        /// <returns>One of the <see cref="SolveResult"/> enum values.</returns>
         /// <remarks>
-        /// <para><see cref="solve"/> can be called more than once.
+        /// <para><see cref="Solve"/> can be called more than once.
         /// Between calls, the model may be modified in every way.
         /// Restrictions may be changed, matrix values may be changed and even rows and/or columns 
         /// may be added or deleted.</para>
         /// <para>If <see cref="set_timeout"/> was called before solve with a non-zero timeout and a timout occurs,
         /// and there was already an integer solution found (that is possibly not the best), 
-        /// then solve will return <see cref="lpsolve_return.SUBOPTIMAL"/>.
+        /// then solve will return <see cref="SolveResult.SubOptimal"/>.
         /// If there was no integer solution found yet or there are no integers or the solvers is still 
-        /// in the first phase where a REAL optimal solution is searched for, then solve will return <see cref="lpsolve_return.TIMEOUT"/>.</para>
-        /// <para>If <see cref="set_presolve"/> was called before solve, then it can happen that presolve 
+        /// in the first phase where a REAL optimal solution is searched for, then solve will return <see cref="SolveResult.TimedOut"/>.</para>
+        /// <para>If <see cref="PreSolveLevels"/> was set before solve, then it can happen that presolve 
         /// eliminates all rows and columns such that the solution is known by presolve.
         /// In that case, no solve is done.
         /// This also means that values of constraints and sensitivity are unknown.
-        /// solve will return <see cref="lpsolve_return.PRESOLVED"/> in this case.</para>
+        /// solve will return <see cref="SolveResult.PreSolved"/> in this case.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/solve.htm">Full C API documentation.</seealso>
-        public lpsolve_return solve()
+        public SolveResult Solve()
             => NativeMethods.solve(_lp);
 
         #endregion
@@ -3068,10 +2945,10 @@ namespace LpSolveDotNet.Idiomatic
         /// <param name="constr">An array that will contain the values of the constraints.</param>
         /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
         /// <remarks>
-        /// <para>These values are only valid after a successful <see cref="solve"/>. 
+        /// <para>These values are only valid after a successful <see cref="Solve"/>. 
         /// The array must already be dimensioned with <see cref="get_Nrows"/> elements.
         /// Element 0 will contain the value of the first row, element 1 of the second row, ...</para>
-        /// <para>Note that when <see cref="set_presolve"/> was called with parameter <see cref="lpsolve_presolve.PRESOLVE_LINDEP"/>
+        /// <para>Note that when <see cref="PreSolveLevels"/> was set with parameter <see cref="PreSolveLevels.LinearlyDependentRows"/>
         /// that this can result in deletion of rows (the linear dependent ones). 
         /// This method will then return only the values of the rows that are kept and 
         /// the values of the deleted rows are not known anymore.</para>
@@ -3087,8 +2964,8 @@ namespace LpSolveDotNet.Idiomatic
         /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
         /// <remarks>
         /// <para>The <see cref="get_dual_solution"/> method return only the value(s) of the dual variables aka reduced costs.</para>
-        /// <para>These values are only valid after a successful <see cref="solve"/> and if there are integer variables in the model then only if <see cref="set_presolve"/>
-        /// is called before <see cref="solve"/> with parameter <see cref="lpsolve_presolve.PRESOLVE_SENSDUALS"/>.</para>
+        /// <para>These values are only valid after a successful <see cref="Solve"/> and if there are integer variables in the model then only if <see cref="PreSolveLevels"/>
+        /// is set before <see cref="Solve"/> with parameter <see cref="PreSolveLevels.CalculateSensitivityDuals"/>.</para>
         /// <para><paramref name="rc"/> needs to already be dimensioned with 1+<see cref="get_Nrows"/>+<see cref="get_Ncolumns"/> elements.</para>
         /// <para>For method <see cref="get_dual_solution"/>, the index starts from 1 and element 0 is not used.
         /// The first <see cref="get_Nrows"/> elements contain the duals of the constraints, 
@@ -3121,7 +2998,7 @@ namespace LpSolveDotNet.Idiomatic
         /// </summary>
         /// <returns>The value of the objective function.</returns>
         /// <remarks>
-        /// <para>This value is only valid after a successful <see cref="solve"/>.</para>
+        /// <para>This value is only valid after a successful <see cref="Solve"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_objective.htm">Full C API documentation.</seealso>
         public double get_objective()
@@ -3136,11 +3013,11 @@ namespace LpSolveDotNet.Idiomatic
         /// </param>
         /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
         /// <remarks>
-        /// <para>These values are only valid after a successful <see cref="solve"/>.
+        /// <para>These values are only valid after a successful <see cref="Solve"/>.
         /// <paramref name="pv"/> needs to be already dimensioned with 1 + <see cref="get_Nrows"/> + <see cref="get_Ncolumns"/> elements. 
         /// Element 0 is the value of the objective function, elements 1 till Nrows the values of the constraints and elements Nrows+1 till Nrows+NColumns the values of the variables.
         /// </para>
-        /// <para>Special considerations when presolve was done. When <see cref="set_presolve"/> is called before solve, 
+        /// <para>Special considerations when presolve was done. When <see cref="PreSolveLevels"/> is set before solve, 
         /// then presolve can have deleted both rows and columns from the model because they could be eliminated.
         /// This influences <see cref="get_primal_solution"/>.
         /// This method only reports the values of the remaining variables and constraints.
@@ -3159,9 +3036,9 @@ namespace LpSolveDotNet.Idiomatic
         /// <remarks>
         /// <para>The <see cref="get_sensitivity_obj"/> and <see cref="get_sensitivity_objex"/> methods return 
         /// the sensitivity of the objective function.</para>
-        /// <para>These values are only valid after a successful <see cref="solve"/> and if there are integer
-        /// variables in the model then only if <see cref="set_presolve"/> is called before <see cref="solve"/>
-        /// with parameter <see cref="lpsolve_presolve.PRESOLVE_SENSDUALS"/>.
+        /// <para>These values are only valid after a successful <see cref="Solve"/> and if there are integer
+        /// variables in the model then only if <see cref="PreSolveLevels"/> is set before <see cref="Solve"/>
+        /// with parameter <see cref="PreSolveLevels.CalculateSensitivityDuals"/>.
         /// The arrays must already be dimensioned with <see cref="get_Ncolumns"/> elements.
         /// Element 0 will contain the value of the first variable, element 1 of the second variable, ...</para>
         /// <para>The meaning of these limits are the following. As long as the value of the coefficient of 
@@ -3187,9 +3064,9 @@ namespace LpSolveDotNet.Idiomatic
         /// <remarks>
         /// <para>The <see cref="get_sensitivity_obj"/> and <see cref="get_sensitivity_objex"/> methods return 
         /// the sensitivity of the objective function.</para>
-        /// <para>These values are only valid after a successful <see cref="solve"/> and if there are integer
-        /// variables in the model then only if <see cref="set_presolve"/> is called before <see cref="solve"/>
-        /// with parameter <see cref="lpsolve_presolve.PRESOLVE_SENSDUALS"/>.
+        /// <para>These values are only valid after a successful <see cref="Solve"/> and if there are integer
+        /// variables in the model then only if <see cref="PreSolveLevels"/> is set before <see cref="Solve"/>
+        /// with parameter <see cref="PreSolveLevels.CalculateSensitivityDuals"/>.
         /// The arrays must already be dimensioned with <see cref="get_Ncolumns"/> elements.
         /// Element 0 will contain the value of the first variable, element 1 of the second variable, ...</para>
         /// <para>The meaning of these limits are the following. As long as the value of the coefficient of 
@@ -3214,8 +3091,8 @@ namespace LpSolveDotNet.Idiomatic
         /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
         /// <remarks>
         /// <para>The method returns the values of the dual variables aka reduced costs and their limits.</para>
-        /// <para>These values are only valid after a successful solve and if there are integer variables in the model then only if <see cref="set_presolve"/>
-        /// is called before <see cref="solve"/> with parameter <see cref="lpsolve_presolve.PRESOLVE_SENSDUALS"/>.</para>
+        /// <para>These values are only valid after a successful solve and if there are integer variables in the model then only if <see cref="PreSolveLevels"/>
+        /// is set before <see cref="Solve"/> with parameter <see cref="PreSolveLevels.CalculateSensitivityDuals"/>.</para>
         /// <para>The arrays need to be alread already dimensioned with <see cref="get_Nrows"/>+<see cref="get_Ncolumns"/> elements.</para>
         /// <para>Element 0 will contain the value of the first row, element 1 of the second row, ...
         /// Element <see cref="get_Nrows"/> contains the value for the first variable, element <see cref="get_Nrows"/>+1 the value for the second variable and so on.</para>
@@ -3277,8 +3154,8 @@ namespace LpSolveDotNet.Idiomatic
         /// <returns>The reduced cost on the variable at <paramref name="index"/>.</returns>
         /// <remarks>
         /// <para>The method returns only the value of the dual variables aka reduced costs.</para>
-        /// <para>This value is only valid after a successful <see cref="solve"/> and if there are integer variables in the model then only if <see cref="set_presolve"/>
-        /// is called before <see cref="solve"/> with parameter <see cref="lpsolve_presolve.PRESOLVE_SENSDUALS"/>.</para>
+        /// <para>This value is only valid after a successful <see cref="Solve"/> and if there are integer variables in the model then only if <see cref="PreSolveLevels"/>
+        /// is set before <see cref="Solve"/> with parameter <see cref="PreSolveLevels.CalculateSensitivityDuals"/>.</para>
         /// <para>The dual values or reduced costs values indicate that the objective function will change with the value of the reduced cost
         /// if the restriction is changed with 1 unit.
         /// There will only be a reduced cost if the value is bounded by the restriction, else it is zero.
@@ -3294,7 +3171,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <summary>
         /// Returns the solution of the model.
         /// </summary>
-        /// <param name="index">The original index of the variable in the model no matter if <see cref="set_presolve"/> is called before <see cref="solve"/>.</param>
+        /// <param name="index">The original index of the variable in the model no matter if <see cref="PreSolveLevels"/> is set before <see cref="Solve"/>.</param>
         /// <returns>The value of the solution for variable at <paramref name="index"/>.</returns>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_primal_solution.htm">Full C API documentation.</seealso>
         public double get_var_primalresult(int index)
@@ -3306,7 +3183,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <param name="var">An array that will contain the values of the variables.</param>
         /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
         /// <remarks>
-        /// <para>These values are only valid after a successful <see cref="solve"/>. 
+        /// <para>These values are only valid after a successful <see cref="Solve"/>. 
         /// <paramref name="var"/> must already be dimensioned with <see cref="get_Ncolumns"/> elements.
         /// Element 0 will contain the value of the first variable, element 1 of the second variable, ...</para>
         /// </remarks>
@@ -3334,7 +3211,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <returns><c>true</c> if <paramref name="values"/> represent a solution to the model, <c>false</c> otherwise</returns>
         /// <remarks>
         /// <para>All values of the values array must be between the bounds and ranges to be a feasible solution.</para>
-        /// <para>This value is only valid after a successful <see cref="solve"/>.</para>
+        /// <para>This value is only valid after a successful <see cref="Solve"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_feasible.htm">Full C API documentation.</seealso>
         public bool is_feasible(double[] values, double threshold)
@@ -3381,64 +3258,41 @@ namespace LpSolveDotNet.Idiomatic
             => NativeMethods.set_outputfile(_lp, filename);
 
         /// <summary>
-        /// Returns  a flag if all intermediate valid solutions must be printed while solving.
+        /// A flag defining if all intermediate valid solutions must be printed while solving.
         /// </summary>
-        /// <returns>A <see cref="lpsolve_print_sol_option"/>, default is to not print.</returns>
         /// <remarks>
-        /// This method is meant for debugging purposes. The default is not to print <see cref="lpsolve_print_sol_option.FALSE"/>.
+        /// This property is meant for debugging purposes. The default is not to print <see cref="PrintSolutionOption.False"/>.
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_print_sol.htm">Full C API documentation.</seealso>
-        public lpsolve_print_sol_option get_print_sol()
-            => NativeMethods.get_print_sol(_lp);
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_print_sol.htm">Full C API documentation (get).</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_print_sol.htm">Full C API documentation (set).</seealso>
+        public PrintSolutionOption PrintSolutionOption
+        {
+            get => NativeMethods.get_print_sol(_lp);
+            set => NativeMethods.set_print_sol(_lp, value);
+        }
 
         /// <summary>
-        /// Sets a flag if all intermediate valid solutions must be printed while solving.
+        /// Defines the level of verbosity from lp_solve to the user.
         /// </summary>
-        /// <param name="print_sol">A <see cref="lpsolve_print_sol_option"/>, default is to not print.</param>
-        /// <remarks>
-        /// This method is meant for debugging purposes. The default is not to print <see cref="lpsolve_print_sol_option.FALSE"/>.
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_print_sol.htm">Full C API documentation.</seealso>
-        public void set_print_sol(lpsolve_print_sol_option print_sol)
-            => NativeMethods.set_print_sol(_lp, print_sol);
-
-        /// <summary>
-        /// Returns the verbose level.
-        /// </summary>
-        /// <returns>The <see cref="lpsolve_verbosity"/> level.</returns>
+        /// <returns>The <see cref="Verbosity"/> level.</returns>
         /// <remarks>
         /// <para>lp_solve reports information back to the user.
-        /// How much information is reported depends on the verbose level.
-        /// The default verbose level is <see cref="lpsolve_verbosity.NORMAL"/>.
+        /// How much information is reported depends on the verbosity level.
+        /// The default verbosity level is <see cref="Verbosity.Normal"/>.
         /// lp_solve determines how verbose a given message is.
-        /// For example specifying a wrong row/column index values is considered as a <see cref="lpsolve_verbosity.SEVERE"/> error.
-        /// verbose determines how much of the lp_solve message are reported.
+        /// For example specifying a wrong row/column index values is considered as a <see cref="Verbosity.Severe"/> error.
+        /// Verbosity determines how much of the lp_solve messages are reported.
         /// All messages equal to and below the set level are reported.</para>
         /// <para>The default reporting device is the console screen.
-        /// It is possible to set a used defined reporting callback via <see cref="put_logfunc"/>.</para>
+        /// It is possible to set a used defined reporting callback via <see cref="PutLogHandler"/>.</para>
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_verbose.htm">Full C API documentation.</seealso>
-        public lpsolve_verbosity get_verbose()
-            => NativeMethods.get_verbose(_lp);
-
-        /// <summary>
-        /// Set the verbose level.
-        /// </summary>
-        /// <param name="verbose">The <see cref="lpsolve_verbosity"/> level.</param>
-        /// <remarks>
-        /// <para>lp_solve reports information back to the user.
-        /// How much information is reported depends on the verbose level.
-        /// The default verbose level is <see cref="lpsolve_verbosity.NORMAL"/>.
-        /// lp_solve determines how verbose a given message is.
-        /// For example specifying a wrong row/column index values is considered as a <see cref="lpsolve_verbosity.SEVERE"/> error.
-        /// <paramref name="verbose"/> determines how much of the lp_solve message are reported.
-        /// All messages equal to and below the set level are reported.</para>
-        /// <para>The default reporting device is the console screen.
-        /// It is possible to set a used defined reporting callback via <see cref="put_logfunc"/>.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_verbose.htm">Full C API documentation.</seealso>
-        public void set_verbose(lpsolve_verbosity verbose)
-            => NativeMethods.set_verbose(_lp, verbose);
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_verbose.htm">Full C API documentation (get).</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_verbose.htm">Full C API documentation (set).</seealso>
+        public Verbosity Verbosity
+        {
+            get => NativeMethods.get_verbose(_lp);
+            set => NativeMethods.set_verbose(_lp, value);
+        }
 
         /// <summary>
         /// Returns a flag if all intermediate results and the branch-and-bound decisions must be printed while solving.
@@ -3493,7 +3347,7 @@ namespace LpSolveDotNet.Idiomatic
         /// </summary>
         /// <param name="columns">Number of columns to print solution.</param>
         /// <remarks>
-        /// <para>This method only works after a successful <see cref="solve"/>.</para>
+        /// <para>This method only works after a successful <see cref="Solve"/>.</para>
         /// <para>This method is meant for debugging purposes. By default, the output is stdout.
         /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
         /// </remarks>
@@ -3517,7 +3371,7 @@ namespace LpSolveDotNet.Idiomatic
         /// Prints the values of the duals of the lp model.
         /// </summary>
         /// <remarks>
-        /// <para>This method only works after a successful <see cref="solve"/>.</para>
+        /// <para>This method only works after a successful <see cref="Solve"/>.</para>
         /// <para>This method is meant for debugging purposes. By default, the output is stdout.
         /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
         /// </remarks>
@@ -3540,7 +3394,7 @@ namespace LpSolveDotNet.Idiomatic
         /// Prints the objective value of the lp model.
         /// </summary>
         /// <remarks>
-        /// <para>This method only works after a successful <see cref="solve"/>.</para>
+        /// <para>This method only works after a successful <see cref="Solve"/>.</para>
         /// <para>This method is meant for debugging purposes. By default, the output is stdout.
         /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
         /// </remarks>
@@ -3552,7 +3406,7 @@ namespace LpSolveDotNet.Idiomatic
         /// Prints the scales of the lp model.
         /// </summary>
         /// <remarks>
-        /// <para>This method only works after a successful <see cref="solve"/>.</para>
+        /// <para>This method only works after a successful <see cref="Solve"/>.</para>
         /// <para>It will only output something when the model is scaled.</para>
         /// <para>This method is meant for debugging purposes. By default, the output is stdout.
         /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
@@ -3566,7 +3420,7 @@ namespace LpSolveDotNet.Idiomatic
         /// </summary>
         /// <param name="columns">Number of columns to print solution.</param>
         /// <remarks>
-        /// <para>This method only works after a successful <see cref="solve"/>.</para>
+        /// <para>This method only works after a successful <see cref="Solve"/>.</para>
         /// <para>This method is meant for debugging purposes. By default, the output is stdout.
         /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
         /// </remarks>
@@ -3590,7 +3444,7 @@ namespace LpSolveDotNet.Idiomatic
         /// Prints the tableau.
         /// </summary>
         /// <remarks>
-        /// <para>This method only works after a successful <see cref="solve"/>.</para>
+        /// <para>This method only works after a successful <see cref="Solve"/>.</para>
         /// <para>This method is meant for debugging purposes. By default, the output is stdout.
         /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
         /// </remarks>
@@ -3679,7 +3533,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <returns><c>true</c> if succeeded, <c>false</c> otherwise.</returns>
         /// <remarks>
         /// <para>This call is normally only needed when <see cref="write_XLI"/> will be called. 
-        /// <see cref="read_XLI"/> automatically calls this method</para>
+        /// <see cref="read_XLI(string, string, string, string, Verbosity)"/> automatically calls this method</para>
         /// <para>See <seealso href="http://lpsolve.sourceforge.net/5.5/XLI.htm">External Language Interfaces</seealso>
         /// for a complete description on XLIs.</para>
         /// </remarks>
@@ -3818,10 +3672,10 @@ namespace LpSolveDotNet.Idiomatic
             => NativeMethods.get_status(_lp);
 
         /// <summary>
-        /// Returns the description of a returncode of the <see cref="solve"/> method.
+        /// Returns the description of a returncode of the <see cref="Solve"/> method.
         /// </summary>
-        /// <param name="statuscode">Returncode of <see cref="solve"/></param>
-        /// <returns>The description of a returncode of the <see cref="solve"/> method</returns>
+        /// <param name="statuscode">Returncode of <see cref="Solve"/></param>
+        /// <returns>The description of a returncode of the <see cref="Solve"/> method</returns>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_statustext.htm">Full C API documentation.</seealso>
         public string get_statustext(int statuscode)
             => NativeMethods.get_statustext(_lp, statuscode);
@@ -3829,7 +3683,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <summary>
         /// Gets the time elapsed since start of solve.
         /// </summary>
-        /// <returns>The number of seconds after <see cref="solve"/> has started.</returns>
+        /// <returns>The number of seconds after <see cref="Solve"/> has started.</returns>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/time_elapsed.htm">Full C API documentation.</seealso>
         public double time_elapsed()
             => NativeMethods.time_elapsed(_lp);
