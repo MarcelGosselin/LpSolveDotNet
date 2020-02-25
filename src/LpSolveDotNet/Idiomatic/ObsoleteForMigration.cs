@@ -149,7 +149,7 @@ namespace LpSolveDotNet.Idiomatic
         public lpsolve_simplextypes get_simplextype()
             => throw new NotImplementedException();
 
-        [Obsolete("Replaced by " + nameof(BasisCrashMode) + " property", false)]
+        [Obsolete("Replaced by " + nameof(Basis) + "." + nameof(ModelBasis.CrashMode) + " property", false)]
         public lpsolve_basiscrash get_basiscrash()
             => throw new NotImplementedException();
 
@@ -273,21 +273,133 @@ namespace LpSolveDotNet.Idiomatic
         public void set_infinite(double infinite)
             => throw new NotImplementedException();
 
-        //[Obsolete("Replaced by " + nameof(IsDebug) + " property", true)]
-        //public bool is_debug()
-        //    => throw new NotImplementedException();
+        [Obsolete("Replaced by " + nameof(IsDebug) + " property", true)]
+        public bool is_debug()
+            => throw new NotImplementedException();
 
-        //[Obsolete("Replaced by " + nameof(IsDebug) + " property", true)]
-        //public void set_debug(bool debug)
-        //    => throw new NotImplementedException();
+        [Obsolete("Replaced by " + nameof(IsDebug) + " property", true)]
+        public void set_debug(bool debug)
+            => throw new NotImplementedException();
 
-        //[Obsolete("Replaced by " + nameof(IsTrace) + " property", true)]
-        //public bool is_trace()
-        //    => throw new NotImplementedException();
+        [Obsolete("Replaced by " + nameof(IsTrace) + " property", true)]
+        public bool is_trace()
+            => throw new NotImplementedException();
 
-        //[Obsolete("Replaced by " + nameof(IsTrace) + " property", true)]
-        //public void set_trace(bool trace)
-        //    => throw new NotImplementedException();
+        [Obsolete("Replaced by " + nameof(IsTrace) + " property", true)]
+        public void set_trace(bool trace)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Tolerance) + "." + nameof(ModelTolerance.RightHandSideEpsilon), true)]
+        public double get_epsb()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Tolerance) + "." + nameof(ModelTolerance.RightHandSideEpsilon), true)]
+        public void set_epsb(double epsb)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Tolerance) + "." + nameof(ModelTolerance.ReducedCostEpsilon), true)]
+        public double get_epsd()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Tolerance) + "." + nameof(ModelTolerance.ReducedCostEpsilon), true)]
+        public void set_epsd(double epsd)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Tolerance) + "." + nameof(ModelTolerance.DefaultEpsilon), true)]
+        public double get_epsel()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Tolerance) + "." + nameof(ModelTolerance.DefaultEpsilon), true)]
+        public void set_epsel(double epsel)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Tolerance) + "." + nameof(ModelTolerance.IntegerEpsilon), true)]
+        public double get_epsint()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Tolerance) + "." + nameof(ModelTolerance.IntegerEpsilon), true)]
+        public void set_epsint(double epsint)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Tolerance) + "." + nameof(ModelTolerance.PerturbationScalarEpsilon), true)]
+        public double get_epsperturb()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Tolerance) + "." + nameof(ModelTolerance.PerturbationScalarEpsilon), true)]
+        public void set_epsperturb(double epsperturb)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Tolerance) + "." + nameof(ModelTolerance.PivotEpsilon), true)]
+        public double get_epspivot()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Tolerance) + "." + nameof(ModelTolerance.PivotEpsilon), true)]
+        public void set_epspivot(double epspivot)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Tolerance) + "." + nameof(ModelTolerance.RelativeMipGap) + " and " + nameof(Tolerance) + "." + nameof(ModelTolerance.AbsoluteMipGap), true)]
+        public void set_mip_gap(bool absolute, double mip_gap)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Tolerance) + "." + nameof(ModelTolerance.RelativeMipGap) + " and " + nameof(Tolerance) + "." + nameof(ModelTolerance.AbsoluteMipGap), true)]
+        public double get_mip_gap(bool absolute)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Tolerance) + "." + nameof(ModelTolerance.SetEpsilonLevel), true)]
+        public bool set_epslevel(ToleranceEpsilonLevel level)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Basis) + "." + nameof(ModelBasis.SetDefault), true)]
+        public void default_basis()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Basis) + "." + nameof(ModelBasis.ReadFromFile), true)]
+        public bool read_basis(string filename, string info)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Basis) + "." + nameof(ModelBasis.WriteToFile), true)]
+        public bool write_basis(string filename)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Basis) + "." + nameof(ModelBasis.Set), true)]
+        public bool set_basis(int[] bascolumn, bool nonbasic)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Basis) + "." + nameof(ModelBasis.Get), true)]
+        public bool get_basis(int[] bascolumn, bool nonbasic)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Basis) + "." + nameof(ModelBasis.HasBasisFactorizationPackage), true)]
+        public bool has_BFP()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Basis) + "." + nameof(ModelBasis.IsNativeBasisFactorizationPackage), true)]
+        public bool is_nativeBFP()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Basis) + "." + nameof(ModelBasis.SetBasisFactorizationPackage), true)]
+        public bool set_BFP(string filename)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Basis) + "." + nameof(ModelBasis.Guess), true)]
+        public bool guess_basis(double[] guessvector, int[] basisvector)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(NumberOfColumns), true)]
+        public int get_Ncolumns()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(NumberOfColumnsOriginally), true)]
+        public int get_Norig_columns()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(NumberOfRowsOriginally), true)]
+        public int get_Norig_rows()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(NumberOfRows), true)]
+        public int get_Nrows()
+            => throw new NotImplementedException();
 
         #endregion
 
@@ -309,6 +421,9 @@ namespace LpSolveDotNet.Idiomatic
         public bool str_set_rh_vec(params object[] _)
             => throw new NotImplementedException();
 
+        [Obsolete("Removed as this was not meant to be used http://lpsolve.sourceforge.net/5.5/reset_basis.htm", true)]
+        public void reset_basis()
+            => throw new NotImplementedException();
         #endregion
 
     }

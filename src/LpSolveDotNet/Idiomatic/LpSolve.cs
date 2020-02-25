@@ -258,6 +258,8 @@ namespace LpSolveDotNet.Idiomatic
             _lp = lp;
             //TODO: find a way to let user pass specific handler
             _returnValueHandler = new ThrowingReturnValueHandler(_lp);
+            Tolerance = new ModelTolerance(_lp);
+            Basis = new ModelBasis(_lp);
         }
 
         private static LpSolve CreateFromLpRecStructurePointer(IntPtr lp)
@@ -385,12 +387,37 @@ namespace LpSolveDotNet.Idiomatic
 
         #region Build model
 
+        ///// <summary>
+        ///// Returns a sub-object to deal with everything column-related (variable-related).
+        ///// </summary>
+        //public Columns Columns { get; }
+
+        ///// <summary>
+        ///// Returns a sub-object to deal with everything row-related (constraint-related).
+        ///// </summary>
+        //public Rows Rows { get; }
+
+        ///// <summary>
+        ///// Returns a sub-object to deal with everything ObjectiveFunction-related (row with index 0).
+        ///// </summary>
+        //public ObjectiveFunction ObjectiveFunction { get; }
+
+        /// <summary>
+        /// Returns a sub-object to deal with everything Tolerance-related.
+        /// </summary>
+        public ModelTolerance Tolerance { get; }
+
+        /// <summary>
+        /// Returns a sub-object to deal with everything Basis-related.
+        /// </summary>
+        public ModelBasis Basis { get; }
+
         #region Column
 
         /// <summary>
         /// Adds a column to the model.
         /// </summary>
-        /// <param name="column">An array with 1+<see cref="get_Nrows"/> elements that contains the values of the column.</param>
+        /// <param name="column">An array with 1+<see cref="NumberOfRows"/> elements that contains the values of the column.</param>
         /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
         /// <remarks><para>The method adds a column to the model (at the end) and sets all values of the column at once.</para>
         /// <para>Note that element 0 of the array is the value of the objective function for that column. Column 1 is element 1, column 2 is element 2, ...</para>
@@ -445,7 +472,7 @@ namespace LpSolveDotNet.Idiomatic
         /// Sets a column in the model.
         /// </summary>
         /// <param name="col_no">The column number that must be changed.</param>
-        /// <param name="column">An array with 1+<see cref="get_Nrows"/> elements that contains the values of the column.</param>
+        /// <param name="column">An array with 1+<see cref="NumberOfRows"/> elements that contains the values of the column.</param>
         /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
         /// <remarks>
         /// <para>The method changes the values of an existing column in the model at once.</para>
@@ -486,7 +513,7 @@ namespace LpSolveDotNet.Idiomatic
         /// Gets all column elements from the model for the given <paramref name="col_nr"/>.
         /// </summary>
         /// <param name="col_nr">The column number of the matrix. Must be between 1 and number of columns in the model.</param>
-        /// <param name="column">Array in which the values are returned. The array must be dimensioned with at least 1+<see cref="get_Nrows"/> elements.</param>
+        /// <param name="column">Array in which the values are returned. The array must be dimensioned with at least 1+<see cref="NumberOfRows"/> elements.</param>
         /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
         /// <remarks>
         /// <para>Note that row entry mode must be off, else this method fails. <see cref="EntryMode"/>.</para>
@@ -501,9 +528,9 @@ namespace LpSolveDotNet.Idiomatic
         /// </summary>
         /// <param name="col_nr">The column number of the matrix. Must be between 1 and number of columns in the model.</param>
         /// <param name="column">Array in which the values are returned. The array must be dimensioned with at least the number of non-zero elements in the column.
-        /// If that is unknown, then use 1+<see cref="get_Nrows"/>.</param>
+        /// If that is unknown, then use 1+<see cref="NumberOfRows"/>.</param>
         /// <param name="nzrow">Array in which the row numbers  are returned. The array must be dimensioned with at least the number of non-zero elements in the column.
-        /// If that is unknown, then use 1+<see cref="get_Nrows"/>.</param>
+        /// If that is unknown, then use 1+<see cref="NumberOfRows"/>.</param>
         /// <returns>The number of non-zero elements returned in <paramref name="column"/> and <paramref name="nzrow"/>.</returns>
         /// <remarks>
         /// <para>Note that row entry mode must be off, else this method fails. <see cref="EntryMode"/>.</para>
@@ -796,7 +823,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <summary>
         /// Adds a constraint to the model.
         /// </summary>
-        /// <param name="row">An array with 1+<see cref="get_Ncolumns"/> elements that contains the values of the row.</param>
+        /// <param name="row">An array with 1+<see cref="NumberOfColumns"/> elements that contains the values of the row.</param>
         /// <param name="constraintOperator">The type of the constraint.</param>
         /// <param name="rh">The value of the right-hand side (RHS) fo the constraint (in)equation</param>
         /// <returns><c>true</c> if operation was successful, <c>false</c> otherwise.</returns>
@@ -820,7 +847,7 @@ namespace LpSolveDotNet.Idiomatic
         /// Adds a constraint to the model.
         /// </summary>
         /// <param name="count">Number of elements in <paramref name="row"/> and <paramref name="colno"/>.</param>
-        /// <param name="row">An array with <paramref name="count"/> elements (or 1+<see cref="get_Ncolumns"/> elements if <paramref name="row"/> is <c>null</c>) that contains the values of the row.</param>
+        /// <param name="row">An array with <paramref name="count"/> elements (or 1+<see cref="NumberOfColumns"/> elements if <paramref name="row"/> is <c>null</c>) that contains the values of the row.</param>
         /// <param name="colno">An array with <paramref name="count"/> elements that contains the column numbers of the row. However this variable can also be <c>null</c>.
         /// In that case element <c>i</c> in the variable row is column <c>i</c> and values start at element 1.</param>
         /// <param name="constraintOperator">The type of the constraint.</param>
@@ -866,7 +893,7 @@ namespace LpSolveDotNet.Idiomatic
         /// Gets all row elements from the model for the given <paramref name="row_nr"/>.
         /// </summary>
         /// <param name="row_nr">The row number of the matrix. Must be between 1 and number of rows in the model. Row 0 is the objective function.</param>
-        /// <param name="row">Array in which the values are returned. The array must be dimensioned with at least 1+<see cref="get_Ncolumns"/> elements.</param>
+        /// <param name="row">Array in which the values are returned. The array must be dimensioned with at least 1+<see cref="NumberOfColumns"/> elements.</param>
         /// <returns><c>true</c> if successful, <c>false</c> otherwise. An error occurs when <paramref name="row_nr"/>
         /// is not between 0 and the number of rows in the model.</returns>
         /// <remarks>
@@ -898,7 +925,7 @@ namespace LpSolveDotNet.Idiomatic
         /// Sets a constraint in the model.
         /// </summary>
         /// <param name="row_no">The row number that must be changed.</param>
-        /// <param name="row">An array with 1+<see cref="get_Ncolumns"/> elements that contains the values of the row.</param>
+        /// <param name="row">An array with 1+<see cref="NumberOfColumns"/> elements that contains the values of the row.</param>
         /// <returns><c>true</c> if operation was successful, <c>false</c> otherwise.</returns>
         /// <remarks>
         /// <para>This method change the values of the row in the model at once.</para>
@@ -916,7 +943,7 @@ namespace LpSolveDotNet.Idiomatic
         /// </summary>
         /// <param name="row_no">The row number that must be changed.</param>
         /// <param name="count">Number of elements in <paramref name="row"/> and <paramref name="colno"/>.</param>
-        /// <param name="row">An array with <paramref name="count"/> elements (or 1+<see cref="get_Ncolumns"/> elements if <paramref name="row"/> is <c>null</c>) that contains the values of the row.</param>
+        /// <param name="row">An array with <paramref name="count"/> elements (or 1+<see cref="NumberOfColumns"/> elements if <paramref name="row"/> is <c>null</c>) that contains the values of the row.</param>
         /// <param name="colno">An array with <paramref name="count"/> elements that contains the column numbers of the row. However this variable can also be <c>null</c>.
         /// In that case element <c>i</c> in the variable row is column <c>i</c> and values start at element 1.</param>
         /// <returns><c>true</c> if operation was successful, <c>false</c> otherwise.</returns>
@@ -1150,7 +1177,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <summary>
         /// Sets the objective function (row 0) of the matrix.
         /// </summary>
-        /// <param name="row">An array with 1+<see cref="get_Ncolumns"/> elements that contains the values of the objective function.</param>
+        /// <param name="row">An array with 1+<see cref="NumberOfColumns"/> elements that contains the values of the objective function.</param>
         /// <returns><c>true</c> if operation was successful, <c>false</c> otherwise.</returns>
         /// <remarks>
         /// <para>This method set the values of the objective function in the model at once.</para>
@@ -1169,7 +1196,7 @@ namespace LpSolveDotNet.Idiomatic
         /// Sets the objective function (row 0) of the matrix.
         /// </summary>
         /// <param name="count">Number of elements in <paramref name="row"/> and <paramref name="colno"/>.</param>
-        /// <param name="row">An array with <paramref name="count"/> elements (or 1+<see cref="get_Ncolumns"/> elements if <paramref name="row"/> is <c>null</c>) that contains the values of the row.</param>
+        /// <param name="row">An array with <paramref name="count"/> elements (or 1+<see cref="NumberOfColumns"/> elements if <paramref name="row"/> is <c>null</c>) that contains the values of the row.</param>
         /// <param name="colno">An array with <paramref name="count"/> elements that contains the column numbers of the row. However this variable can also be <c>null</c>.</param>
         /// <returns><c>true</c> if operation was successful, <c>false</c> otherwise.</returns>
         /// <remarks>
@@ -1488,7 +1515,7 @@ namespace LpSolveDotNet.Idiomatic
         /// This is only used for the integer variables in the branch-and-bound algorithm.
         /// Array members are unique, real-valued numbers indicating the "weight" of the variable at the given index.
         /// The array is 0-based. So variable 1 is at index 0, variable 2 at index 1. 
-        /// The array must contain <see cref="get_Ncolumns"/> elements.</para>
+        /// The array must contain <see cref="NumberOfColumns"/> elements.</para>
         /// <para>The weights define which variable the branch-and-bound algorithm must select first.
         /// The lower the weight, the sooner the variable is chosen to make it integer.</para>
         /// </remarks>
@@ -1534,435 +1561,6 @@ namespace LpSolveDotNet.Idiomatic
         #endregion
 
         #region Solver settings
-
-        #region Epsilon / Tolerance
-
-        /// <summary>
-        /// Returns the value that is used as a tolerance for the Right Hand Side (RHS) to determine whether a value should be considered as 0.
-        /// </summary>
-        /// <returns>Returns the value that is used as a tolerance for the Right Hand Side (RHS) to determine whether a value should be considered as 0.</returns>
-        /// <remarks>
-        /// The default value for <c>epsb</c> is <c>1e-10</c>.
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_epsb.htm">Full C API documentation.</seealso>
-        public double get_epsb()
-            => NativeMethods.get_epsb(_lp);
-
-        /// <summary>
-        /// Specifies the value that is used as a tolerance for the Right Hand Side (RHS) to determine whether a value should be considered as 0.
-        /// </summary>
-        /// <param name="epsb">The value that is used as a tolerance for the Right Hand Side (RHS) to determine whether a value should be considered as 0.</param>
-        /// <remarks>
-        /// <para>Floating-point calculations always result in loss of precision and rounding errors.
-        /// Therefore a very small value (example <c>1e-99</c>) could be the result of such errors and should be considered as 0 for the algorithm. epsb specifies the tolerance to determine if a RHS value should be considered as 0. If abs(value) is less than this epsb value in the RHS, it is considered as 0.</para>
-        /// <para>The default <c>epsb</c> value is <c>1e-10</c></para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_epsb.htm">Full C API documentation.</seealso>
-        public void set_epsb(double epsb)
-            => NativeMethods.set_epsb(_lp, epsb);
-
-        /// <summary>
-        /// Returns the value that is used as a tolerance for the reduced costs to determine whether a value should be considered as 0.
-        /// </summary>
-        /// <returns>Returns the value that is used as a tolerance for the reduced costs to determine whether a value should be considered as 0.</returns>
-        /// <remarks>
-        /// The default value for <c>epsd</c> is <c>1e-9</c>.
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_epsd.htm">Full C API documentation.</seealso>
-        public double get_epsd()
-            => NativeMethods.get_epsd(_lp);
-
-        /// <summary>
-        /// Specifies the value that is used as a tolerance for reduced costs to determine whether a value should be considered as 0.
-        /// </summary>
-        /// <param name="epsd">The value that is used as a tolerance for reduced costs to determine whether a value should be considered as 0.</param>
-        /// <remarks>
-        /// <para>Floating-point calculations always result in loss of precision and rounding errors.
-        /// Therefore a very small value (example <c>1e-99</c>) could be the result of such errors and should be considered as 0 for the algorithm. epsd specifies the tolerance to determine if a reducedcost value should be considered as 0. If abs(value) is less than this epsd value, it is considered as 0.</para>
-        /// <para>The default <c>epsd</c> value is <c>1e-9</c></para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_epsd.htm">Full C API documentation.</seealso>
-        public void set_epsd(double epsd)
-            => NativeMethods.set_epsd(_lp, epsd);
-
-        /// <summary>
-        /// Returns the value that is used as a tolerance for rounding values to zero.
-        /// </summary>
-        /// <returns>Returns the value that is used as a tolerance for rounding values to zero.</returns>
-        /// <remarks>
-        /// <para><c>epsel</c> is used on all other places where <c>epsint</c>, <c>epsb</c>, <c>epsd</c>, <c>epspivot</c>, <c>epsperturb</c> are not used.</para>
-        /// <para>The default value for <c>epsel</c> is <c>1e-12</c></para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_epsel.htm">Full C API documentation.</seealso>
-        public double get_epsel()
-            => NativeMethods.get_epsel(_lp);
-
-        /// <summary>
-        /// Specifies the value that is used as a tolerance for rounding values to zero.
-        /// </summary>
-        /// <param name="epsel">The value that is used as a tolerance for rounding values to zero.</param>
-        /// <remarks>
-        /// <para>Floating-point calculations always result in loss of precision and rounding errors. Therefore a very small value (example 1e-99) could be the result of such errors and should be considered as 0 for the algorithm. epsel specifies the tolerance to determine if a value should be considered as 0. If abs(value) is less than this epsel value, it is considered as 0.</para>
-        /// <para><c>epsel</c> is used on all other places where <c>epsint</c>, <c>epsb</c>, <c>epsd</c>, <c>epspivot</c>, <c>epsperturb</c> are not used.</para>
-        /// <para>The default value for <c>epsel</c> is <c>1e-12</c></para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_epsel.htm">Full C API documentation.</seealso>
-        public void set_epsel(double epsel)
-            => NativeMethods.set_epsel(_lp, epsel);
-
-        /// <summary>
-        /// Returns the tolerance that is used to determine whether a floating-point number is in fact an integer.
-        /// </summary>
-        /// <returns>Returns the tolerance that is used to determine whether a floating-point number is in fact an integer.</returns>
-        /// <remarks>
-        /// The default value for <c>epsint</c> is <c>1e-7</c>.
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_epsint.htm">Full C API documentation.</seealso>
-        public double get_epsint()
-            => NativeMethods.get_epsint(_lp);
-
-        /// <summary>
-        /// Specifies the tolerance that is used to determine whether a floating-point number is in fact an integer.
-        /// </summary>
-        /// <param name="epsint">The tolerance that is used to determine whether a floating-point number is in fact an integer.</param>
-        /// <remarks>
-        /// <para>This is only used when there is at least one integer variable and the branch and bound algorithm is used to make variables integer.</para>
-        /// <para>Integer variables are internally in the algorithm also stored as floating point.
-        /// Therefore a tolerance is needed to determine if a value is to be considered as integer or not.
-        /// If the absolute value of the variable minus the closed integer value is less than <c>epsint</c>, it is considered as integer.
-        /// For example if a variable has the value 0.9999999 and epsint is 0.000001 then it is considered integer because abs(0.9999999 - 1) = 0.0000001 and this is less than 0.000001</para>
-        /// <para>The default value for epsint is 1e-7</para>
-        /// <para>So by changing epsint you determine how close a value must approximate the nearest integer.
-        /// Changing this tolerance value to for example 0.001 will generally result in faster solving times, but your solution is less integer.</para>
-        /// <para>So it is a compromise.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_epsint.htm">Full C API documentation.</seealso>
-        public void set_epsint(double epsint)
-            => NativeMethods.set_epsint(_lp, epsint);
-
-        /// <summary>
-        /// Returns the value that is used as perturbation scalar for degenerative problems.
-        /// </summary>
-        /// <returns>Returns the perturbation scalar.</returns>
-        /// <remarks>The default epsperturb value is 1e-5</remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_epsperturb.htm">Full C API documentation.</seealso>
-        public double get_epsperturb()
-            => NativeMethods.get_epsperturb(_lp);
-
-        /// <summary>
-        /// Specifies the value that is used as perturbation scalar for degenerative problems.
-        /// </summary>
-        /// <param name="epsperturb">The perturbation scalar.</param>
-        /// <remarks>The default epsperturb value is 1e-5</remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_epsperturb.htm">Full C API documentation.</seealso>
-        public void set_epsperturb(double epsperturb)
-            => NativeMethods.set_epsperturb(_lp, epsperturb);
-
-        /// <summary>
-        /// Returns the value that is used as a tolerance for the pivot element to determine whether a value should be considered as 0.
-        /// </summary>
-        /// <returns>Returns the value that is used as a tolerance for the pivot element to determine whether a value should be considered as 0.</returns>
-        /// <remarks>
-        /// <para>Floating-point calculations always result in loss of precision and rounding errors.
-        /// Therefore a very small value (example 1e-99) could be the result of such errors and should be considered as 0 
-        /// for the algorithm. epspivot specifies the tolerance to determine if a pivot element should be considered as 0.
-        /// If abs(value) is less than this epspivot value it is considered as 0 and at first instance rejected as pivot element.
-        /// Only when no larger other pivot element can be found and the value is different from 0 it will be used as pivot element.</para>
-        /// <para>The default epspivot value is 2e-7</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_epspivot.htm">Full C API documentation.</seealso>
-        public double get_epspivot()
-            => NativeMethods.get_epspivot(_lp);
-
-        /// <summary>
-        /// Specifies the value that is used as a tolerance pivot element to determine whether a value should be considered as 0.
-        /// </summary>
-        /// <param name="epspivot">The value that is used as a tolerance for the pivot element to determine whether a value should be considered as 0.</param>
-        /// <remarks>
-        /// <para>Floating-point calculations always result in loss of precision and rounding errors.
-        /// Therefore a very small value (example 1e-99) could be the result of such errors and should be considered as 0 
-        /// for the algorithm. epspivot specifies the tolerance to determine if a pivot element should be considered as 0.
-        /// If abs(value) is less than this epspivot value it is considered as 0 and at first instance rejected as pivot element.
-        /// Only when no larger other pivot element can be found and the value is different from 0 it will be used as pivot element.</para>
-        /// <para>The default epspivot value is 2e-7</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_epspivot.htm">Full C API documentation.</seealso>
-        public void set_epspivot(double epspivot)
-            => NativeMethods.set_epspivot(_lp, epspivot);
-
-        /// <summary>
-        /// Specifies the MIP gap value.
-        /// </summary>
-        /// <param name="absolute">If <c>true</c> then the absolute MIP gap is set, else the relative MIP gap.</param>
-        /// <param name="mip_gap">The MIP gap.</param>
-        /// <remarks>
-        /// <para>The <see cref="set_mip_gap"/> method sets the MIP gap that specifies a tolerance for the branch and bound algorithm.
-        /// This tolerance is the difference between the best-found solution yet and the current solution.
-        /// If the difference is smaller than this tolerance then the solution (and all the sub-solutions) is rejected.
-        /// This can result in faster solving times, but results in a solution which is not the perfect solution.
-        /// So be careful with this tolerance.</para>
-        /// <para>The default is 1e-11.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_mip_gap.htm">Full C API documentation.</seealso>
-        public void set_mip_gap(bool absolute, double mip_gap)
-            => NativeMethods.set_mip_gap(_lp, absolute, mip_gap);
-
-        /// <summary>
-        /// Returns the MIP gap value.
-        /// </summary>
-        /// <param name="absolute">If <c>true</c> then the absolute MIP gap is returned, else the relative MIP gap.</param>
-        /// <returns>The MIP gap value</returns>
-        /// <remarks>
-        /// <para>The <see cref="get_mip_gap"/> method returns the MIP gap that specifies a tolerance for the branch and bound algorithm.
-        /// This tolerance is the difference between the best-found solution yet and the current solution.
-        /// If the difference is smaller than this tolerance then the solution (and all the sub-solutions) is rejected.
-        /// This can result in faster solving times, but results in a solution which is not the perfect solution.
-        /// So be careful with this tolerance.</para>
-        /// <para>The default is 1e-11.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_mip_gap.htm">Full C API documentation.</seealso>
-        public double get_mip_gap(bool absolute)
-            => NativeMethods.get_mip_gap(_lp, absolute);
-
-        /// <summary>
-        /// This is a simplified way of specifying multiple eps thresholds that are "logically" consistent.
-        /// </summary>
-        /// <param name="level">The level to set.</param>
-        /// <returns><c>true</c> if level is accepted and <c>false</c> if an invalid epsilon level was provided.</returns>
-        /// <remarks>
-        /// <para>It sets the following values: <see cref="set_epsel"/>, <see cref="set_epsb"/>, <see cref="set_epsd"/>, <see cref="set_epspivot"/>, <see cref="set_epsint"/>, <see cref="set_mip_gap"/>.</para>
-        /// <para>The default is <see cref="ToleranceEpsilonLevel.Tight"/>.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_epslevel.htm">Full C API documentation.</seealso>
-        public bool set_epslevel(ToleranceEpsilonLevel level)
-            => NativeMethods.set_epslevel(_lp, level);
-
-        #endregion
-
-        #region Basis
-        /// <summary>
-        /// Causes reinversion at next opportunity.
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// This method is meant for internal use and development.
-        /// It causes a reinversion of the matrix at a next opportunity.
-        /// The method should only be used by people deeply understanding the code.
-        /// </para>
-        /// <para>
-        /// In the past, this method was documented as the method to set an initial base.
-        /// <strong>This is incorrect.</strong>
-        /// <see cref="default_basis"/> must be used for this purpose.
-        /// It is very unlikely that you must call this method.
-        /// </para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/reset_basis.htm">Full C API documentation.</seealso>
-        public void reset_basis()
-            => NativeMethods.reset_basis(_lp);
-
-        /// <summary>
-        /// Sets the starting base to an all slack basis (the default simplex starting basis).
-        /// </summary>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/default_basis.htm">Full C API documentation.</seealso>
-        public void default_basis()
-            => NativeMethods.default_basis(_lp);
-
-        /// <summary>
-        /// Read basis from a file and set as default basis.
-        /// </summary>
-        /// <param name="filename">Name of file containing the basis to read.</param>
-        /// <param name="info">When not <c>null</c>, returns the information of the INFO card in <paramref name="filename"/>.
-        /// When <c>null</c>, the information is ignored.
-        /// Note that when not <c>null</c>, that you must make sure that this variable is long enough,
-        /// else a memory overrun could occur.</param>
-        /// <returns><c>true</c> if basis could be read from <paramref name="filename"/> and <c>false</c> if not.
-        /// A <c>false</c> return value indicates an error.
-        /// Specifically file could not be opened or file has wrong structure or wrong number/names rows/variables or invalid basis.</returns>
-        /// <remarks>
-        /// <para>Setting an initial basis can speed up the solver considerably.
-        /// It is the starting point from where the algorithm continues to find an optimal solution.</para>
-        /// <para>When a restart is done, lp_solve continues at the last basis, except if <see cref="set_basis"/>,
-        /// <see cref="default_basis"/>, <see cref="guess_basis"/> or <see cref="read_basis"/> is called.</para>
-        /// <para>The basis in the file must be in <see href="http://lpsolve.sourceforge.net/5.5/bas-format.htm">MPS bas file format</see>.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/read_basis.htm">Full C API documentation.</seealso>
-        public bool read_basis(string filename, string info)
-            => NativeMethods.read_basis(_lp, filename, info);
-
-        /// <summary>
-        /// Writes current basis to a file.
-        /// </summary>
-        /// <param name="filename">Name of file to write the basis to.</param>
-        /// <returns><c>true</c> if basis could be written from <paramref name="filename"/> and <c>false</c> if not.
-        /// A <c>false</c> return value indicates an error.
-        /// Specifically file could not be opened or written to.</returns>
-        /// <remarks>
-        /// <para>This method writes current basis to a file which can later be reused by <see cref="read_basis"/> to reset the basis.</para>
-        /// <para>Setting an initial basis can speed up the solver considerably.
-        /// It is the starting point from where the algorithm continues to find an optimal solution.</para>
-        /// <para>When a restart is done, lp_solve continues at the last basis, except if <see cref="set_basis"/>,
-        /// <see cref="default_basis"/>, <see cref="guess_basis"/> or <see cref="read_basis"/> is called.</para>
-        /// <para>The basis in the file is written in <see href="http://lpsolve.sourceforge.net/5.5/bas-format.htm">MPS bas file format</see>.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/write_basis.htm">Full C API documentation.</seealso>
-        public bool write_basis(string filename)
-            => NativeMethods.write_basis(_lp, filename);
-
-        /// <summary>
-        /// Sets an initial basis of the model.
-        /// </summary>
-        /// <param name="bascolumn">An array with 1+<see cref="get_Nrows"/> or
-        /// 1+<see cref="get_Nrows"/>+<see cref="get_Ncolumns"/> elements that specifies the basis.</param>
-        /// <param name="nonbasic">If <c>false</c>, then <paramref name="bascolumn"/> must have 
-        /// 1+<see cref="get_Nrows"/> elements and only contains the basic variables. 
-        /// If <c>true</c>, then <paramref name="bascolumn"/> must have 1+<see cref="get_Nrows"/>+<see cref="get_Ncolumns"/> 
-        /// elements and will also contain the non-basic variables.</param>
-        /// <returns><c>true</c> if provided basis was set. <c>false</c> if not.
-        /// If <c>false</c> then provided data was invalid.</returns>
-        /// <remarks>
-        /// <para>The array receives the basic variables and if <paramref name="nonbasic"/> is <c>true</c>,
-        /// then also the non-basic variables.
-        /// If an element is less then zero then it means on lower bound, else on upper bound.</para>
-        /// <para>Element 0 of the array is unused.</para>
-        /// <para>The default initial basis is bascolumn[x] = -x.</para>
-        /// <para>Each element represents a basis variable.
-        /// If the absolute value is between 1 and <see cref="get_Nrows"/>, it represents a slack variable 
-        /// and if it is between <see cref="get_Nrows"/>+1 and <see cref="get_Nrows"/>+<see cref="get_Ncolumns"/>
-        /// then it represents a regular variable.
-        /// If the value is negative, then the variable is on its lower bound.
-        /// If positive it is on its upper bound.</para>
-        /// <para>Setting an initial basis can speed up the solver considerably.
-        /// It is the starting point from where the algorithm continues to find an optimal solution.</para>
-        /// <para>When a restart is done, lp_solve continues at the last basis, except if except if <see cref="set_basis"/>,
-        /// <see cref="default_basis"/>, <see cref="guess_basis"/> or <see cref="read_basis"/> is called.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_basis.htm">Full C API documentation.</seealso>
-        public bool set_basis(int[] bascolumn, bool nonbasic)
-            => NativeMethods.set_basis(_lp, bascolumn, nonbasic);
-
-        /// <summary>
-        /// Returns the basis of the model.
-        /// </summary>
-        /// <param name="bascolumn">An array with 1+<see cref="get_Nrows"/> or
-        /// 1+<see cref="get_Nrows"/>+<see cref="get_Ncolumns"/> elements that will contain the basis after the call.</param>
-        /// <param name="nonbasic">If <c>false</c>, then <paramref name="bascolumn"/> must have 
-        /// 1+<see cref="get_Nrows"/> elements and only contains the basic variables. 
-        /// If <c>true</c>, then <paramref name="bascolumn"/> must have 1+<see cref="get_Nrows"/>+<see cref="get_Ncolumns"/> 
-        /// elements and will also contain the non-basic variables.</param>
-        /// <returns><c>true</c> if a basis could be returned, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>This can only be done after a successful solve.
-        /// If the model is not successively solved then the method will return <c>false</c>.</para>
-        /// <para>The array receives the basic variables and if <paramref name="nonbasic"/> is <c>true</c>,
-        /// then also the non-basic variables.
-        /// If an element is less then zero then it means on lower bound, else on upper bound.</para>
-        /// <para>Element 0 of the array is set to 0.</para>
-        /// <para>The default initial basis is bascolumn[x] = -x.</para>
-        /// <para>Each element represents a basis variable.
-        /// If the absolute value is between 1 and <see cref="get_Nrows"/>, it represents a slack variable 
-        /// and if it is between <see cref="get_Nrows"/>+1 and <see cref="get_Nrows"/>+<see cref="get_Ncolumns"/>
-        /// then it represents a regular variable.
-        /// If the value is negative, then the variable is on its lower bound.
-        /// If positive it is on its upper bound.</para>
-        /// <para>Setting an initial basis can speed up the solver considerably.
-        /// It is the starting point from where the algorithm continues to find an optimal solution.</para>
-        /// <para>When a restart is done, lp_solve continues at the last basis, except if except if <see cref="set_basis"/>,
-        /// <see cref="default_basis"/>, <see cref="guess_basis"/> or <see cref="read_basis"/> is called.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_basis.htm">Full C API documentation.</seealso>
-        public bool get_basis(int[] bascolumn, bool nonbasic)
-            => NativeMethods.get_basis(_lp, bascolumn, nonbasic);
-
-        /// <summary>
-        /// Create a starting base from the provided guess vector.
-        /// </summary>
-        /// <param name="guessvector">A vector that must contain a feasible solution vector.
-        /// It must contain at least 1+<see cref="get_Ncolumns"/> elements.
-        /// Element 0 is not used.</param>
-        /// <param name="basisvector">When successful, this vector contains a feasible basis corresponding to guessvector.
-        /// The array must already be dimensioned for at least 1+<see cref="get_Nrows"/>+<see cref="get_Ncolumns"/> elements.
-        /// When the method returns successfully, <paramref name="basisvector"/> is filled with the basis.
-        /// This array can be provided to <see cref="set_basis"/>.</param>
-        /// <returns><c>true</c> if a valid base could be determined, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>This method is meant to find a basis based on provided variable values.
-        /// This basis can be provided to lp_solve via <see cref="set_basis"/>.
-        /// This can result in getting faster to an optimal solution.
-        /// However the simplex algorithm doesn't guarantee you that.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/guess_basis.htm">Full C API documentation.</seealso>
-        public bool guess_basis(double[] guessvector, int[] basisvector)
-            => NativeMethods.guess_basis(_lp, guessvector, basisvector);
-
-        /// <summary>
-        /// Returns which basis crash mode must be used.
-        /// </summary>
-        /// <remarks>
-        /// <para>Default is <see cref="BasisCrashMode.None"/></para>
-        /// <para>When no base crash is done (the default), the initial basis from which lp_solve 
-        /// starts to solve the model is the basis containing all slack or artificial variables that 
-        /// is automatically associated with each constraint.</para>
-        /// <para>When base crash is enabled, a heuristic "crash procedure" is executed before the 
-        /// first simplex iteration to quickly choose a basis matrix that has fewer artificial variables.
-        /// This procedure tends to reduce the number of iterations to optimality since a number of 
-        /// iterations are skipped.
-        /// lp_solve starts iterating from this basis until optimality.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_basiscrash.htm">Full C API documentation (get).</seealso>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_basiscrash.htm">Full C API documentation (set).</seealso>
-        public BasisCrashMode BasisCrashMode
-        {
-            get => NativeMethods.get_basiscrash(_lp);
-            set => NativeMethods.set_basiscrash(_lp, value);
-        }
- 
-        /// <summary>
-        /// Returns if there is a basis factorization package (BFP) available.
-        /// </summary>
-        /// <returns><c>true</c> if there is a BFP available, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>There should always be a BFP available, else lpsolve can not solve.
-        /// Normally lpsolve is compiled with a default BFP.
-        /// See <see href="http://lpsolve.sourceforge.net/5.5/BFP.htm">Basis Factorization Packages</see> for a complete description on BFPs.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/has_BFP.htm">Full C API documentation.</seealso>
-        public bool has_BFP()
-            => NativeMethods.has_BFP(_lp);
-
-        /// <summary>
-        /// Returns if the native (build-in) basis factorization package (BFP) is used, or an external package.
-        /// </summary>
-        /// <returns><c>true</c> if the native (build-in) BFP is used, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>This method checks if an external basis factorization package (BFP) is set or not.
-        /// See <see href="http://lpsolve.sourceforge.net/5.5/BFP.htm">Basis Factorization Packages</see> for a complete description on BFPs.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_nativeBFP.htm">Full C API documentation.</seealso>
-        public bool is_nativeBFP()
-            => NativeMethods.is_nativeBFP(_lp);
-
-        /// <summary>
-        /// Sets the basis factorization package.
-        /// </summary>
-        /// <param name="filename">The name of the BFP package. Currently following BFPs are implemented:
-        /// <list type="table">
-        /// <item><term>"bfp_etaPFI"</term><description>original lp_solve product form of the inverse.</description></item>
-        /// <item><term>"bfp_LUSOL"</term><description>LU decomposition.</description></item>
-        /// <item><term>"bfp_GLPK"</term><description>GLPK LU decomposition.</description></item>
-        /// <item><term><c>null</c></term><description>The default BFP package.</description></item>
-        /// </list>
-        /// However the user can also build his own BFP packages ...
-        /// </param>
-        /// <returns><c>true</c> if the call succeeded, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>This method sets the basis factorization package (BFP).
-        /// See <see href="http://lpsolve.sourceforge.net/5.5/BFP.htm">Basis Factorization Packages</see> for a complete description on BFPs.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_BFP.htm">Full C API documentation.</seealso>
-        public bool set_BFP(string filename)
-            => NativeMethods.set_BFP(_lp, filename);
-
-        #endregion
 
         #region Pivoting
 
@@ -2875,7 +2473,7 @@ namespace LpSolveDotNet.Idiomatic
         /// then the variable values are taken from <paramref name="primsolution"/> and element i must specify
         /// the value for variable i.
         /// Element 0 is not used and thus data starts from element 1. 
-        /// The variable must then contain 1+<see cref="get_Ncolumns"/> elements.
+        /// The variable must then contain 1+<see cref="NumberOfColumns"/> elements.
         /// <paramref name="count"/> is ignored in that case.</para>
         /// <para>If <paramref name="primsolution"/> is not <c>null</c>, and <paramref name="nzindex"/> is not <c>null</c>,
         /// then the variable values are taken from <paramref name="primsolution"/>. 
@@ -2895,7 +2493,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
         /// <remarks>
         /// <para>These values are only valid after a successful <see cref="Solve"/>. 
-        /// The array must already be dimensioned with <see cref="get_Nrows"/> elements.
+        /// The array must already be dimensioned with <see cref="NumberOfRows"/> elements.
         /// Element 0 will contain the value of the first row, element 1 of the second row, ...</para>
         /// <para>Note that when <see cref="PreSolveLevels"/> was set with parameter <see cref="PreSolveLevels.LinearlyDependentRows"/>
         /// that this can result in deletion of rows (the linear dependent ones). 
@@ -2915,10 +2513,10 @@ namespace LpSolveDotNet.Idiomatic
         /// <para>The <see cref="get_dual_solution"/> method return only the value(s) of the dual variables aka reduced costs.</para>
         /// <para>These values are only valid after a successful <see cref="Solve"/> and if there are integer variables in the model then only if <see cref="PreSolveLevels"/>
         /// is set before <see cref="Solve"/> with parameter <see cref="PreSolveLevels.CalculateSensitivityDuals"/>.</para>
-        /// <para><paramref name="rc"/> needs to already be dimensioned with 1+<see cref="get_Nrows"/>+<see cref="get_Ncolumns"/> elements.</para>
+        /// <para><paramref name="rc"/> needs to already be dimensioned with 1+<see cref="NumberOfRows"/>+<see cref="NumberOfColumns"/> elements.</para>
         /// <para>For method <see cref="get_dual_solution"/>, the index starts from 1 and element 0 is not used.
-        /// The first <see cref="get_Nrows"/> elements contain the duals of the constraints, 
-        /// the next <see cref="get_Ncolumns"/> elements contain the duals of the variables.</para>
+        /// The first <see cref="NumberOfRows"/> elements contain the duals of the constraints, 
+        /// the next <see cref="NumberOfColumns"/> elements contain the duals of the variables.</para>
         /// <para>The dual values or reduced costs values indicate that the objective function will change with the value of the reduced cost
         /// if the restriction is changed with 1 unit.
         /// There will only be a reduced cost if the value is bounded by the restriction, else it is zero.
@@ -2963,7 +2561,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
         /// <remarks>
         /// <para>These values are only valid after a successful <see cref="Solve"/>.
-        /// <paramref name="pv"/> needs to be already dimensioned with 1 + <see cref="get_Nrows"/> + <see cref="get_Ncolumns"/> elements. 
+        /// <paramref name="pv"/> needs to be already dimensioned with 1 + <see cref="NumberOfRows"/> + <see cref="NumberOfColumns"/> elements. 
         /// Element 0 is the value of the objective function, elements 1 till Nrows the values of the constraints and elements Nrows+1 till Nrows+NColumns the values of the variables.
         /// </para>
         /// <para>Special considerations when presolve was done. When <see cref="PreSolveLevels"/> is set before solve, 
@@ -2988,7 +2586,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <para>These values are only valid after a successful <see cref="Solve"/> and if there are integer
         /// variables in the model then only if <see cref="PreSolveLevels"/> is set before <see cref="Solve"/>
         /// with parameter <see cref="PreSolveLevels.CalculateSensitivityDuals"/>.
-        /// The arrays must already be dimensioned with <see cref="get_Ncolumns"/> elements.
+        /// The arrays must already be dimensioned with <see cref="NumberOfColumns"/> elements.
         /// Element 0 will contain the value of the first variable, element 1 of the second variable, ...</para>
         /// <para>The meaning of these limits are the following. As long as the value of the coefficient of 
         /// the objective function stays between the lower limit (<paramref name="objfrom"/>) and the upper limit (<paramref name="objtill"/>),
@@ -3016,7 +2614,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <para>These values are only valid after a successful <see cref="Solve"/> and if there are integer
         /// variables in the model then only if <see cref="PreSolveLevels"/> is set before <see cref="Solve"/>
         /// with parameter <see cref="PreSolveLevels.CalculateSensitivityDuals"/>.
-        /// The arrays must already be dimensioned with <see cref="get_Ncolumns"/> elements.
+        /// The arrays must already be dimensioned with <see cref="NumberOfColumns"/> elements.
         /// Element 0 will contain the value of the first variable, element 1 of the second variable, ...</para>
         /// <para>The meaning of these limits are the following. As long as the value of the coefficient of 
         /// the objective function stays between the lower limit (<paramref name="objfrom"/>) and the upper limit (<paramref name="objtill"/>),
@@ -3042,9 +2640,9 @@ namespace LpSolveDotNet.Idiomatic
         /// <para>The method returns the values of the dual variables aka reduced costs and their limits.</para>
         /// <para>These values are only valid after a successful solve and if there are integer variables in the model then only if <see cref="PreSolveLevels"/>
         /// is set before <see cref="Solve"/> with parameter <see cref="PreSolveLevels.CalculateSensitivityDuals"/>.</para>
-        /// <para>The arrays need to be alread already dimensioned with <see cref="get_Nrows"/>+<see cref="get_Ncolumns"/> elements.</para>
+        /// <para>The arrays need to be alread already dimensioned with <see cref="NumberOfRows"/>+<see cref="NumberOfColumns"/> elements.</para>
         /// <para>Element 0 will contain the value of the first row, element 1 of the second row, ...
-        /// Element <see cref="get_Nrows"/> contains the value for the first variable, element <see cref="get_Nrows"/>+1 the value for the second variable and so on.</para>
+        /// Element <see cref="NumberOfRows"/> contains the value for the first variable, element <see cref="NumberOfRows"/>+1 the value for the second variable and so on.</para>
         /// <para>The dual values or reduced costs values indicate that the objective function will change with the value of the reduced cost
         /// if the restriction is changed with 1 unit.
         /// There will only be a reduced cost if the value is bounded by the restriction, else it is zero.
@@ -3133,7 +2731,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
         /// <remarks>
         /// <para>These values are only valid after a successful <see cref="Solve"/>. 
-        /// <paramref name="var"/> must already be dimensioned with <see cref="get_Ncolumns"/> elements.
+        /// <paramref name="var"/> must already be dimensioned with <see cref="NumberOfColumns"/> elements.
         /// Element 0 will contain the value of the first variable, element 1 of the second variable, ...</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_variables.htm">Full C API documentation.</seealso>
@@ -3154,9 +2752,9 @@ namespace LpSolveDotNet.Idiomatic
         /// </summary>
         /// <param name="values">
         ///   <para>An array of row/column values that are checked against the bounds and ranges.</para>
-        ///   <para>The array must have <see cref="get_Nrows"/>+<see cref="get_Ncolumns"/> elements. Element 0 is not used.</para>
+        ///   <para>The array must have <see cref="NumberOfRows"/>+<see cref="NumberOfColumns"/> elements. Element 0 is not used.</para>
         /// </param>
-        /// <param name="threshold">A tolerance value. The values may differ that much. Recommended to use <see cref="get_epsint"/> for this value.</param>
+        /// <param name="threshold">A tolerance value. The values may differ that much. Recommended to use <see cref="ModelTolerance.IntegerEpsilon"/> for this value.</param>
         /// <returns><c>true</c> if <paramref name="values"/> represent a solution to the model, <c>false</c> otherwise</returns>
         /// <remarks>
         /// <para>All values of the values array must be between the bounds and ranges to be a feasible solution.</para>
@@ -3512,7 +3110,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <summary>
         /// Checks if a column is already present in the lp model.
         /// </summary>
-        /// <param name="column">An array with 1+<see cref="get_Nrows"/> elements that are checked against the existing columns in the lp model.</param>
+        /// <param name="column">An array with 1+<see cref="NumberOfRows"/> elements that are checked against the existing columns in the lp model.</param>
         /// <returns>The (first) column number if the column is already in the lp model and 0 if not.</returns>
         /// <remarks>
         /// <para>It does not look at bounds and types, only at matrix values.</para>
@@ -3539,10 +3137,10 @@ namespace LpSolveDotNet.Idiomatic
         public int get_nonzeros()
             => NativeMethods.get_nonzeros(_lp);
 
+
         /// <summary>
         /// Returns the number of columns (variables) in the lp model.
         /// </summary>
-        /// <returns>The number of columns (variables) in the lp model.</returns>
         /// <remarks>
         /// <para>Note that the number of columns can change when a presolve is done
         /// or when negative variables are split in a positive and a negative part.</para>
@@ -3550,46 +3148,44 @@ namespace LpSolveDotNet.Idiomatic
         /// in the lp model instead of relying on an own count.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_Ncolumns.htm">Full C API documentation.</seealso>
-        public int get_Ncolumns()
+        public int NumberOfColumns
             => NativeMethods.get_Ncolumns(_lp);
 
         /// <summary>
         /// Returns the number of original columns (variables) in the lp model.
         /// </summary>
-        /// <returns>The number of original columns (variables) in the lp model.</returns>
         /// <remarks>
-        /// <para>Note that the number of columns (<see cref="get_Ncolumns"/>) can change when a presolve is done
+        /// <para>Note that the number of columns (<see cref="NumberOfColumns"/>) can change when a presolve is done
         /// or when negative variables are split in a positive and a negative part.</para>
-        /// <para><see cref="get_Norig_columns"/> does not change and thus returns the original number of columns in the lp model.</para>
+        /// <para><see cref="NumberOfColumnsOriginally"/> does not change and thus returns the original number of columns in the lp model.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_Norig_columns.htm">Full C API documentation.</seealso>
-        public int get_Norig_columns()
+        public int NumberOfColumnsOriginally
             => NativeMethods.get_Norig_columns(_lp);
-
-        /// <summary>
-        /// Returns the number of original rows (constraints) in the lp model.
-        /// </summary>
-        /// <returns>The number of original rows (constraints) in the lp model.</returns>
-        /// <remarks>
-        /// <para>Note that the number of rows (<see cref="get_Nrows"/>) can change when a presolve is done.</para>
-        /// <para><see cref="get_Norig_rows"/> does not change and thus returns the original number of rows in the lp model.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_Norig_rows.htm">Full C API documentation.</seealso>
-        public int get_Norig_rows()
-            => NativeMethods.get_Norig_rows(_lp);
 
         /// <summary>
         /// Returns the number of rows (constraints) in the lp model.
         /// </summary>
-        /// <returns>The number of rows (constraints) in the lp model.</returns>
         /// <remarks>
         /// <para>Note that the number of rows can change when a presolve is done.</para>
         /// <para>Therefore it is advisable to use this method to determine how many rows there are
         /// in the lp model instead of relying on an own count.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_Nrows.htm">Full C API documentation.</seealso>
-        public int get_Nrows()
+        public int NumberOfRows
             => NativeMethods.get_Nrows(_lp);
+
+        /// <summary>
+        /// Returns the number of original rows (constraints) in the lp model.
+        /// </summary>
+        /// <remarks>
+        /// <para>Note that the number of rows (<see cref="NumberOfRows"/>) can change when a presolve is done.</para>
+        /// <para><see cref="NumberOfRowsOriginally"/> does not change and thus returns the original number of rows in the lp model.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_Norig_rows.htm">Full C API documentation.</seealso>
+        public int NumberOfRowsOriginally
+            => NativeMethods.get_Norig_rows(_lp);
+
 
         /// <summary>
         /// Returns an extra status after a call to a method.
@@ -3624,12 +3220,12 @@ namespace LpSolveDotNet.Idiomatic
         /// Returns the index in the lp of the original row/column.
         /// </summary>
         /// <param name="orig_index">Original constraint or column number. 
-        /// If <paramref name="orig_index"/> is between 1 and <see cref="get_Norig_rows"/> then the index is a constraint (row) number.
-        /// If <paramref name="orig_index"/> is between 1+<see cref="get_Norig_rows"/> and <see cref="get_Norig_rows"/> + <see cref="get_Norig_columns"/>
+        /// If <paramref name="orig_index"/> is between 1 and <see cref="NumberOfRowsOriginally"/> then the index is a constraint (row) number.
+        /// If <paramref name="orig_index"/> is between 1+<see cref="NumberOfRowsOriginally"/> and <see cref="NumberOfRowsOriginally"/> + <see cref="NumberOfColumnsOriginally"/>
         /// then the index is a column number.</param>
         /// <returns>The index in the lp of the original row/column.</returns>
         /// <remarks>
-        /// <para>Note that the number of constraints(<see cref="get_Nrows"/>) and columns(<see cref="get_Ncolumns"/>) can change when
+        /// <para>Note that the number of constraints(<see cref="NumberOfRows"/>) and columns(<see cref="NumberOfColumns"/>) can change when
         /// a presolve is done or when negative variables are split in a positive and a negative part.
         /// <see cref="get_lp_index"/> returns the position of the constraint/variable in the lp model.
         /// If <paramref name="orig_index"/> is not a legal index  or the constraint/column is deleted,
@@ -3643,12 +3239,12 @@ namespace LpSolveDotNet.Idiomatic
         /// Returns the original row/column where a constraint/variable was before presolve.
         /// </summary>
         /// <param name="lp_index">Constraint or column number.
-        /// If <paramref name="lp_index"/> is between 1 and <see cref="get_Nrows"/> then the index is a constraint (row) number.
-        /// If <paramref name="lp_index"/> is between 1+<see cref="get_Nrows"/> and <see cref="get_Nrows"/> + <see cref="get_Ncolumns"/>
+        /// If <paramref name="lp_index"/> is between 1 and <see cref="NumberOfRows"/> then the index is a constraint (row) number.
+        /// If <paramref name="lp_index"/> is between 1+<see cref="NumberOfRows"/> and <see cref="NumberOfRows"/> + <see cref="NumberOfColumns"/>
         /// then the index is a column number.</param>
         /// <returns>The original row/column where a constraint/variable was before presolve.</returns>
         /// <remarks>
-        /// <para>Note that the number of constraints(<see cref="get_Nrows"/>) and columns(<see cref="get_Ncolumns"/>) can change when
+        /// <para>Note that the number of constraints(<see cref="NumberOfRows"/>) and columns(<see cref="NumberOfColumns"/>) can change when
         /// a presolve is done or when negative variables are split in a positive and a negative part.
         /// <see cref="get_orig_index"/> returns the original position of the constraint/variable.
         /// If <paramref name="lp_index"/> is not a legal index, the return value is <c>0</c>.</para>
