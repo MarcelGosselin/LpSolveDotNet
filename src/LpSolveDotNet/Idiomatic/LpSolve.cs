@@ -276,7 +276,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <returns>A new <see cref="LpSolve"/> model with <paramref name="rows"/> rows and <paramref name="columns"/> columns.
         /// A <c>null</c> return value indicates an error. Specifically not enough memory available to setup an lprec structure.</returns>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/make_lp.htm">Full C API documentation.</seealso>
-        public static LpSolve make_lp(int rows, int columns)
+        public static LpSolve Create(int rows, int columns)
         {
             IntPtr lp = NativeMethods.make_lp(rows, columns);
             return CreateFromLpRecStructurePointer(lp);
@@ -286,13 +286,13 @@ namespace LpSolveDotNet.Idiomatic
         /// Creates and initialises a new <see cref="LpSolve"/> model from a LP model file.
         /// </summary>
         /// <param name="fileName">Filename to read the LP model from.</param>
-        /// <param name="verbosity">The verbosity level. See also <see cref="Verbosity"/>.</param>
+        /// <param name="verbosity">The <see cref="Verbosity"/> level.</param>
         /// <param name="lpName">Initial name of the model. May be <c>null</c> if the model has no name. See also <see cref="set_lp_name"/> and <see cref="get_lp_name"/>.</param>
         /// <returns>A new <see cref="LpSolve"/> model matching the one in the file.
         /// A <c>null</c> return value indicates an error. Specifically file could not be opened, has wrong structure or not enough memory is available.</returns>
         /// <remarks>The model in the file must be in <see href="http://lpsolve.sourceforge.net/5.5/lp-format.htm">lp-format</see>.</remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/read_lp.htm">Full C API documentation.</seealso>
-        public static LpSolve read_LP(string fileName, Verbosity verbosity, string lpName)
+        public static LpSolve CreateFromLPFile(string fileName, Verbosity verbosity, string lpName)
         {
             IntPtr lp = NativeMethods.read_LP(fileName, verbosity, lpName);
             return CreateFromLpRecStructurePointer(lp);
@@ -302,14 +302,14 @@ namespace LpSolveDotNet.Idiomatic
         /// Creates and initialises a new <see cref="LpSolve"/> model from an MPS model file.
         /// </summary>
         /// <param name="fileName">Filename to read the MPS model from.</param>
-        /// <param name="verbosity">Specifies the verbosity level. See also <see cref="Verbosity"/>.</param>
+        /// <param name="verbosity">Specifies the <see cref="Verbosity"/> level.</param>
         /// <param name="options">Specifies how to interprete the MPS layout. You can use multiple values.</param>
         /// <returns>A new <see cref="LpSolve"/> model matching the one in the file.
         /// A <c>null</c> return value indicates an error. Specifically file could not be opened, has wrong structure or not enough memory is available.</returns>
         /// <remarks>The model in the file must be in <see href="http://lpsolve.sourceforge.net/5.5/mps-format.htm">mps-format</see>.</remarks>
         /// <para>This method is different from C API because <paramref name="verbosity"/> is separate from <paramref name="options"/></para>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/read_mps.htm">Full C API documentation.</seealso>
-        public static LpSolve read_MPS(string fileName, Verbosity verbosity, MPSOptions options)
+        public static LpSolve CreateFromMPSFile(string fileName, Verbosity verbosity, MPSOptions options)
         {
             IntPtr lp = NativeMethods.read_MPS(fileName, ((int)verbosity) | ((int)options));
             return CreateFromLpRecStructurePointer(lp);
@@ -322,13 +322,13 @@ namespace LpSolveDotNet.Idiomatic
         /// <param name="modelName">Filename to read the model from.</param>
         /// <param name="dataName">Filename to read the data from. This may be optional. In that case, set the parameter to <c>null</c>.</param>
         /// <param name="options">Extra options that can be used by the reader.</param>
-        /// <param name="verbosity">The verbosity level. See also <see cref="Verbosity"/>.</param>
+        /// <param name="verbosity">The <see cref="Verbosity"/> level.</param>
         /// <returns>A new <see cref="LpSolve"/> model matching the one in the file.
         /// A <c>null</c> return value indicates an error.</returns>
         /// <remarks>The method constructs a new <see cref="LpSolve"/> model by reading model from <paramref name="modelName"/> via the specified XLI.
         /// See <see href="http://lpsolve.sourceforge.net/5.5/XLI.htm">External Language Interfaces</see>for a complete description on XLIs.</remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/read_XLI.htm">Full C API documentation.</seealso>
-        public static LpSolve read_XLI(string xliName, string modelName, string dataName, string options, Verbosity verbosity)
+        public static LpSolve CreateFromXLIFile(string xliName, string modelName, string dataName, string options, Verbosity verbosity)
         {
             IntPtr lp = NativeMethods.read_XLI(xliName, modelName, dataName, options, verbosity);
             return CreateFromLpRecStructurePointer(lp);
@@ -340,7 +340,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <returns>A new model with the same values as current one or <c>null</c> if an error occurs (not enough memory).</returns>
         /// <remarks>The new model is independent from the original one.</remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/copy_lp.htm">Full C API documentation.</seealso>
-        public LpSolve copy_lp()
+        public LpSolve Clone()
         {
             IntPtr lp = NativeMethods.copy_lp(_lp);
             return CreateFromLpRecStructurePointer(lp);
@@ -349,17 +349,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <summary>
         /// Frees all memory allocated to the model.
         /// </summary>
-        /// <remarks>You don't need to call this method, the <see cref="IDisposable"/> implementation does it for you.</remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/delete_lp.htm">Full C API documentation.</seealso>
-        public void delete_lp()
-        {
-            // According to https://msdn.microsoft.com/en-us/library/b1yfkh5e.aspx
-            //      CONSIDER providing method Close(), in addition to the Dispose(), if close is standard terminology in the area.
-            //      When doing so, it is important that you make the Close implementation identical to Dispose and consider implementing the IDisposable.Dispose method explicitly
-            Dispose();
-        }
-
-        /// <inheritdoc cref="IDisposable.Dispose()"/>
         public void Dispose()
         {
             // implement Dispose pattern according to https://msdn.microsoft.com/en-us/library/b1yfkh5e.aspx
@@ -1201,7 +1191,7 @@ namespace LpSolveDotNet.Idiomatic
         /// </summary>
         /// <returns><c>true</c> if the objective function is maximize, <c>false</c> if it is minimize.</returns>
         /// <remarks>
-        /// The default of lp_solve is to minimize, except for <see cref="read_LP(string, Verbosity, string)"/> where the default is to maximize.
+        /// The default of lp_solve is to minimize, except for <see cref="CreateFromLPFile"/> where the default is to maximize.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_maxim.htm">Full C API documentation.</seealso>
         public bool is_maxim()
@@ -1211,7 +1201,7 @@ namespace LpSolveDotNet.Idiomatic
         /// Sets the objective function to <c>maximize</c>.
         /// </summary>
         /// <remarks>
-        /// The default of lp_solve is to minimize, except for <see cref="read_LP(string, Verbosity, string)"/> where the default is to maximize.
+        /// The default of lp_solve is to minimize, except for <see cref="CreateFromLPFile"/> where the default is to maximize.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_maxim.htm">Full C API documentation.</seealso>
         public void set_maxim()
@@ -1221,7 +1211,7 @@ namespace LpSolveDotNet.Idiomatic
         /// Sets the objective function to <c>minimize</c>.
         /// </summary>
         /// <remarks>
-        /// The default of lp_solve is to minimize, except for <see cref="read_LP(string, Verbosity, string)"/> where the default is to maximize.
+        /// The default of lp_solve is to minimize, except for <see cref="CreateFromLPFile"/> where the default is to maximize.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_minim.htm">Full C API documentation.</seealso>
         public void set_minim()
@@ -1232,7 +1222,7 @@ namespace LpSolveDotNet.Idiomatic
         /// </summary>
         /// <param name="maximize">When <c>true</c>, the objective function sense is maximize, when <c>false</c> it is minimize.</param>
         /// <remarks>
-        /// The default of lp_solve is to minimize, except for <see cref="read_LP(string, Verbosity, string)"/> where the default is to maximize.
+        /// The default of lp_solve is to minimize, except for <see cref="CreateFromLPFile"/> where the default is to maximize.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_sense.htm">Full C API documentation.</seealso>
         public void set_sense(bool maximize)
@@ -1297,7 +1287,7 @@ namespace LpSolveDotNet.Idiomatic
         /// This is also called row entry mode. The speed improvement is spectacular, especially for bigger models, so it is 
         /// advisable to call this method to set the mode. Normally a model is build either column by column or row by row.</para>
         /// <para>Note that there are several restrictions with this mode:
-        /// Only use this method after a <see cref="make_lp"/> call. Not when the model is read from file.
+        /// Only use this method after a <see cref="Create"/> call. Not when the model is read from file.
         /// Also, if this method is used, first add the objective function via <see cref="set_obj_fn"/>, <see cref="set_obj_fnex"/>
         /// and after that add the constraints via <see cref="add_constraint(double[], ConstraintOperator, double)"/>, <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>.
         /// Don't call other API methods while in row entry mode.
@@ -1330,7 +1320,7 @@ namespace LpSolveDotNet.Idiomatic
         /// This is also called row entry mode. The speed improvement is spectacular, especially for bigger models, so it is 
         /// advisable to call this method to set the mode. Normally a model is build either column by column or row by row.</para>
         /// <para>Note that there are several restrictions with this mode:
-        /// Only use this method after a <see cref="make_lp"/> call. Not when the model is read from file.
+        /// Only use this method after a <see cref="Create"/> call. Not when the model is read from file.
         /// Also, if this method is used, first add the objective function via <see cref="set_obj_fn"/>, <see cref="set_obj_fnex"/>
         /// and after that add the constraints via <see cref="add_constraint(double[], ConstraintOperator, double)"/>, <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>.
         /// Don't call other API methods while in row entry mode.
@@ -3533,7 +3523,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <returns><c>true</c> if succeeded, <c>false</c> otherwise.</returns>
         /// <remarks>
         /// <para>This call is normally only needed when <see cref="write_XLI"/> will be called. 
-        /// <see cref="read_XLI(string, string, string, string, Verbosity)"/> automatically calls this method</para>
+        /// <see cref="CreateFromXLIFile"/> automatically calls this method</para>
         /// <para>See <seealso href="http://lpsolve.sourceforge.net/5.5/XLI.htm">External Language Interfaces</seealso>
         /// for a complete description on XLIs.</para>
         /// </remarks>

@@ -219,6 +219,34 @@ namespace LpSolveDotNet.Idiomatic
 
         #endregion
 
+        #region Renames
+
+        [Obsolete("Replaced by " + nameof(Create) + " method", true)]
+        public static LpSolve make_lp(int rows, int columns)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(CreateFromLPFile) + " method", true)]
+        public static LpSolve read_LP(string fileName, Verbosity verbosity, string lpName)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(CreateFromMPSFile) + " method", true)]
+        public static LpSolve read_MPS(string fileName, Verbosity verbosity, MPSOptions options)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(CreateFromXLIFile) + " method", true)]
+        public static LpSolve read_XLI(string xliName, string modelName, string dataName, string options, Verbosity verbosity)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Clone) + " method", true)]
+        public LpSolve copy_lp()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Dispose) + " method", true)]
+        public void delete_lp()
+            => throw new NotImplementedException();
+
+        #endregion
+
         #region Support removed
 
         [Obsolete("Support for string version of model building was removed, use " + nameof(add_constraint) + " or " + nameof(add_constraintex) + " instead", true)]
