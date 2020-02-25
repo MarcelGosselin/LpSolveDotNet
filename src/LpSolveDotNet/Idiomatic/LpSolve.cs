@@ -12,6 +12,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
+using LpSolveDotNet.Idiomatic.Internal;
 #if SUPPORTS_RUNTIMEINFORMATION || SUPPORTS_NATIVELIBRARY
 using System.Runtime.InteropServices;
 #endif
@@ -243,6 +244,7 @@ namespace LpSolveDotNet.Idiomatic
         #region Fields
 
         private IntPtr _lp;
+        private IReturnValueHandler _returnValueHandler;
 
         #endregion
 
@@ -254,6 +256,8 @@ namespace LpSolveDotNet.Idiomatic
         private LpSolve(IntPtr lp)
         {
             _lp = lp;
+            //TODO: find a way to let user pass specific handler
+            _returnValueHandler = new ThrowingReturnValueHandler(_lp);
         }
 
         private static LpSolve CreateFromLpRecStructurePointer(IntPtr lp)
@@ -287,7 +291,7 @@ namespace LpSolveDotNet.Idiomatic
         /// </summary>
         /// <param name="fileName">Filename to read the LP model from.</param>
         /// <param name="verbosity">The <see cref="Verbosity"/> level.</param>
-        /// <param name="lpName">Initial name of the model. May be <c>null</c> if the model has no name. See also <see cref="set_lp_name"/> and <see cref="get_lp_name"/>.</param>
+        /// <param name="lpName">Initial name of the model. May be <c>null</c> if the model has no name. See also <see cref="ModelName"/>.</param>
         /// <returns>A new <see cref="LpSolve"/> model matching the one in the file.
         /// A <c>null</c> return value indicates an error. Specifically file could not be opened, has wrong structure or not enough memory is available.</returns>
         /// <remarks>The model in the file must be in <see href="http://lpsolve.sourceforge.net/5.5/lp-format.htm">lp-format</see>.</remarks>
@@ -391,7 +395,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <remarks><para>The method adds a column to the model (at the end) and sets all values of the column at once.</para>
         /// <para>Note that element 0 of the array is the value of the objective function for that column. Column 1 is element 1, column 2 is element 2, ...</para>
         /// <para>It is almost always better to use <see cref="add_columnex"/> instead of <see cref="add_column"/>. <see cref="add_columnex"/> is always at least as performant as <see cref="add_column"/>.</para>
-        /// <para>Note that if you have to add many columns, performance can be improved by a call to <see cref="resize_lp"/>.</para>
+        /// <para>Note that if you have to add many columns, performance can be improved by a call to <see cref="Resize"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_column.htm">Full C API documentation.</seealso>
         public bool add_column(double[] column)
@@ -414,7 +418,7 @@ namespace LpSolveDotNet.Idiomatic
         /// It is almost always better to use<see cref="add_columnex"/> instead of<see cref="add_column"/>. <see cref = "add_columnex" /> is always at least as performant as <see cref = "add_column" />.
         /// </para>
         /// <para><paramref name="column"/> and <paramref name="rowno"/> can both be <c>null</c>. In that case an empty column is added.</para>
-        /// <para>Note that if you have to add many columns, performance can be improved by a call to <see cref="resize_lp"/>.</para>
+        /// <para>Note that if you have to add many columns, performance can be improved by a call to <see cref="Resize"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_column.htm">Full C API documentation.</seealso>
         public bool add_columnex(int count, double[] column, int[] rowno)
@@ -427,10 +431,10 @@ namespace LpSolveDotNet.Idiomatic
         /// <returns><c>true</c> if successful, <c>false</c> otherwise. An error occurs if <paramref name="column"/> 
         /// is not between <c>1</c> and the number of columns in the model</returns>
         /// <remarks>
-        /// <para>Note that row entry mode must be off, else this method fails. <see cref="set_add_rowmode"/>.</para>
+        /// <para>Note that row entry mode must be off, else this method fails. <see cref="EntryMode"/>.</para>
         /// <para>The column is effectively deleted from the model, so all columns after this column shift one left.</para>
         /// <para>Note that column 0 (the right hand side (RHS)) cannot be deleted. There is always a RHS.</para>
-        /// <para>Note that you can also delete multiple columns by a call to <see cref="resize_lp"/>.</para>
+        /// <para>Note that you can also delete multiple columns by a call to <see cref="Resize"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/del_column.htm">Full C API documentation.</seealso>
         public bool del_column(int column)
@@ -485,7 +489,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <param name="column">Array in which the values are returned. The array must be dimensioned with at least 1+<see cref="get_Nrows"/> elements.</param>
         /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
         /// <remarks>
-        /// <para>Note that row entry mode must be off, else this method fails. <see cref="set_add_rowmode"/>.</para>
+        /// <para>Note that row entry mode must be off, else this method fails. <see cref="EntryMode"/>.</para>
         /// <para>Note that element 0 of the array is row 0 (objective function). element 1 is row 1, ...</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_column.htm">Full C API documentation.</seealso>
@@ -502,7 +506,7 @@ namespace LpSolveDotNet.Idiomatic
         /// If that is unknown, then use 1+<see cref="get_Nrows"/>.</param>
         /// <returns>The number of non-zero elements returned in <paramref name="column"/> and <paramref name="nzrow"/>.</returns>
         /// <remarks>
-        /// <para>Note that row entry mode must be off, else this method fails. <see cref="set_add_rowmode"/>.</para>
+        /// <para>Note that row entry mode must be off, else this method fails. <see cref="EntryMode"/>.</para>
         /// <para>Returned values in <paramref name="column"/> and <paramref name="nzrow"/> start from element 0.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_column.htm">Full C API documentation.</seealso>
@@ -686,7 +690,7 @@ namespace LpSolveDotNet.Idiomatic
         /// Setting a bound doesn't increase the model size that means that the model stays smaller and will be solved faster.
         /// Note that the default lower bound of each variable is 0.
         /// So variables will never take negative values if no negative lower bound is set.
-        /// The default upper bound of a variable is infinity(well not quite.It is a very big number, the value of <see cref="get_infinite"/>).
+        /// The default upper bound of a variable is infinity(well not quite.It is a very big number, the value of <see cref="Infinite"/>).
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_bounds.htm">Full C API documentation.</seealso>
         public bool set_bounds(int column, double lower, double upper)
@@ -729,11 +733,11 @@ namespace LpSolveDotNet.Idiomatic
         /// </summary>
         /// <param name="column">The column number of the variable. Must be between 1 and the number of columns in the lp.</param>
         /// <returns>The upper bound on the specified variable. If no bound was set, it returns a very big number, 
-        /// the value of <see cref="get_infinite"/>, the default upper bound</returns>
+        /// the value of <see cref="Infinite"/>, the default upper bound</returns>
         /// <remarks>
         /// Setting a bound on a variable is the way to go instead of adding an extra constraint (row) to the model.
         /// Setting a bound doesn't increase the model size that means that the model stays smaller and will be solved faster.
-        /// The default upper bound of a variable is infinity(well not quite.It is a very big number, the value of <see cref="get_infinite"/>).
+        /// The default upper bound of a variable is infinity(well not quite.It is a very big number, the value of <see cref="Infinite"/>).
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_upbo.htm">Full C API documentation.</seealso>
         public double get_upbo(int column)
@@ -748,7 +752,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <remarks>
         /// Setting a bound on a variable is the way to go instead of adding an extra constraint (row) to the model.
         /// Setting a bound doesn't increase the model size that means that the model stays smaller and will be solved faster.
-        /// The default upper bound of a variable is infinity(well not quite.It is a very big number, the value of <see cref="get_infinite"/>).
+        /// The default upper bound of a variable is infinity(well not quite.It is a very big number, the value of <see cref="Infinite"/>).
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_upbo.htm">Full C API documentation.</seealso>
         public bool set_upbo(int column, double value)
@@ -804,8 +808,8 @@ namespace LpSolveDotNet.Idiomatic
         /// <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/> is always at least as performant as <see cref="add_constraint(double[], ConstraintOperator, double)"/>.</para>
         /// <para>Note that it is advised to set the objective function (via <see cref="set_obj_fn"/>, <see cref="set_obj_fnex"/> or <see cref="set_obj"/>)
         /// before adding rows. This especially for larger models. This will be much more performant than adding the objective function afterwards.</para>
-        /// <para>Note that these methods will perform much better when <see cref="set_add_rowmode"/> is called before adding constraints.</para>
-        /// <para>Note that if you have to add many constraints, performance can be improved by a call to <see cref="resize_lp"/>.</para>
+        /// <para>Note that this method will perform much better when <see cref="EntryMode"/> is set to <see cref="EntryMode.Row"/> before adding constraints.</para>
+        /// <para>Note that if you have to add many constraints, performance can be improved by a call to <see cref="Resize"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_constraint.htm">Full C API documentation.</seealso>
         public bool add_constraint(double[] row, ConstraintOperator constraintOperator, double rh)
@@ -835,8 +839,8 @@ namespace LpSolveDotNet.Idiomatic
         /// is always at least as performant as <see cref="add_constraint(double[], ConstraintOperator, double)"/>.</para>
         /// <para>Note that it is advised to set the objective function (via <see cref="set_obj_fn"/>, <see cref="set_obj_fnex"/> or <see cref="set_obj"/>)
         /// before adding rows. This especially for larger models. This will be much more performant than adding the objective function afterwards.</para>
-        /// <para>Note that these methods will perform much better when <see cref="set_add_rowmode"/> is called before adding constraints.</para>
-        /// <para>Note that if you have to add many constraints, performance can be improved by a call to <see cref="resize_lp"/>.</para>
+        /// <para>Note that this method will perform much better when <see cref="EntryMode"/> is set to <see cref="EntryMode.Row"/> before adding constraints.</para>
+        /// <para>Note that if you have to add many constraints, performance can be improved by a call to <see cref="Resize"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_constraint.htm">Full C API documentation.</seealso>
         public bool add_constraintex(int count, double[] row, int[] colno, ConstraintOperator constraintOperator, double rh)
@@ -849,10 +853,10 @@ namespace LpSolveDotNet.Idiomatic
         /// <returns><c>true</c> if operation was successful, <c>false</c> otherwise. An error occurs when <paramref name="del_row"/>
         /// is not between 1 and the number of rows in the model.</returns>
         /// <remarks>
-        /// <para>Note that row entry mode must be off, else this method also fails. See <see cref="set_add_rowmode"/>.</para>
+        /// <para>Note that row entry mode must be off, else this method also fails. See <see cref="EntryMode"/>.</para>
         /// <para>This method deletes a row from the model. The row is effectively deleted, so all rows after this row shift one up.</para>
         /// <para>Note that row 0 (the objective function) cannot be deleted. There is always an objective function.</para>
-        /// <para>Note that you can also delete multiple constraints by a call to <see cref="resize_lp"/>.</para>
+        /// <para>Note that you can also delete multiple constraints by a call to <see cref="Resize"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/del_constraint.htm">Full C API documentation.</seealso>
         public bool del_constraint(int del_row)
@@ -866,7 +870,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <returns><c>true</c> if successful, <c>false</c> otherwise. An error occurs when <paramref name="row_nr"/>
         /// is not between 0 and the number of rows in the model.</returns>
         /// <remarks>
-        /// <para>Note that row entry mode must be off, else this method fails. <see cref="set_add_rowmode"/>.</para>
+        /// <para>Note that row entry mode must be off, else this method fails. <see cref="EntryMode"/>.</para>
         /// <para>Element 0 of the row array is not filled. Element 1 will contain the value for column 1, Element 2 the value for column 2, ...</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_row.htm">Full C API documentation.</seealso>
@@ -883,7 +887,7 @@ namespace LpSolveDotNet.Idiomatic
         /// If that is unknown, then use the number of columns in the model. The return value of the method indicates how many non-zero elements there are.</param>
         /// <returns>The number of non-zero elements returned in <paramref name="row"/> and <paramref name="colno"/>. If an error occurs, then -1 is returned.. An error occurs when <paramref name="row_nr"/> is not between 0 and the number of rows in the model.</returns>
         /// <remarks>
-        /// <para>Note that row entry mode must be off, else this method fails. <see cref="set_add_rowmode"/>.</para>
+        /// <para>Note that row entry mode must be off, else this method fails. <see cref="EntryMode"/>.</para>
         /// <para>Returned values in <paramref name="row"/> and <paramref name="colno"/> start from element 0.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_row.htm">Full C API documentation.</seealso>
@@ -901,7 +905,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <para>Note that element 0 of the array is not considered (i.e. ignored). Column 1 is element 1, column 2 is element 2, ...</para>
         /// <para>It is almost always better to use <see cref="set_rowex"/> instead of <see cref="set_row"/>. <see cref="set_rowex"/> is always at least as performant as <see cref="set_row"/>.</para>
         /// <para>It is more performant to call these methods than multiple times <see cref="set_mat"/>.</para>
-        /// <para>Note that these methods will perform much better when <see cref="set_add_rowmode"/> is called before adding constraints.</para>
+        /// <para>Note that this method will perform much better when <see cref="EntryMode"/> is set to <see cref="EntryMode.Row"/> before adding constraints.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_row.htm">Full C API documentation.</seealso>
         public bool set_row(int row_no, double[] row)
@@ -926,7 +930,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <para>It is almost always better to use <see cref="set_rowex"/> instead of <see cref="set_row"/>. <see cref="set_rowex"/> is always at least as performant as <see cref="set_row"/>.</para>
         /// <para>It is more performant to call these methods than multiple times <see cref="set_mat"/>.</para>
         /// <para>Note that unspecified values by <see cref="set_rowex"/> are set to zero.</para>
-        /// <para>Note that these methods will perform much better when <see cref="set_add_rowmode"/> is called before adding constraints.</para>
+        /// <para>Note that this method will perform much better when <see cref="EntryMode"/> is set to <see cref="EntryMode.Row"/> before adding constraints.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_row.htm">Full C API documentation.</seealso>
         public bool set_rowex(int row_no, int count, double[] row, int[] colno)
@@ -1059,7 +1063,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <para>If the row has a less than constraint then the range means setting a minimum on the constraint that is equal to the RHS value minus the range.
         /// If the row has a greater than constraint then the range means setting a maximum on the constraint that is equal to the RHS value plus the range.</para>
         /// <para>Note that the range value is the difference value and not the absolute value.</para>
-        /// <para>If no range was set then <see cref="get_rh_range"/> returns a very big number, the value of <see cref="get_infinite"/>.</para>
+        /// <para>If no range was set then <see cref="get_rh_range"/> returns a very big number, the value of <see cref="Infinite"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_rh_range.htm">Full C API documentation.</seealso>
         public double get_rh_range(int row)
@@ -1227,28 +1231,21 @@ namespace LpSolveDotNet.Idiomatic
 
         #endregion
 
-        /// <summary>
-        /// Gets the name of the model.
-        /// </summary>
-        /// <returns>The name of the model.</returns>
-        /// <remarks>
-        /// Giving the lp a name is optional. The default name is "Unnamed".
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_lp_name.htm">Full C API documentation.</seealso>
-        public string get_lp_name()
-            => NativeMethods.get_lp_name(_lp);
 
         /// <summary>
-        /// Sets the name of the model.
+        /// The name of the model.
         /// </summary>
-        /// <param name="lpname">The name of the model.</param>
-        /// <returns><c>true</c> if operation was successful, <c>false</c> otherwise.</returns>
         /// <remarks>
         /// Giving the lp a name is optional. The default name is "Unnamed".
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_lp_name.htm">Full C API documentation.</seealso>
-        public bool set_lp_name(string lpname)
-            => NativeMethods.set_lp_name(_lp, lpname);
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_lp_name.htm">Full C API documentation (get).</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_lp_name.htm">Full C API documentation (set).</seealso>
+        public string ModelName
+        {
+            get => NativeMethods.get_lp_name(_lp);
+            set => NativeMethods.set_lp_name(_lp, value)
+                .HandleResultAndReturnVoid(_returnValueHandler);
+        }
 
         /// <summary>
         /// Allocates memory for the specified size.
@@ -1262,78 +1259,52 @@ namespace LpSolveDotNet.Idiomatic
         /// It does however changes internal memory allocations to the new specified sizes.
         /// This to make the <see cref="add_constraint(double[], ConstraintOperator, double)"/>,
         /// <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/> and <see cref="add_column"/>,
-        /// <see cref="add_columnex"/> methods faster. Without <see cref="resize_lp"/>, these methods have to reallocated
-        /// memory at each call for the new dimensions. However if <see cref="resize_lp "/> is used, then memory reallocation
+        /// <see cref="add_columnex"/> methods faster. Without <see cref="Resize"/>, these methods have to reallocated
+        /// memory at each call for the new dimensions. However if <see cref="Resize "/> is used, then memory reallocation
         /// must be done only once resulting in better performance. So if the number of rows/columns that will be added is known in advance, then performance can be improved by using this method.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/resize_lp.htm">Full C API documentation.</seealso>
-        public bool resize_lp(int rows, int columns)
+        public bool Resize(int rows, int columns)
             => NativeMethods.resize_lp(_lp, rows, columns);
 
         /// <summary>
-        /// Returns a flag telling which of the add methods perform best. Whether <see cref="add_column"/>, <see cref="add_columnex"/>
+        /// Specifies which entry methods perform best. Whether <see cref="add_column"/>, <see cref="add_columnex"/>
         /// or <see cref="add_constraint(double[], ConstraintOperator, double)"/>, <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>.
         /// </summary>
-        /// <returns>If <c>false</c> then <see cref="add_column"/>, <see cref="add_columnex"/>
-        /// perform best. If <c>true</c> then <see cref="add_constraint(double[], ConstraintOperator, double)"/>, <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>
-        /// perform best.</returns>
         /// <remarks>
-        /// <para>Default, this is <c>false</c>, meaning that <see cref="add_column"/>, <see cref="add_columnex"/> perform best.
-        /// If the model is build via <see cref="add_constraint(double[], ConstraintOperator, double)"/>, <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/> calls,
-        /// then these methods will be much faster if this method returns <c>true</c>.
-        /// This is also called row entry mode. The speed improvement is spectacular, especially for bigger models, so it is 
-        /// advisable to call this method to set the mode. Normally a model is build either column by column or row by row.</para>
-        /// <para>Note that there are several restrictions with this mode:
-        /// Only use this method after a <see cref="Create"/> call. Not when the model is read from file.
-        /// Also, if this method is used, first add the objective function via <see cref="set_obj_fn"/>, <see cref="set_obj_fnex"/>
-        /// and after that add the constraints via <see cref="add_constraint(double[], ConstraintOperator, double)"/>, <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>.
-        /// Don't call other API methods while in row entry mode.
-        /// No other data matrix access is allowed while in row entry mode.
-        /// After adding the contraints, turn row entry mode back off.
-        /// Once turned of, you cannot switch back to row entry mode. So in short:<list type="number">
-        /// <item><description>turn row entry mode on</description></item>
-        /// <item><description>set the objective function</description></item>
-        /// <item><description>create the constraints</description></item>
-        /// <item><description>turn row entry mode off</description></item>
+        /// <para>Default value is <see cref="EntryMode.Column"/>, meaning that <see cref="add_column"/>, <see cref="add_columnex"/> perform best.
+        /// If the model is built via calls to <see cref="add_constraint(double[], ConstraintOperator, double)"/> or <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>,
+        /// then these methods will be much faster if this property is first set to <see cref="EntryMode.Row"/>.
+        /// The speed improvement is spectacular, especially for bigger models, so it is 
+        /// advisable to set the proper mode. Normally a model is built either column by column or row by row.</para>
+        /// <para>Note that there are several restrictions with the <see cref="EntryMode.Row"/> entry mode:
+        /// <list type="bullet">
+        /// <item><description>Only set the mode after a <see cref="Create"/> call.</description></item>
+        /// <item><description>Never set the mode when the model is read from file.</description></item>
+        /// <item><description>If you use <see cref="EntryMode.Row"/> entry mode, first add the objective function via <see cref="set_obj_fn"/>, <see cref="set_obj_fnex"/>
+        /// and after that add the constraints via <see cref="add_constraint(double[], ConstraintOperator, double)"/>, <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>.</description></item>
+        /// <item><description>Don't call other API methods while in row entry mode.</description></item>
+        /// <item><description>No other data matrix access is allowed while in row entry mode.</description></item>
+        /// <item><description>After adding the contraints, turn row entry mode back off.</description></item>
+        /// <item><description>Once turned off, you cannot switch back to row entry mode.</description></item>
+        /// </list>
+        /// So in short:<list type="number">
+        /// <item><description>var model = LpSolve.Create(rows, cols);</description></item>
+        /// <item><description>model.EntryMode = EntryMode.Row;</description></item>
+        /// <item><description>...model.set_obj_fn()</description></item>
+        /// <item><description>...model.add_constraint()</description></item>
+        /// <item><description>model.EntryMode = EntryMode.Column;</description></item>
         /// </list>
         /// </para>
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_add_rowmode.htm">Full C API documentation.</seealso>
-        public bool is_add_rowmode()
-            => NativeMethods.is_add_rowmode(_lp);
-
-        /// <summary>
-        /// Specifies which add methods perform best. Whether <see cref="add_column"/>, <see cref="add_columnex"/>
-        /// or <see cref="add_constraint(double[], ConstraintOperator, double)"/>, <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>.
-        /// </summary>
-        /// <param name="turnon">If <c>false</c> then <see cref="add_column"/>, <see cref="add_columnex"/>
-        /// perform best. If <c>true</c> then <see cref="add_constraint(double[], ConstraintOperator, double)"/>, <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>
-        /// perform best.</param>
-        /// <returns><c>true</c> if the rowmode was changed, <c>false</c> if the given mode was already set.</returns>
-        /// <remarks>
-        /// <para>Default, this is <c>false</c>, meaning that <see cref="add_column"/>, <see cref="add_columnex"/> perform best.
-        /// If the model is build via <see cref="add_constraint(double[], ConstraintOperator, double)"/>, <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/> calls,
-        /// then these methods will be much faster if this method is called with <paramref name="turnon"/> set to <c>true</c>.
-        /// This is also called row entry mode. The speed improvement is spectacular, especially for bigger models, so it is 
-        /// advisable to call this method to set the mode. Normally a model is build either column by column or row by row.</para>
-        /// <para>Note that there are several restrictions with this mode:
-        /// Only use this method after a <see cref="Create"/> call. Not when the model is read from file.
-        /// Also, if this method is used, first add the objective function via <see cref="set_obj_fn"/>, <see cref="set_obj_fnex"/>
-        /// and after that add the constraints via <see cref="add_constraint(double[], ConstraintOperator, double)"/>, <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>.
-        /// Don't call other API methods while in row entry mode.
-        /// No other data matrix access is allowed while in row entry mode.
-        /// After adding the contraints, turn row entry mode back off.
-        /// Once turned of, you cannot switch back to row entry mode. So in short:<list type="number">
-        /// <item><description>turn row entry mode on</description></item>
-        /// <item><description>set the objective function</description></item>
-        /// <item><description>create the constraints</description></item>
-        /// <item><description>turn row entry mode off</description></item>
-        /// </list>
-        /// </para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_add_rowmode.htm">Full C API documentation.</seealso>
-        public bool set_add_rowmode(bool turnon)
-            => NativeMethods.set_add_rowmode(_lp, turnon);
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/EntryMode.htm">Full C API documentation (set).</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_add_rowmode.htm">Full C API documentation (get).</seealso>
+        public EntryMode EntryMode
+        {
+            //TODO: update doc once all methods have been renamed
+            get => NativeMethods.is_add_rowmode(_lp) ? EntryMode.Row : EntryMode.Column;
+            set => _ = NativeMethods.set_add_rowmode(_lp, value == EntryMode.Row);
+        }
 
         /// <summary>
         /// Gets the index of a given column or row name in the model.
@@ -1354,60 +1325,51 @@ namespace LpSolveDotNet.Idiomatic
             => NativeMethods.get_nameindex(_lp, name, isrow);
 
         /// <summary>
-        /// Returns the value of "infinite".
-        /// </summary>
-        /// <returns>Returns the practical value of "infinite".</returns>
-        /// <remarks>
-        /// <para>This value is used for very big numbers. For example the upper bound of a variable without an upper bound.</para>
-        /// <para>The default is 1e30</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_infinite.htm">Full C API documentation.</seealso>
-        public double get_infinite()
-            => NativeMethods.get_infinite(_lp);
-
-        /// <summary>
-        /// Specifies the practical value of "infinite".
-        /// </summary>
-        /// <param name="infinite">The value that must be used for "infinite".</param>
-        /// <remarks>
-        /// <para>This value is used for very big numbers. For example the upper bound of a variable without an upper bound.</para>
-        /// <para>The default is 1e30</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_infinite.htm">Full C API documentation.</seealso>
-        public void set_infinite(double infinite)
-            => NativeMethods.set_infinite(_lp, infinite);
-
-        /// <summary>
         /// Checks if the provided absolute of the value is larger or equal to "infinite".
         /// </summary>
         /// <param name="value">The value to check against "infinite".</param>
         /// <returns><c>true</c> if the value is equal or larger to "infinite", <c>false</c> otherwise.</returns>
         /// <remarks>
-        /// Note that the absolute of the provided value is checked against the value set by <see cref="set_infinite"/>.
+        /// Note that the absolute of the provided value is checked against the value set by <see cref="Infinite"/>.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_infinite.htm">Full C API documentation.</seealso>
         public bool is_infinite(double value)
             => NativeMethods.is_infinite(_lp, value);
 
         /// <summary>
-        /// Gets a single element from the matrix.
+        /// Specifies the practical value of "infinite".
         /// </summary>
-        /// <param name="row">Row number of the matrix. Must be between 0 and number of rows in the model. Row 0 is objective function.</param>
-        /// <param name="column">Column number of the matrix. Must be between 1 and number of columns in the model.</param>
-        /// <returns>
-        /// <para>Returns the value of the element on row <paramref name="row"/>, column <paramref name="column"/>.
-        /// If no value was set for this element, the method returns 0.</para>
-        /// <para>Note that row entry mode must be off, else this method also fails.
-        /// See <see cref="set_add_rowmode"/>.</para></returns>
         /// <remarks>
-        /// <para>This method is not efficient if many values are to be retrieved.
-        /// Consider to use <see cref="get_row"/>, <see cref="get_rowex"/>, <see cref="get_column"/>, <see cref="get_columnex"/>.</para>
-        /// <para>
-        /// If row and/or column are outside the allowed range, the method returns 0.
-        /// </para>
+        /// <para>This value is used for very big numbers. For example the upper bound of a variable without an upper bound.</para>
+        /// <para>The default is <c>1e30</c></para>
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_mat.htm">Full C API documentation.</seealso>
-        public double get_mat(int row, int column)
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_infinite.htm">Full C API documentation (get).</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_infinite.htm">Full C API documentation (set).</seealso>
+        public double Infinite
+        {
+            get => NativeMethods.get_infinite(_lp);
+            set => NativeMethods.set_infinite(_lp, value);
+        }
+
+    /// <summary>
+    /// Gets a single element from the matrix.
+    /// </summary>
+    /// <param name="row">Row number of the matrix. Must be between 0 and number of rows in the model. Row 0 is objective function.</param>
+    /// <param name="column">Column number of the matrix. Must be between 1 and number of columns in the model.</param>
+    /// <returns>
+    /// <para>Returns the value of the element on row <paramref name="row"/>, column <paramref name="column"/>.
+    /// If no value was set for this element, the method returns 0.</para>
+    /// <para>Note that row entry mode must be off, else this method also fails.
+    /// See <see cref="EntryMode"/>.</para></returns>
+    /// <remarks>
+    /// <para>This method is not efficient if many values are to be retrieved.
+    /// Consider to use <see cref="get_row"/>, <see cref="get_rowex"/>, <see cref="get_column"/>, <see cref="get_columnex"/>.</para>
+    /// <para>
+    /// If row and/or column are outside the allowed range, the method returns 0.
+    /// </para>
+    /// </remarks>
+    /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_mat.htm">Full C API documentation.</seealso>
+    public double get_mat(int row, int column)
             => NativeMethods.get_mat(_lp, row, column);
 
         /// <summary>
@@ -1418,7 +1380,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <param name="value">Value to set on row <paramref name="row"/>, column <paramref name="column"/>.</param>
         /// <returns><para><c>true</c> if operation was successful, <c>false</c> otherwise.</para>
         /// <para>Note that row entry mode must be off, else this method also fails.
-        /// See <see cref="set_add_rowmode"/>.</para></returns>
+        /// See <see cref="EntryMode"/>.</para></returns>
         /// <remarks>
         /// <para>If there was already a value for this element, it is replaced and if there was no value, it is added.</para>
         /// <para>This method is not efficient if many values are to be set.
@@ -3229,10 +3191,10 @@ namespace LpSolveDotNet.Idiomatic
         /// If <c>null</c>, then output is stdout again.
         /// If "", then output is ignored.
         /// It doesn't go to the console or to a file then.
-        /// This is useful in combination with <see cref="put_logfunc"/> to redirect output to somewhere completely different.</param>
+        /// This is useful in combination with <see cref="PutLogHandler"/> to redirect output to somewhere completely different.</param>
         /// <returns><c>true</c> if the file could be opened, else <c>false</c>.</returns>
         /// <remarks>
-        /// <para>This is done at the same time as something is reported via <see cref="put_logfunc"/>.
+        /// <para>This is done at the same time as something is reported via <see cref="PutLogHandler"/>.
         /// The default reporting output is screen (stdout). 
         /// If <see cref="set_outputfile"/> is called to change output to the specified file, then the file is automatically closed when <see cref="LpSolve"/> is disposed.
         /// Note that this was not the case in previous versions of lp_solve.
@@ -3282,49 +3244,32 @@ namespace LpSolveDotNet.Idiomatic
         }
 
         /// <summary>
-        /// Returns a flag if all intermediate results and the branch-and-bound decisions must be printed while solving.
+        /// Flag that defines if all intermediate results and the branch-and-bound decisions must be printed while solving.
         /// </summary>
-        /// <returns><c>true</c> to print intermediate results, <c>false</c> to not print.</returns>
         /// <remarks>
         /// This method is meant for debugging purposes. The default is not to print (<c>false</c>).
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_debug.htm">Full C API documentation.</seealso>
-        public bool is_debug()
-            => NativeMethods.is_debug(_lp);
-
-        /// <summary>
-        /// Sets a flag if all intermediate results and the branch-and-bound decisions must be printed while solving.
-        /// </summary>
-        /// <param name="debug"><c>true</c> to print intermediate results, <c>false</c> to not print.</param>
-        /// <remarks>
-        /// This method is meant for debugging purposes. The default is not to print (<c>false</c>).
-        /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_debug.htm">Full C API documentation.</seealso>
-        public void set_debug(bool debug)
-            => NativeMethods.set_debug(_lp, debug);
+        public bool IsDebug
+        {
+            get => NativeMethods.is_debug(_lp);
+            set => NativeMethods.set_debug(_lp, value);
+        }
 
         /// <summary>
-        /// Returns a flag if pivot selection must be printed while solving.
+        /// Flag that defines if pivot selection must be printed while solving.
         /// </summary>
-        /// <returns><c>true</c> if pivot selection must be printed, <c>false</c> otherwise.</returns>
         /// <remarks>
         /// This method is meant for debugging purposes. The default is not to print (<c>false</c>).
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_trace.htm">Full C API documentation.</seealso>
-        public bool is_trace()
-            => NativeMethods.is_trace(_lp);
-
-        /// <summary>
-        /// Sets a flag if pivot selection must be printed while solving.
-        /// </summary>
-        /// <param name="trace"><c>true</c> to set trace, <c>false</c> to remove it.</param>
-        /// <remarks>
-        /// This method is meant for debugging purposes. The default is not to print (<c>false</c>).
-        /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_trace.htm">Full C API documentation.</seealso>
-        public void set_trace(bool trace)
-            => NativeMethods.set_trace(_lp, trace);
-
+        public bool IsTrace
+        {
+            get => NativeMethods.is_trace(_lp);
+            set => NativeMethods.set_trace(_lp, value);
+        }
         #endregion
 
         #region Debug/print
@@ -3449,7 +3394,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <param name="filename">Filename to write the model to.</param>
         /// <returns><c>true</c> if succeeded, <c>false</c> otherwise.</returns>
         /// <remarks>
-        /// <para>Note that row entry mode must be off, else this method fails. See <see cref="set_add_rowmode"/>.</para>
+        /// <para>Note that row entry mode must be off, else this method fails. See <see cref="EntryMode"/>.</para>
         /// <para>The model in the file will be in <seealso href="http://lpsolve.sourceforge.net/5.5/lp-format.htm">lp-format</seealso></para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/write_lp.htm">Full C API documentation.</seealso>
@@ -3463,7 +3408,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <param name="filename">Filename to write the model to or <c>null</c> to write to default output.</param>
         /// <returns><c>true</c> if succeeded, <c>false</c> otherwise.</returns>
         /// <remarks>
-        /// <para>Note that row entry mode must be off, else this method fails. See <see cref="set_add_rowmode"/>.</para>
+        /// <para>Note that row entry mode must be off, else this method fails. See <see cref="EntryMode"/>.</para>
         /// <para>When <paramref name="filename"/> is <c>null</c>, then output is written to the output 
         /// set by <see cref="set_outputfile"/>. By default this is stdout.</para>
         /// <para>The model in the file will be in <seealso href="http://lpsolve.sourceforge.net/5.5/mps-format.htm">mps-format</seealso></para>
@@ -3479,7 +3424,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <param name="filename">Filename to write the model to or <c>null</c> to write to default output.</param>
         /// <returns><c>true</c> if succeeded, <c>false</c> otherwise.</returns>
         /// <remarks>
-        /// <para>Note that row entry mode must be off, else this method fails. See <see cref="set_add_rowmode"/>.</para>
+        /// <para>Note that row entry mode must be off, else this method fails. See <see cref="EntryMode"/>.</para>
         /// <para>When <paramref name="filename"/> is <c>null</c>, then output is written to the output 
         /// set by <see cref="set_outputfile"/>. By default this is stdout.</para>
         /// <para>The model in the file will be in <seealso href="http://lpsolve.sourceforge.net/5.5/mps-format.htm">mps-format</seealso></para>

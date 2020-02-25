@@ -10,4 +10,13 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net20' " >
+    <!--
+    Remove because .net < 3.0 did not support extension methods and if someone wants
+    to use the new features, well upgrade.
+    -->
+    <Compile Remove="Idiomatic/**/*.cs"/>
+    <!-- By removing the files conditionnally above, they are not displayed by VS any longer -->
+    <None Include="Idiomatic/**/*.cs"/>
+  </ItemGroup>
 </Project>

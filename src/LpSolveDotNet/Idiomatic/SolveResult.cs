@@ -1,7 +1,7 @@
 namespace LpSolveDotNet.Idiomatic
 {
     /// <summary>
-    /// Defines the possible return values of method <see cref="LpSolve.solve"/>.
+    /// Defines the possible return values of method <see cref="LpSolve.Solve"/>.
     /// </summary>
     public enum SolveResult
     {
@@ -27,10 +27,10 @@ namespace LpSolveDotNet.Idiomatic
         /// The model is sub-optimal. Only happens if there are integer variables and there is already an integer solution found. The solution is not guaranteed the most optimal one.
         /// <list>
         /// <item><description>A timeout occured (set via set_timeout or with the -timeout option in lp_solve)</description></item>
-        /// <item><description>set_break_at_first was called so that the first found integer solution is found (-f option in lp_solve)</description></item>
-        /// <item><description>set_break_at_value was called so that when integer solution is found that is better than the specified value that it stops (-o option in lp_solve)</description></item>
-        /// <item><description>set_mip_gap was called (-g/-ga/-gr options in lp_solve) to specify a MIP gap</description></item>
-        /// <item><description>An abort callback is installed (<see cref="LpSolve.put_abortfunc"/>) and this callback returned <c>true</c></description></item>
+        /// <item><description><see cref="LpSolve.set_break_at_first"/> was called so that the first found integer solution is found (-f option in lp_solve)</description></item>
+        /// <item><description><see cref="LpSolve.set_break_at_value"/> was called so that when integer solution is found that is better than the specified value that it stops (-o option in lp_solve)</description></item>
+        /// <item><description><see cref="LpSolve.set_mip_gap"/> was called (-g/-ga/-gr options in lp_solve) to specify a MIP gap</description></item>
+        /// <item><description>An abort callback is installed (<see cref="LpSolve.PutLogHandler"/>) and this callback returned <c>true</c></description></item>
         /// <item><description>At some point not enough memory could not be allocated</description></item>
         /// </list>
         /// (SUBOPTIMAL = 1 in C code).

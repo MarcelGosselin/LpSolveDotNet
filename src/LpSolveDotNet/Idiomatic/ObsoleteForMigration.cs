@@ -78,7 +78,7 @@ namespace LpSolveDotNet.Idiomatic
 
         public bool is_anti_degen(lpsolve_anti_degen testmask)
             => throw new NotImplementedException();
-        
+
         public void set_presolve(lpsolve_presolve do_presolve, int maxloops)
             => throw new NotImplementedException();
 
@@ -106,7 +106,7 @@ namespace LpSolveDotNet.Idiomatic
         public void set_scaling(lpsolve_scale_algorithm algorithm, lpsolve_scale_parameters parameters)
             => throw new NotImplementedException();
 
-        public bool is_scalemode(lpsolve_scale_algorithm algorithmMask,  lpsolve_scale_parameters parameterMask)
+        public bool is_scalemode(lpsolve_scale_algorithm algorithmMask, lpsolve_scale_parameters parameterMask)
             => throw new NotImplementedException();
 
         public bool is_scaletype(lpsolve_scale_algorithm algorithm)
@@ -180,7 +180,7 @@ namespace LpSolveDotNet.Idiomatic
         [Obsolete("Replaced by " + nameof(Verbosity) + " property", true)]
         public void set_verbose(Verbosity _)
             => throw new NotImplementedException();
-        
+
         [Obsolete("Replaced by " + nameof(FirstBranch) + " property", true)]
         public void set_bb_floorfirst(BranchMode bb_floorfirst)
             => throw new NotImplementedException();
@@ -189,7 +189,7 @@ namespace LpSolveDotNet.Idiomatic
         public void set_bb_rule(BranchAndBoundRuleAndModes bb_rule)
             => throw new NotImplementedException();
 
-        [Obsolete("Replaced by " + nameof(SimplexType) + " = " + nameof(SimplexType) +"."+ nameof(SimplexType.DualDual) + " or " + nameof(SimplexType) + " = " + nameof(SimplexType) + "." + nameof(SimplexType.PrimalPrimal), true)]
+        [Obsolete("Replaced by " + nameof(SimplexType) + " = " + nameof(SimplexType) + "." + nameof(SimplexType.DualDual) + " or " + nameof(SimplexType) + " = " + nameof(SimplexType) + "." + nameof(SimplexType.PrimalPrimal), true)]
         public void set_preferdual(bool dodual)
             => throw new NotImplementedException();
 
@@ -244,6 +244,50 @@ namespace LpSolveDotNet.Idiomatic
         [Obsolete("Replaced by " + nameof(Dispose) + " method", true)]
         public void delete_lp()
             => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(ModelName) + " property", true)]
+        public string get_lp_name()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(ModelName) + " property", true)]
+        public bool set_lp_name(string lpname)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Resize) + " method", true)]
+        public bool resize_lp(int rows, int columns)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(EntryMode) + " property", true)]
+        public bool set_add_rowmode(bool turnon)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(EntryMode) + " property", true)]
+        public bool is_add_rowmode()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Infinite) + " property", true)]
+        public double get_infinite()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Infinite) + " property", true)]
+        public void set_infinite(double infinite)
+            => throw new NotImplementedException();
+
+        //[Obsolete("Replaced by " + nameof(IsDebug) + " property", true)]
+        //public bool is_debug()
+        //    => throw new NotImplementedException();
+
+        //[Obsolete("Replaced by " + nameof(IsDebug) + " property", true)]
+        //public void set_debug(bool debug)
+        //    => throw new NotImplementedException();
+
+        //[Obsolete("Replaced by " + nameof(IsTrace) + " property", true)]
+        //public bool is_trace()
+        //    => throw new NotImplementedException();
+
+        //[Obsolete("Replaced by " + nameof(IsTrace) + " property", true)]
+        //public void set_trace(bool trace)
+        //    => throw new NotImplementedException();
 
         #endregion
 
@@ -658,7 +702,7 @@ namespace LpSolveDotNet.Idiomatic
         NODE_RCOSTFIXING = 16384,
         [Obsolete("Replace by " + nameof(StrongInit), true)]
         NODE_STRONGINIT = 32768,
-            //
+        //
         FirstSelect = 0,
         GapSelect = 1,
         RangeSelect = 2,
