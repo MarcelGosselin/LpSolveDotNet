@@ -165,8 +165,16 @@ namespace LpSolveDotNet.Idiomatic
         public lpsolve_improves get_improve()
             => throw new NotImplementedException();
 
-        [Obsolete("Replaced by " + nameof(GetConstraintOperator) + " method", false)]
+        [Obsolete("Replaced by " + nameof(Rows) + "[row]." + nameof(ModelRow.ConstraintOperator), true)]
         public lpsolve_constr_types get_constr_type(int row)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Rows) + "[row]." + nameof(ModelRow.ConstraintOperator), true)]
+        public bool is_constr_type(int row, ConstraintOperator mask)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Rows) + "[row]." + nameof(ModelRow.ConstraintOperator), true)]
+        public bool set_constr_type(int row, ConstraintOperator con_type)
             => throw new NotImplementedException();
 
         #endregion
@@ -253,7 +261,7 @@ namespace LpSolveDotNet.Idiomatic
         public bool set_lp_name(string lpname)
             => throw new NotImplementedException();
 
-        [Obsolete("Replaced by " + nameof(Resize) + " method", true)]
+        [Obsolete("Replaced by " + nameof(ResizeMatrix) + " method", true)]
         public bool resize_lp(int rows, int columns)
             => throw new NotImplementedException();
 
@@ -265,11 +273,11 @@ namespace LpSolveDotNet.Idiomatic
         public bool is_add_rowmode()
             => throw new NotImplementedException();
 
-        [Obsolete("Replaced by " + nameof(Infinite) + " property", true)]
+        [Obsolete("Replaced by " + nameof(InfiniteValue) + " property", true)]
         public double get_infinite()
             => throw new NotImplementedException();
 
-        [Obsolete("Replaced by " + nameof(Infinite) + " property", true)]
+        [Obsolete("Replaced by " + nameof(InfiniteValue) + " property", true)]
         public void set_infinite(double infinite)
             => throw new NotImplementedException();
 
@@ -401,19 +409,214 @@ namespace LpSolveDotNet.Idiomatic
         public int get_Nrows()
             => throw new NotImplementedException();
 
+        [Obsolete("Replaced by " + nameof(ObjectiveFunction) + "." + nameof(ModelObjectiveFunction.SetValue), true)]
+        public bool set_obj(int column, double value)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(ObjectiveFunction) + "." + nameof(ModelObjectiveFunction.Bound), true)]
+        public double get_obj_bound()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(ObjectiveFunction) + "." + nameof(ModelObjectiveFunction.Bound), true)]
+        public void set_obj_bound(double obj_bound)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(ObjectiveFunction) + "." + nameof(ModelObjectiveFunction.SetValues), true)]
+        public bool set_obj_fn(double[] row)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(ObjectiveFunction) + "." + nameof(ModelObjectiveFunction.SetValues), true)]
+        public bool set_obj_fnex(int count, double[] row, int[] colno)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(ObjectiveFunction) + "." + nameof(ModelObjectiveFunction.IsMaximizing), true)]
+        public bool is_maxim()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(ObjectiveFunction) + "." + nameof(ModelObjectiveFunction.IsMaximizing), true)]
+        public void set_maxim()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(ObjectiveFunction) + "." + nameof(ModelObjectiveFunction.IsMaximizing), true)]
+        public void set_minim()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(ObjectiveFunction) + "." + nameof(ModelObjectiveFunction.IsMaximizing), true)]
+        public void set_sense(bool maximize)
+            => throw new NotImplementedException();
+
+
+
+        [Obsolete("Replaced by " + nameof(Rows) + "." + nameof(ModelRows.GetNameFromOriginalIndex), true)]
+        public string get_origrow_name(int row)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Rows) + "." + nameof(ModelRows.GetOriginalIndexFromName) + " or " + nameof(Columns) + "." + nameof(ModelColumns.GetOriginalIndexFromName), true)]
+        public int get_nameindex(string name, bool isrow)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Rows) + "." + nameof(ModelRows.Add), true)]
+        public bool add_constraint(double[] row, ConstraintOperator constraintOperator, double rh)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Rows) + "." + nameof(ModelRows.Add), true)]
+        public bool add_constraintex(int count, double[] row, int[] colno, ConstraintOperator constraintOperator, double rh)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Rows) + "." + nameof(ModelRows.Delete), true)]
+        public bool del_constraint(int del_row)
+            => throw new NotImplementedException();
+
+
+
+        [Obsolete("Replaced by " + nameof(Rows) + "[row]." + nameof(ModelRow.GetValues), true)]
+        public bool get_row(int row_nr, double[] row)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Rows) + "[row]." + nameof(ModelRow.GetNonZeroValues), true)]
+        public int get_rowex(int row_nr, double[] row, int[] colno)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Rows) + "[row]." + nameof(ModelRow.SetValues), true)]
+        public bool set_row(int row_no, double[] row)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Rows) + "[row]." + nameof(ModelRow.SetValues), true)]
+        public bool set_rowex(int row_no, int count, double[] row, int[] colno)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Rows) + "[row]." + nameof(ModelRow.Name), true)]
+        public bool set_row_name(int row, string new_name)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Rows) + "[row]." + nameof(ModelRow.Name), true)]
+        public string get_row_name(int row)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Rows) + "[row]." + nameof(ModelRow.RightHandSide), true)]
+        public double get_rh(int row)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Rows) + "[row]." + nameof(ModelRow.RightHandSide), true)]
+        public bool set_rh(int row, double value)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Rows) + "[row]." + nameof(ModelRow.Range), true)]
+        public double get_rh_range(int row)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Rows) + "[row]." + nameof(ModelRow.Range), true)]
+        public bool set_rh_range(int row, double deltavalue)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Columns) + "." + nameof(ModelColumns.Add), true)]
+        public bool add_column(double[] column)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Columns) + "." + nameof(ModelColumns.Add), true)]
+        public bool add_columnex(int count, double[] column, int[] rowno)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Columns) + "." + nameof(ModelColumns.Delete), true)]
+        public bool del_column(int column)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Columns) + "." + nameof(ModelColumns.GetNameFromOriginalIndex), true)]
+        public string get_origcol_name(int column)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.SetValues), true)]
+        public bool set_column(int col_no, double[] column)
+            => NativeMethods.set_column(_lp, col_no, column);
+
+        [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.SetValues), true)]
+        public bool set_columnex(int col_no, int count, double[] column, int[] rowno)
+            => NativeMethods.set_columnex(_lp, col_no, count, column, rowno);
+
+        [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.GetValues), true)]
+        public bool get_column(int col_nr, double[] column)
+            => NativeMethods.get_column(_lp, col_nr, column);
+
+        [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.GetNonZeroValues), true)]
+        public int get_columnex(int col_nr, double[] column, int[] nzrow)
+            => NativeMethods.get_columnex(_lp, col_nr, column, nzrow);
+
+        [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.Name), true)]
+        public bool set_col_name(int column, string new_name)
+            => NativeMethods.set_col_name(_lp, column, new_name);
+
+        [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.Name), true)]
+        public string get_col_name(int column)
+            => NativeMethods.get_col_name(_lp, column);
+
+        [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.IsNegative), true)]
+        public bool is_negative(int column)
+            => NativeMethods.is_negative(_lp, column);
+
+        [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.IsInteger), true)]
+        public bool is_int(int column)
+            => NativeMethods.is_int(_lp, column);
+
+        [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.IsInteger), true)]
+        public bool set_int(int column, bool must_be_int)
+            => NativeMethods.set_int(_lp, column, must_be_int);
+
+        [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.IsBinary), true)]
+        public bool is_binary(int column)
+            => NativeMethods.is_binary(_lp, column);
+
+        [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.IsBinary), true)]
+        public bool set_binary(int column, bool must_be_bin)
+            => NativeMethods.set_binary(_lp, column, must_be_bin);
+
+        [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.IsSemiContinuous), true)]
+        public bool is_semicont(int column)
+            => NativeMethods.is_semicont(_lp, column);
+
+        [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.IsSemiContinuous), true)]
+        public bool set_semicont(int column, bool must_be_sc)
+            => NativeMethods.set_semicont(_lp, column, must_be_sc);
+
+        [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.SetBounds), true)]
+        public bool set_bounds(int column, double lower, double upper)
+            => NativeMethods.set_bounds(_lp, column, lower, upper);
+
+        [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.IsUnbounded), true)]
+        public bool set_unbounded(int column)
+            => NativeMethods.set_unbounded(_lp, column);
+
+        [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.IsUnbounded), true)]
+        public bool is_unbounded(int column)
+            => NativeMethods.is_unbounded(_lp, column);
+
+        [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.UpperBound), true)]
+        public double get_upbo(int column)
+            => NativeMethods.get_upbo(_lp, column);
+
+        [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.UpperBound), true)]
+        public bool set_upbo(int column, double value)
+            => NativeMethods.set_upbo(_lp, column, value);
+
+        [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.LowerBound), true)]
+        public double get_lowbo(int column)
+            => NativeMethods.get_lowbo(_lp, column);
+
+        [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.LowerBound), true)]
+        public bool set_lowbo(int column, double value)
+            => NativeMethods.set_lowbo(_lp, column, value);
         #endregion
 
         #region Support removed
 
-        [Obsolete("Support for string version of model building was removed, use " + nameof(add_constraint) + " or " + nameof(add_constraintex) + " instead", true)]
+        [Obsolete("Support for string version of model building was removed, use " + nameof(Rows) + "." + nameof(ModelRows.Add) + " instead", true)]
         public bool str_add_constraint(params object[] _)
             => throw new NotImplementedException();
 
-        [Obsolete("Support for string version of model building was removed, use " + nameof(add_column) + " or " + nameof(add_columnex) + " instead", true)]
+        [Obsolete("Support for string version of model building was removed, use " + nameof(Columns) + "." + nameof(ModelColumns.Add) + " instead", true)]
         public bool str_add_column(params object[] _)
             => throw new NotImplementedException();
 
-        [Obsolete("Support for string version of model building was removed, use " + nameof(set_obj_fn) + " or " + nameof(set_obj_fnex) + " instead", true)]
+        [Obsolete("Support for string version of model building was removed, use " + nameof(ObjectiveFunction) + "." + nameof(ModelObjectiveFunction.SetValues) + " instead", true)]
         public bool str_set_obj_fn(params object[] _)
             => throw new NotImplementedException();
 

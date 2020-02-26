@@ -260,6 +260,9 @@ namespace LpSolveDotNet.Idiomatic
             _returnValueHandler = new ThrowingReturnValueHandler(_lp);
             Tolerance = new ModelTolerance(_lp);
             Basis = new ModelBasis(_lp);
+            ObjectiveFunction = new ModelObjectiveFunction(_lp);
+            Rows = new ModelRows(_lp);
+            Columns = new ModelColumns(_lp);
         }
 
         private static LpSolve CreateFromLpRecStructurePointer(IntPtr lp)
@@ -275,10 +278,9 @@ namespace LpSolveDotNet.Idiomatic
         /// Creates and initialises a new <see cref="LpSolve"/> model.
         /// </summary>
         /// <param name="rows">Initial number of rows. Can be <c>0</c> as new rows can be added via 
-        /// <see cref="add_constraint(double[], ConstraintOperator, double)"/> or
-        /// <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>.</param>
+        /// <see cref="ModelRows.Add"/>.</param>
         /// <param name="columns">Initial number of columns. Can be <c>0</c> as new columns can be added via
-        /// <see cref="add_column"/> or <see cref="add_columnex"/>.</param>
+        /// <see cref="ModelColumns.Add"/>.</param>
         /// <returns>A new <see cref="LpSolve"/> model with <paramref name="rows"/> rows and <paramref name="columns"/> columns.
         /// A <c>null</c> return value indicates an error. Specifically not enough memory available to setup an lprec structure.</returns>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/make_lp.htm">Full C API documentation.</seealso>
@@ -387,20 +389,20 @@ namespace LpSolveDotNet.Idiomatic
 
         #region Build model
 
-        ///// <summary>
-        ///// Returns a sub-object to deal with everything column-related (variable-related).
-        ///// </summary>
-        //public Columns Columns { get; }
+        /// <summary>
+        /// Returns a sub-object to deal with everything column-related (variable-related).
+        /// </summary>
+        public ModelColumns Columns { get; }
 
-        ///// <summary>
-        ///// Returns a sub-object to deal with everything row-related (constraint-related).
-        ///// </summary>
-        //public Rows Rows { get; }
+        /// <summary>
+        /// Returns a sub-object to deal with everything row-related (constraint-related).
+        /// </summary>
+        public ModelRows Rows { get; }
 
-        ///// <summary>
-        ///// Returns a sub-object to deal with everything ObjectiveFunction-related (row with index 0).
-        ///// </summary>
-        //public ObjectiveFunction ObjectiveFunction { get; }
+        /// <summary>
+        /// Returns a sub-object to deal with everything ObjectiveFunction-related (row with index 0).
+        /// </summary>
+        public ModelObjectiveFunction ObjectiveFunction { get; }
 
         /// <summary>
         /// Returns a sub-object to deal with everything Tolerance-related.
@@ -414,704 +416,8 @@ namespace LpSolveDotNet.Idiomatic
 
         #region Column
 
-        /// <summary>
-        /// Adds a column to the model.
-        /// </summary>
-        /// <param name="column">An array with 1+<see cref="NumberOfRows"/> elements that contains the values of the column.</param>
-        /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
-        /// <remarks><para>The method adds a column to the model (at the end) and sets all values of the column at once.</para>
-        /// <para>Note that element 0 of the array is the value of the objective function for that column. Column 1 is element 1, column 2 is element 2, ...</para>
-        /// <para>It is almost always better to use <see cref="add_columnex"/> instead of <see cref="add_column"/>. <see cref="add_columnex"/> is always at least as performant as <see cref="add_column"/>.</para>
-        /// <para>Note that if you have to add many columns, performance can be improved by a call to <see cref="Resize"/>.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_column.htm">Full C API documentation.</seealso>
-        public bool add_column(double[] column)
-            => NativeMethods.add_column(_lp, column);
-
-        /// <summary>
-        /// Adds a column to the model.
-        /// </summary>
-        /// <param name="count">Number of elements in <paramref name="column"/> and <paramref name="rowno"/>.</param>
-        /// <param name="column">An array with <paramref name="count"/> elements that contains the values of the column.</param>
-        /// <param name="rowno">A zero-based array with <paramref name="count"/> elements that contains the row numbers of the column. 
-        /// However this variable can also be <c>null</c>. In that case element i in the variable <paramref name="column"/> is row i.</param>
-        /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
-        /// <remarks><para>The method adds a column to the model (at the end) and sets all values of the column at once.</para>
-        /// <para>Note that when <paramref name="rowno"/> is <c>null</c>, element 0 of the array is the value of the objective function for that column. Column 1 is element 1, column 2 is element 2, ...</para>
-        /// <para>This method has the possibility to specify only the non-zero elements. In that case <paramref name="rowno"/> specifies the row numbers 
-        /// of the non-zero elements. Both <paramref name="column"/> and <paramref name="rowno"/> are then zero-based arrays. 
-        /// This will speed up building the model considerably if there are a lot of zero values. In most cases the matrix is sparse and has many zero values.
-        /// Note that <see cref="add_columnex"/> behaves the same as <see cref="add_column"/> when <paramref name="rowno"/> is <c>null</c>.
-        /// It is almost always better to use<see cref="add_columnex"/> instead of<see cref="add_column"/>. <see cref = "add_columnex" /> is always at least as performant as <see cref = "add_column" />.
-        /// </para>
-        /// <para><paramref name="column"/> and <paramref name="rowno"/> can both be <c>null</c>. In that case an empty column is added.</para>
-        /// <para>Note that if you have to add many columns, performance can be improved by a call to <see cref="Resize"/>.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_column.htm">Full C API documentation.</seealso>
-        public bool add_columnex(int count, double[] column, int[] rowno)
-            => NativeMethods.add_columnex(_lp, count, column, rowno);
-
-        /// <summary>
-        /// Deletes a column from the model.
-        /// </summary>
-        /// <param name="column">The column to delete. Must be between <c>1</c> and the number of columns in the model.</param>
-        /// <returns><c>true</c> if successful, <c>false</c> otherwise. An error occurs if <paramref name="column"/> 
-        /// is not between <c>1</c> and the number of columns in the model</returns>
-        /// <remarks>
-        /// <para>Note that row entry mode must be off, else this method fails. <see cref="EntryMode"/>.</para>
-        /// <para>The column is effectively deleted from the model, so all columns after this column shift one left.</para>
-        /// <para>Note that column 0 (the right hand side (RHS)) cannot be deleted. There is always a RHS.</para>
-        /// <para>Note that you can also delete multiple columns by a call to <see cref="Resize"/>.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/del_column.htm">Full C API documentation.</seealso>
-        public bool del_column(int column)
-            => NativeMethods.del_column(_lp, column);
-
-
-        /// <summary>
-        /// Sets a column in the model.
-        /// </summary>
-        /// <param name="col_no">The column number that must be changed.</param>
-        /// <param name="column">An array with 1+<see cref="NumberOfRows"/> elements that contains the values of the column.</param>
-        /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>The method changes the values of an existing column in the model at once.</para>
-        /// <para>Note that element 0 of the array is row 0 (objective function). element 1 is row 1, ...</para>
-        /// <para>It is almost always better to use <see cref="set_columnex"/> instead of <see cref="set_column"/>. <see cref="set_columnex"/> is always at least as performant as <see cref="set_column"/>.</para>
-        /// <para>It is more performant to call this method than call <see cref="set_mat"/>.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_column.htm">Full C API documentation.</seealso>
-        public bool set_column(int col_no, double[] column)
-            => NativeMethods.set_column(_lp, col_no, column);
-
-        /// <summary>
-        /// Sets a column in the model.
-        /// </summary>
-        /// <param name="col_no">The column number that must be changed.</param>
-        /// <param name="count">Number of elements in <paramref name="column"/> and <paramref name="rowno"/>.</param>
-        /// <param name="column">An array with <paramref name="count"/> elements that contains the values of the column.</param>
-        /// <param name="rowno">A zero-based array with <paramref name="count"/> elements that contains the row numbers of the column. 
-        /// However this variable can also be <c>null</c>. In that case element i in the variable <paramref name="column"/> is row i.</param>
-        /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>The method changes the values of an existing column in the model at once.</para>
-        /// <para>Note that when <paramref name="rowno"/> is <c>null</c>, element 0 of the array is row 0 (objective function). element 1 is row 1, ...</para>
-        /// <para>This method has the possibility to specify only the non-zero elements. In that case <paramref name="rowno"/> specifies the row numbers 
-        /// of the non-zero elements. And in contrary to <see cref="set_column"/>, it reads the arrays starting at element 0.
-        /// This will speed up building the model considerably if there are a lot of zero values. In most cases the matrix is sparse and has many zero values.
-        /// Note that <see cref="set_columnex"/> behaves the same as <see cref="set_column"/> when <paramref name="rowno"/> is <c>null</c>.
-        /// It is almost always better to use<see cref="set_columnex"/> instead of<see cref="set_column"/>. <see cref = "set_columnex" /> is always at least as performant as <see cref = "set_column" />.
-        /// </para>
-        /// <para>It is more performant to call this method than call <see cref="set_mat"/>.</para>
-        /// <para>Note that unspecified values are set to zero.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_column.htm">Full C API documentation.</seealso>
-        public bool set_columnex(int col_no, int count, double[] column, int[] rowno)
-            => NativeMethods.set_columnex(_lp, col_no, count, column, rowno);
-
-        /// <summary>
-        /// Gets all column elements from the model for the given <paramref name="col_nr"/>.
-        /// </summary>
-        /// <param name="col_nr">The column number of the matrix. Must be between 1 and number of columns in the model.</param>
-        /// <param name="column">Array in which the values are returned. The array must be dimensioned with at least 1+<see cref="NumberOfRows"/> elements.</param>
-        /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>Note that row entry mode must be off, else this method fails. <see cref="EntryMode"/>.</para>
-        /// <para>Note that element 0 of the array is row 0 (objective function). element 1 is row 1, ...</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_column.htm">Full C API documentation.</seealso>
-        public bool get_column(int col_nr, double[] column)
-            => NativeMethods.get_column(_lp, col_nr, column);
-
-        /// <summary>
-        /// Gets the non-zero column elements from the model for the given <paramref name="col_nr"/>.
-        /// </summary>
-        /// <param name="col_nr">The column number of the matrix. Must be between 1 and number of columns in the model.</param>
-        /// <param name="column">Array in which the values are returned. The array must be dimensioned with at least the number of non-zero elements in the column.
-        /// If that is unknown, then use 1+<see cref="NumberOfRows"/>.</param>
-        /// <param name="nzrow">Array in which the row numbers  are returned. The array must be dimensioned with at least the number of non-zero elements in the column.
-        /// If that is unknown, then use 1+<see cref="NumberOfRows"/>.</param>
-        /// <returns>The number of non-zero elements returned in <paramref name="column"/> and <paramref name="nzrow"/>.</returns>
-        /// <remarks>
-        /// <para>Note that row entry mode must be off, else this method fails. <see cref="EntryMode"/>.</para>
-        /// <para>Returned values in <paramref name="column"/> and <paramref name="nzrow"/> start from element 0.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_column.htm">Full C API documentation.</seealso>
-        public int get_columnex(int col_nr, double[] column, int[] nzrow)
-            => NativeMethods.get_columnex(_lp, col_nr, column, nzrow);
-
-        /// <summary>
-        /// Sets the name of a column in the model.
-        /// </summary>
-        /// <param name="column">The column for which the name must be set. Must be between 1 and the number of columns in the lp.</param>
-        /// <param name="new_name">The name for the column.</param>
-        /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// The column must already exist.
-        /// Column names are optional.
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_col_name.htm">Full C API documentation.</seealso>
-        public bool set_col_name(int column, string new_name)
-            => NativeMethods.set_col_name(_lp, column, new_name);
-
-        /// <summary>
-        /// Gets the name of a column in the model.
-        /// </summary>
-        /// <param name="column">The column for which the name must be set. Must be between 1 and the number of columns in the lp.</param>
-        /// <returns>The name of the specified column if it was specified, Cx with x the column number otherwise or <c>null</c> on error.</returns>
-        /// <remarks>
-        /// <para>Column names are optional.
-        /// If no column name was specified, the method returns Cx with x the column number.
-        /// </para>
-        /// <para>
-        /// The difference between <see cref="get_col_name"/> and <see cref="get_origcol_name"/> is only visible when a presolve (<see cref="PreSolveLevels"/>) was done. 
-        /// Presolve can result in deletion of columns in the model. In <see cref="get_col_name"/>, column specifies the column number after presolve was done.
-        /// In <see cref="get_origcol_name"/>, column specifies the column number before presolve was done, ie the original column number. 
-        /// If presolve is not active then both methods are equal.
-        /// </para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_col_name.htm">Full C API documentation.</seealso>
-        public string get_col_name(int column)
-            => NativeMethods.get_col_name(_lp, column);
-
-        /// <summary>
-        /// Gets the name of a column in the model.
-        /// </summary>
-        /// <param name="column">The column for which the name must be set. Must be between 1 and the number of columns in the lp.</param>
-        /// <returns>The name of the specified column if it was specified, Cx with x the column number otherwise or <c>null</c> on error.</returns>
-        /// <remarks>
-        /// <para>Column names are optional.
-        /// If no column name was specified, the method returns Cx with x the column number.
-        /// </para>
-        /// <para>
-        /// The difference between <see cref="get_col_name"/> and <see cref="get_origcol_name"/> is only visible when a presolve (<see cref="PreSolveLevels"/>) was done. 
-        /// Presolve can result in deletion of columns in the model. In <see cref="get_col_name"/>, column specifies the column number after presolve was done.
-        /// In <see cref="get_origcol_name"/>, column specifies the column number before presolve was done, ie the original column number. 
-        /// If presolve is not active then both methods are equal.
-        /// </para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_col_name.htm">Full C API documentation.</seealso>
-        public string get_origcol_name(int column)
-            => NativeMethods.get_origcol_name(_lp, column);
-
-        /// <summary>
-        /// Returns whether the variable is negative or not.
-        /// </summary>
-        /// <param name="column">The column number of the variable to check. Must be between 1 and the number of columns in the lp.</param>
-        /// <returns><c>true</c> if variable is defined as negative, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// Negative means a lower and upper bound that are both negative.
-        /// By default a variable is not negative because it has a lower bound of 0 (and an upper bound of +infinity).
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_negative.htm">Full C API documentation.</seealso>
-        public bool is_negative(int column)
-            => NativeMethods.is_negative(_lp, column);
-
-        /// <summary>
-        /// Returns whether the variable is of type Integer or not.
-        /// </summary>
-        /// <param name="column">The column number of the variable to check. Must be between 1 and the number of columns in the lp.</param>
-        /// <returns><c>true</c> if variable is defined as integer, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// Default a variable is not integer. From the moment there is at least one integer variable in the model,
-        /// the Branch and Bound algorithm is used to make these variables integer.
-        /// Note that solving times can be considerably larger when there are integer variables.
-        /// See <see href="http://lpsolve.sourceforge.net/5.5/integer.htm">integer variables</see> for a description about integer variables.
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_int.htm">Full C API documentation.</seealso>
-        public bool is_int(int column)
-            => NativeMethods.is_int(_lp, column);
-
-        /// <summary>
-        /// Sets the type of the variable to type Integer or floating point.
-        /// </summary>
-        /// <param name="column">The column number of the variable that must be set. Must be between 1 and the number of columns in the lp.</param>
-        /// <param name="must_be_int"><c>true</c> if variable must be an integer, <c>false</c> otherwise.</param>
-        /// <returns><c>true</c> if variable is operation was successful, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// Default a variable is not integer. The argument <paramref name="must_be_int"/> defines what the status of the variable becomes.
-        /// From the moment there is at least one integer variable in the model,
-        /// the Branch and Bound algorithm is used to make these variables integer.
-        /// Note that solving times can be considerably larger when there are integer variables.
-        /// See <see href="http://lpsolve.sourceforge.net/5.5/integer.htm">integer variables</see> for a description about integer variables.
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_int.htm">Full C API documentation.</seealso>
-        public bool set_int(int column, bool must_be_int)
-            => NativeMethods.set_int(_lp, column, must_be_int);
-
-        /// <summary>
-        /// Returns whether the variable is of type Binary or not.
-        /// </summary>
-        /// <param name="column">The column number of the variable to check. Must be between 1 and the number of columns in the lp.</param>
-        /// <returns><c>true</c> if variable is defined as binary, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// Default a variable is not binary. A binary variable is an integer variable with lower bound 0 and upper bound 1.
-        /// From the moment there is at least one integer variable in the model,
-        /// the Branch and Bound algorithm is used to make these variables integer.
-        /// Note that solving times can be considerably larger when there are integer variables.
-        /// See <see href="http://lpsolve.sourceforge.net/5.5/integer.htm">integer variables</see> for a description about integer variables.
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_binary.htm">Full C API documentation.</seealso>
-        public bool is_binary(int column)
-            => NativeMethods.is_binary(_lp, column);
-
-        /// <summary>
-        /// Sets the type of the variable to type Binary or floating point.
-        /// </summary>
-        /// <param name="column">The column number of the variable that must be set. Must be between 1 and the number of columns in the lp.</param>
-        /// <param name="must_be_bin"><c>true</c> if variable must be a binary, <c>false</c> otherwise.</param>
-        /// <returns><c>true</c> if variable is operation was successful, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// Default a variable is not binary. A binary variable is an integer variable with lower bound 0 and upper bound 1.
-        /// This method also sets these bounds.
-        /// The argument <paramref name="must_be_bin"/> defines what the status of the variable becomes.
-        /// From the moment there is at least one integer variable in the model,
-        /// the Branch and Bound algorithm is used to make these variables integer.
-        /// Note that solving times can be considerably larger when there are integer variables.
-        /// See <see href="http://lpsolve.sourceforge.net/5.5/integer.htm">integer variables</see> for a description about integer variables.
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_binary.htm">Full C API documentation.</seealso>
-        public bool set_binary(int column, bool must_be_bin)
-            => NativeMethods.set_binary(_lp, column, must_be_bin);
-
-        /// <summary>
-        /// Returns whether the variable is of type semi-continuous or not.
-        /// </summary>
-        /// <param name="column">The column number of the variable to check. Must be between 1 and the number of columns in the lp.</param>
-        /// <returns><c>true</c> if variable is defined as semi-continuous, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// Default a variable is not semi-continuous.
-        /// See <see href="http://lpsolve.sourceforge.net/5.5/semi-cont.htm">semi-continuous variables</see> for a description about semi-continuous variables.
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_semicont.htm">Full C API documentation.</seealso>
-        public bool is_semicont(int column)
-            => NativeMethods.is_semicont(_lp, column);
-
-        /// <summary>
-        /// Sets the type of the variable to type semi-continuous or not.
-        /// </summary>
-        /// <param name="column">The column number of the variable that must be set. Must be between 1 and the number of columns in the lp.</param>
-        /// <param name="must_be_sc"><c>true</c> if variable must be a semi-continuous, <c>false</c> otherwise.</param>
-        /// <returns><c>true</c> if variable is operation was successful, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// By default, a variable is not semi-continuous. The argument <paramref name="must_be_sc"/> defines what the status of the variable becomes.
-        /// Note that a semi-continuous variable must also have a lower bound to have effect.
-        /// This because the default lower bound on variables is zero, also when defined as semi-continuous, and without
-        /// a lower bound it has no point to define a variable as such.
-        /// The lower bound may be set before or after setting the semi-continuous status.
-        /// See <see href="http://lpsolve.sourceforge.net/5.5/semi-cont.htm">semi-continuous variables</see> for a description about semi-continuous variables.
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_semicont.htm">Full C API documentation.</seealso>
-        public bool set_semicont(int column, bool must_be_sc)
-            => NativeMethods.set_semicont(_lp, column, must_be_sc);
-
-        /// <summary>
-        /// Sets the lower and upper bound of a variable.
-        /// </summary>
-        /// <param name="column">The column number of the variable on which the bounds must be set. Must be between 1 and the number of columns in the lp.</param>
-        /// <param name="lower">The lower bound on the variable identified by <paramref name="column"/>.</param>
-        /// <param name="upper">The upper bound on the variable identified by <paramref name="column"/>.</param>
-        /// <returns><c>true</c> if variable is operation was successful, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// Setting a bound on a variable is the way to go instead of adding an extra constraint (row) to the model.
-        /// Setting a bound doesn't increase the model size that means that the model stays smaller and will be solved faster.
-        /// Note that the default lower bound of each variable is 0.
-        /// So variables will never take negative values if no negative lower bound is set.
-        /// The default upper bound of a variable is infinity(well not quite.It is a very big number, the value of <see cref="Infinite"/>).
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_bounds.htm">Full C API documentation.</seealso>
-        public bool set_bounds(int column, double lower, double upper)
-            => NativeMethods.set_bounds(_lp, column, lower, upper);
-
-        /// <summary>
-        /// Sets if the variable is free.
-        /// </summary>
-        /// <param name="column">The column number of the variable that must be set. Must be between 1 and the number of columns in the lp.</param>
-        /// <returns><c>true</c> if variable is operation was successful, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>
-        /// By default a variable is not free because it has a lower bound of 0 (and an upper bound of +infinity).
-        /// </para>
-        /// <para>
-        /// Free means a lower bound of -infinity and an upper bound of +infinity.
-        /// See <see href="http://lpsolve.sourceforge.net/5.5/free.htm">free variables</see> for a description about free variables.
-        /// </para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_unbounded.htm">Full C API documentation.</seealso>
-        public bool set_unbounded(int column)
-            => NativeMethods.set_unbounded(_lp, column);
-
-        /// <summary>
-        /// Returns whether the variable is free or not.
-        /// </summary>
-        /// <param name="column">The column number of the variable to check. Must be between 1 and the number of columns in the lp.</param>
-        /// <returns><c>true</c> if variable is defined as free, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// Free means a lower bound of -infinity and an upper bound of +infinity.
-        /// Default a variable is not free because default it has a lower bound of 0 (and an upper bound of +infinity).
-        /// See <see href="http://lpsolve.sourceforge.net/5.5/free.htm">free variables</see> for a description about free variables.
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_unbounded.htm">Full C API documentation.</seealso>
-        public bool is_unbounded(int column)
-            => NativeMethods.is_unbounded(_lp, column);
-
-        /// <summary>
-        /// Gets the upper bound of a variable.
-        /// </summary>
-        /// <param name="column">The column number of the variable. Must be between 1 and the number of columns in the lp.</param>
-        /// <returns>The upper bound on the specified variable. If no bound was set, it returns a very big number, 
-        /// the value of <see cref="Infinite"/>, the default upper bound</returns>
-        /// <remarks>
-        /// Setting a bound on a variable is the way to go instead of adding an extra constraint (row) to the model.
-        /// Setting a bound doesn't increase the model size that means that the model stays smaller and will be solved faster.
-        /// The default upper bound of a variable is infinity(well not quite.It is a very big number, the value of <see cref="Infinite"/>).
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_upbo.htm">Full C API documentation.</seealso>
-        public double get_upbo(int column)
-            => NativeMethods.get_upbo(_lp, column);
-
-        /// <summary>
-        /// Sets the upper bound of a variable.
-        /// </summary>
-        /// <param name="column">The column number of the variable on which the bound must be set. Must be between 1 and the number of columns in the lp.</param>
-        /// <param name="value">The upper bound on the variable identified by <paramref name="column"/>.</param>
-        /// <returns><c>true</c> if variable is operation was successful, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// Setting a bound on a variable is the way to go instead of adding an extra constraint (row) to the model.
-        /// Setting a bound doesn't increase the model size that means that the model stays smaller and will be solved faster.
-        /// The default upper bound of a variable is infinity(well not quite.It is a very big number, the value of <see cref="Infinite"/>).
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_upbo.htm">Full C API documentation.</seealso>
-        public bool set_upbo(int column, double value)
-            => NativeMethods.set_upbo(_lp, column, value);
-
-        /// <summary>
-        /// Gets the lower bound of a variable.
-        /// </summary>
-        /// <param name="column">The column number of the variable. Must be between 1 and the number of columns in the lp.</param>
-        /// <returns>The lower bound on the specified variable. If no bound was set, it returns 0, the default lower bound.</returns>
-        /// <remarks>
-        /// Setting a bound on a variable is the way to go instead of adding an extra constraint (row) to the model.
-        /// Setting a bound doesn't increase the model size that means that the model stays smaller and will be solved faster.
-        /// Note that the default lower bound of each variable is 0.
-        /// So variables will never take negative values if no negative lower bound is set.
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_lowbo.htm">Full C API documentation.</seealso>
-        public double get_lowbo(int column)
-            => NativeMethods.get_lowbo(_lp, column);
-
-        /// <summary>
-        /// Sets the lower bound of a variable.
-        /// </summary>
-        /// <param name="column">The column number of the variable on which the bound must be set. Must be between 1 and the number of columns in the lp.</param>
-        /// <param name="value">The lower bound on the variable identified by <paramref name="column"/>.</param>
-        /// <returns><c>true</c> if variable is operation was successful, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// Setting a bound on a variable is the way to go instead of adding an extra constraint (row) to the model.
-        /// Setting a bound doesn't increase the model size that means that the model stays smaller and will be solved faster.
-        /// Note that the default lower bound of each variable is 0.
-        /// So variables will never take negative values if no negative lower bound is set.
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_lowbo.htm">Full C API documentation.</seealso>
-        public bool set_lowbo(int column, double value)
-            => NativeMethods.set_lowbo(_lp, column, value);
 
         #endregion // Build model /  Column
-
-        #region Constraint / Row
-
-        /// <summary>
-        /// Adds a constraint to the model.
-        /// </summary>
-        /// <param name="row">An array with 1+<see cref="NumberOfColumns"/> elements that contains the values of the row.</param>
-        /// <param name="constraintOperator">The type of the constraint.</param>
-        /// <param name="rh">The value of the right-hand side (RHS) fo the constraint (in)equation</param>
-        /// <returns><c>true</c> if operation was successful, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>This method adds a row to the model (at the end) and sets all values of the row at once.</para>
-        /// <para>Note that element 0 of the array is not considered (i.e. ignored). Column 1 is element 1, column 2 is element 2, ...</para>
-        /// <para>It is almost always better to use <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/> instead
-        /// of <see cref="add_constraint(double[], ConstraintOperator, double)"/>.
-        /// <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/> is always at least as performant as <see cref="add_constraint(double[], ConstraintOperator, double)"/>.</para>
-        /// <para>Note that it is advised to set the objective function (via <see cref="set_obj_fn"/>, <see cref="set_obj_fnex"/> or <see cref="set_obj"/>)
-        /// before adding rows. This especially for larger models. This will be much more performant than adding the objective function afterwards.</para>
-        /// <para>Note that this method will perform much better when <see cref="EntryMode"/> is set to <see cref="EntryMode.Row"/> before adding constraints.</para>
-        /// <para>Note that if you have to add many constraints, performance can be improved by a call to <see cref="Resize"/>.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_constraint.htm">Full C API documentation.</seealso>
-        public bool add_constraint(double[] row, ConstraintOperator constraintOperator, double rh)
-            => NativeMethods.add_constraint(_lp, row, constraintOperator, rh);
-
-
-        /// <summary>
-        /// Adds a constraint to the model.
-        /// </summary>
-        /// <param name="count">Number of elements in <paramref name="row"/> and <paramref name="colno"/>.</param>
-        /// <param name="row">An array with <paramref name="count"/> elements (or 1+<see cref="NumberOfColumns"/> elements if <paramref name="row"/> is <c>null</c>) that contains the values of the row.</param>
-        /// <param name="colno">An array with <paramref name="count"/> elements that contains the column numbers of the row. However this variable can also be <c>null</c>.
-        /// In that case element <c>i</c> in the variable row is column <c>i</c> and values start at element 1.</param>
-        /// <param name="constraintOperator">The type of the constraint.</param>
-        /// <param name="rh">The value of the right-hand side (RHS) fo the constraint (in)equation</param>
-        /// <returns><c>true</c> if operation was successful, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>This method adds a row to the model (at the end) and sets all values of the row at once.</para>
-        /// <para>Note that when <paramref name="colno"/> is <c>null</c>, element 0 of the array is not considered (i.e. ignored). Column 1 is element 1, column 2 is element 2, ...</para>
-        /// <para>This method has the possibility to specify only the non-zero elements. In that case <paramref name="colno"/> specifies the column numbers of 
-        /// the non-zero elements. Both <paramref name="row"/> and <paramref name="colno"/> are then zero-based arrays.
-        /// This will speed up building the model considerably if there are a lot of zero values. In most cases the matrix is sparse and has many zero value.
-        /// Note that <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/> behaves the same as
-        /// <see cref="add_constraint(double[], ConstraintOperator, double)"/> when <paramref name="colno"/> is <c>null</c>.</para>
-        /// <para>It is almost always better to use <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/> instead of
-        /// <see cref="add_constraint(double[], ConstraintOperator, double)"/>. <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>
-        /// is always at least as performant as <see cref="add_constraint(double[], ConstraintOperator, double)"/>.</para>
-        /// <para>Note that it is advised to set the objective function (via <see cref="set_obj_fn"/>, <see cref="set_obj_fnex"/> or <see cref="set_obj"/>)
-        /// before adding rows. This especially for larger models. This will be much more performant than adding the objective function afterwards.</para>
-        /// <para>Note that this method will perform much better when <see cref="EntryMode"/> is set to <see cref="EntryMode.Row"/> before adding constraints.</para>
-        /// <para>Note that if you have to add many constraints, performance can be improved by a call to <see cref="Resize"/>.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_constraint.htm">Full C API documentation.</seealso>
-        public bool add_constraintex(int count, double[] row, int[] colno, ConstraintOperator constraintOperator, double rh)
-            => NativeMethods.add_constraintex(_lp, count, row, colno, constraintOperator, rh);
-
-        /// <summary>
-        /// Removes a constraint from the model.
-        /// </summary>
-        /// <param name="del_row">The row to delete. Must be between 1 and the number of rows in the model.</param>
-        /// <returns><c>true</c> if operation was successful, <c>false</c> otherwise. An error occurs when <paramref name="del_row"/>
-        /// is not between 1 and the number of rows in the model.</returns>
-        /// <remarks>
-        /// <para>Note that row entry mode must be off, else this method also fails. See <see cref="EntryMode"/>.</para>
-        /// <para>This method deletes a row from the model. The row is effectively deleted, so all rows after this row shift one up.</para>
-        /// <para>Note that row 0 (the objective function) cannot be deleted. There is always an objective function.</para>
-        /// <para>Note that you can also delete multiple constraints by a call to <see cref="Resize"/>.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/del_constraint.htm">Full C API documentation.</seealso>
-        public bool del_constraint(int del_row)
-            => NativeMethods.del_constraint(_lp, del_row);
-
-        /// <summary>
-        /// Gets all row elements from the model for the given <paramref name="row_nr"/>.
-        /// </summary>
-        /// <param name="row_nr">The row number of the matrix. Must be between 1 and number of rows in the model. Row 0 is the objective function.</param>
-        /// <param name="row">Array in which the values are returned. The array must be dimensioned with at least 1+<see cref="NumberOfColumns"/> elements.</param>
-        /// <returns><c>true</c> if successful, <c>false</c> otherwise. An error occurs when <paramref name="row_nr"/>
-        /// is not between 0 and the number of rows in the model.</returns>
-        /// <remarks>
-        /// <para>Note that row entry mode must be off, else this method fails. <see cref="EntryMode"/>.</para>
-        /// <para>Element 0 of the row array is not filled. Element 1 will contain the value for column 1, Element 2 the value for column 2, ...</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_row.htm">Full C API documentation.</seealso>
-        public bool get_row(int row_nr, double[] row)
-            => NativeMethods.get_row(_lp, row_nr, row);
-
-        /// <summary>
-        /// Gets the non-zero row elements from the model for the given <paramref name="row_nr"/>.
-        /// </summary>
-        /// <param name="row_nr">The row number of the matrix. Must be between 1 and number of rows in the model. Row 0 is the objective function.</param>
-        /// <param name="row">Array in which the values are returned. The array must be dimensioned with at least the number of non-zero elements in the row.
-        /// If that is unknown, then use the number of columns in the model. The return value of the method indicates how many non-zero elements there are.</param>
-        /// <param name="colno">Array in which the column numbers are returned. The array must be dimensioned with at least the number of non-zero elements in the row.
-        /// If that is unknown, then use the number of columns in the model. The return value of the method indicates how many non-zero elements there are.</param>
-        /// <returns>The number of non-zero elements returned in <paramref name="row"/> and <paramref name="colno"/>. If an error occurs, then -1 is returned.. An error occurs when <paramref name="row_nr"/> is not between 0 and the number of rows in the model.</returns>
-        /// <remarks>
-        /// <para>Note that row entry mode must be off, else this method fails. <see cref="EntryMode"/>.</para>
-        /// <para>Returned values in <paramref name="row"/> and <paramref name="colno"/> start from element 0.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_row.htm">Full C API documentation.</seealso>
-        public int get_rowex(int row_nr, double[] row, int[] colno)
-            => NativeMethods.get_rowex(_lp, row_nr, row, colno);
-
-        /// <summary>
-        /// Sets a constraint in the model.
-        /// </summary>
-        /// <param name="row_no">The row number that must be changed.</param>
-        /// <param name="row">An array with 1+<see cref="NumberOfColumns"/> elements that contains the values of the row.</param>
-        /// <returns><c>true</c> if operation was successful, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>This method change the values of the row in the model at once.</para>
-        /// <para>Note that element 0 of the array is not considered (i.e. ignored). Column 1 is element 1, column 2 is element 2, ...</para>
-        /// <para>It is almost always better to use <see cref="set_rowex"/> instead of <see cref="set_row"/>. <see cref="set_rowex"/> is always at least as performant as <see cref="set_row"/>.</para>
-        /// <para>It is more performant to call these methods than multiple times <see cref="set_mat"/>.</para>
-        /// <para>Note that this method will perform much better when <see cref="EntryMode"/> is set to <see cref="EntryMode.Row"/> before adding constraints.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_row.htm">Full C API documentation.</seealso>
-        public bool set_row(int row_no, double[] row)
-            => NativeMethods.set_row(_lp, row_no, row);
-
-        /// <summary>
-        /// Sets a constraint in the model.
-        /// </summary>
-        /// <param name="row_no">The row number that must be changed.</param>
-        /// <param name="count">Number of elements in <paramref name="row"/> and <paramref name="colno"/>.</param>
-        /// <param name="row">An array with <paramref name="count"/> elements (or 1+<see cref="NumberOfColumns"/> elements if <paramref name="row"/> is <c>null</c>) that contains the values of the row.</param>
-        /// <param name="colno">An array with <paramref name="count"/> elements that contains the column numbers of the row. However this variable can also be <c>null</c>.
-        /// In that case element <c>i</c> in the variable row is column <c>i</c> and values start at element 1.</param>
-        /// <returns><c>true</c> if operation was successful, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>This method change the values of the row in the model at once.</para>
-        /// <para>Note that element 0 of the array is not considered (i.e. ignored). Column 1 is element 1, column 2 is element 2, ...</para>
-        /// <para>This method has the possibility to specify only the non-zero elements. In that case <paramref name="colno"/> specifies the column numbers of 
-        /// the non-zero elements. Both <paramref name="row"/> and <paramref name="colno"/> are then zero-based arrays.
-        /// This will speed up building the model considerably if there are a lot of zero values. In most cases the matrix is sparse and has many zero value.
-        /// Note that <see cref="set_rowex"/> behaves the same as <see cref="set_row"/> when <paramref name="colno"/> is <c>null</c>.</para>
-        /// <para>It is almost always better to use <see cref="set_rowex"/> instead of <see cref="set_row"/>. <see cref="set_rowex"/> is always at least as performant as <see cref="set_row"/>.</para>
-        /// <para>It is more performant to call these methods than multiple times <see cref="set_mat"/>.</para>
-        /// <para>Note that unspecified values by <see cref="set_rowex"/> are set to zero.</para>
-        /// <para>Note that this method will perform much better when <see cref="EntryMode"/> is set to <see cref="EntryMode.Row"/> before adding constraints.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_row.htm">Full C API documentation.</seealso>
-        public bool set_rowex(int row_no, int count, double[] row, int[] colno)
-            => NativeMethods.set_rowex(_lp, row_no, count, row, colno);
-
-        /// <summary>
-        /// Sets the name of a constraint (row) in the model.
-        /// </summary>
-        /// <param name="row">The row for which the name must be set. Must be between 0 and the number of rows in the model.</param>
-        /// <param name="new_name">The name for the constraint (row).</param>
-        /// <returns><c>true</c> if operation was successful, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>The row must already exist. row 0 is the objective function. Row names are optional.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_row_name.htm">Full C API documentation.</seealso>
-        public bool set_row_name(int row, string new_name)
-            => NativeMethods.set_row_name(_lp, row, new_name);
-
-        /// <summary>
-        /// Gets the name of a constraint (row) in the model.
-        /// </summary>
-        /// <param name="row">The row for which the name must be retrieved.
-        /// Must be between 0 and the number of rows in the model. In <see cref="get_row_name"/>, row specifies the row number after presolve was done.
-        /// In <see cref="get_origrow_name"/>, row specifies the row number before presolve was done, ie the original row number.</param>
-        /// <returns><see cref="get_row_name"/> and <see cref="get_origrow_name"/> return the name of the specified row.
-        /// A return value of <c>null</c> indicates an error.
-        /// The difference between <see cref="get_row_name"/> and <see cref="get_origrow_name"/> is only visible when a presolve (<see cref="PreSolveLevels"/>) was done.
-        /// resolve can result in deletion of rows in the model. In <see cref="get_row_name"/>, row specifies the row number after presolve was done.
-        /// In <see cref="get_origrow_name"/>, row specifies the row number before presolve was done, ie the original row number.
-        /// If presolve is not active then both methods are equal.</returns>
-        /// <remarks>
-        /// <para>Row names are optional. If no row name was specified, the method returns Rx with x the row number. row 0 is the objective function.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_row_name.htm">Full C API documentation.</seealso>
-        public string get_row_name(int row)
-            => NativeMethods.get_row_name(_lp, row);
-
-        /// <summary>
-        /// Gets the name of a constraint (row) in the model.
-        /// </summary>
-        /// <param name="row">The row for which the name must be retrieved.
-        /// Must be between 0 and the number of rows in the model. In <see cref="get_row_name"/>, row specifies the row number after presolve was done.
-        /// In <see cref="get_origrow_name"/>, row specifies the row number before presolve was done, ie the original row number.</param>
-        /// <returns><see cref="get_row_name"/> and <see cref="get_origrow_name"/> return the name of the specified row.
-        /// A return value of <c>null</c> indicates an error.
-        /// The difference between <see cref="get_row_name"/> and <see cref="get_origrow_name"/> is only visible when a presolve (<see cref="PreSolveLevels"/>) was done.
-        /// resolve can result in deletion of rows in the model. In <see cref="get_row_name"/>, row specifies the row number after presolve was done.
-        /// In <see cref="get_origrow_name"/>, row specifies the row number before presolve was done, ie the original row number.
-        /// If presolve is not active then both methods are equal.</returns>
-        /// <remarks>
-        /// <para>Row names are optional. If no row name was specified, the method returns Rx with x the row number. row 0 is the objective function.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_row_name.htm">Full C API documentation.</seealso>
-        public string get_origrow_name(int row)
-            => NativeMethods.get_origrow_name(_lp, row);
-
-        /// <summary>
-        /// Returns whether or not the constraint of the given row matches the given mask.
-        /// </summary>
-        /// <param name="row">The row for which the constraint type must be retrieved. Must be between 1 and number of rows in the model.</param>
-        /// <param name="mask">The type of the constraint to check in <paramref name="row"/></param>
-        /// <returns><c>true</c> if the containt types match, <c>false</c> otherwise.</returns>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_constr_type.htm">Full C API documentation.</seealso>
-        public bool is_constr_type(int row, ConstraintOperator mask)
-            => NativeMethods.is_constr_type(_lp, row, mask);
-
-        /// <summary>
-        /// Gets the operator used in the equation/inequation representing the constraint.
-        /// </summary>
-        /// <param name="row">The row for which the operator must be retrieved. Must be between 1 and number of rows in the model.</param>
-        /// <returns>The type of the constraint on row <paramref name="row"/>.</returns>
-        /// <remarks>The default constraint type is <see cref="ConstraintOperator.LessOrEqual"/>.</remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_constr_type.htm">Full C API documentation.</seealso>
-        public ConstraintOperator GetConstraintOperator(int row)
-            => NativeMethods.get_constr_type(_lp, row);
-
-        /// <summary>
-        /// Sets the type of a constraint for the specified row.
-        /// </summary>
-        /// <param name="row">The row for which the constraint type must be set. Must be between 1 and number of rows in the model.</param>
-        /// <param name="con_type">The type of the constraint.</param>
-        /// <returns><c>true</c> if operation was successful, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>The default constraint type is <see cref="ConstraintOperator.LessOrEqual"/>.</para>
-        /// <para>A free constraint (<see cref="ConstraintOperator.Free"/>) will act as if the constraint is not there.
-        /// The lower bound is -Infinity and the upper bound is +Infinity.
-        /// This can be used to temporary disable a constraint without having to delete it from the model
-        /// .Note that the already set RHS and range on this constraint is overruled with Infinity by this.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_constr_type.htm">Full C API documentation.</seealso>
-        public bool set_constr_type(int row, ConstraintOperator con_type)
-            => NativeMethods.set_constr_type(_lp, row, con_type);
-
-        /// <summary>
-        /// Gets the value of the right hand side (RHS) vector (column 0) for one row.
-        /// </summary>
-        /// <param name="row">The row number of the constraint on which the range must be retrieved. Must be between 1 and number of rows in the model.</param>
-        /// <returns>The value of the RHS for the specified row. If row is out of range it returns 0. If no previous value was set, then it also returns 0, the default RHS value.</returns>
-        /// <remarks>
-        /// <para>Note that row can also be 0 with this method. In that case it returns the initial value of the objective function.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_rh.htm">Full C API documentation.</seealso>
-        public double get_rh(int row)
-            => NativeMethods.get_rh(_lp, row);
-
-        /// <summary>
-        /// Sets the value of the right hand side (RHS) vector (column 0) for the specified row.
-        /// </summary>
-        /// <param name="row">The row for which the RHS value must be set. Must be between 1 and number of rows in the model.</param>
-        /// <param name="value">The value of the RHS.</param>
-        /// <returns><c>true</c> if operation was successful, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>Note that row can also be 0 with this method.
-        /// In that case an initial value for the objective value is set.
-        /// Methods <see cref="set_rh_vec"/> ignores row 0 (for historical reasons) in the specified RHS vector,
-        /// but it is possible to first call one of these methods and then set the value of the objective with <see cref="set_rh"/>.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_rh.htm">Full C API documentation.</seealso>
-        public bool set_rh(int row, double value)
-            => NativeMethods.set_rh(_lp, row, value);
-
-        /// <summary>
-        /// Gets the range on the constraint (row) identified by <paramref name="row"/>.
-        /// </summary>
-        /// <param name="row">The row number of the constraint on which the range must be retrieved. Must be between 1 and number of rows in the model.</param>
-        /// <returns>The range on the constraint (row) identified by <paramref name="row"/>.</returns>
-        /// <remarks>
-        /// <para>Setting a range on a row is the way to go instead of adding an extra constraint (row) to the model.
-        /// Setting a range doesn't increase the model size that means that the model stays smaller and will be solved faster.</para>
-        /// <para>If the row has a less than constraint then the range means setting a minimum on the constraint that is equal to the RHS value minus the range.
-        /// If the row has a greater than constraint then the range means setting a maximum on the constraint that is equal to the RHS value plus the range.</para>
-        /// <para>Note that the range value is the difference value and not the absolute value.</para>
-        /// <para>If no range was set then <see cref="get_rh_range"/> returns a very big number, the value of <see cref="Infinite"/>.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_rh_range.htm">Full C API documentation.</seealso>
-        public double get_rh_range(int row)
-            => NativeMethods.get_rh_range(_lp, row);
-
-        /// <summary>
-        /// Sets the range on the constraint (row) identified by <paramref name="row"/>.
-        /// </summary>
-        /// <param name="row">The row number of the constraint on which the range must be set. Must be between 1 and number of rows in the model.</param>
-        /// <param name="deltavalue">The range on the constraint.</param>
-        /// <returns><c>true</c> if operation was successful, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>Setting a range on a row is the way to go instead of adding an extra constraint (row) to the model.
-        /// Setting a range doesn't increase the model size that means that the model stays smaller and will be solved faster.</para>
-        /// <para>If the row has a less than constraint then the range means setting a minimum on the constraint that is equal to the RHS value minus the range.
-        /// If the row has a greater than constraint then the range means setting a maximum on the constraint that is equal to the RHS value plus the range.</para>
-        /// <para>Note that the range value is the difference value and not the absolute value.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_rh_range.htm">Full C API documentation.</seealso>
-        public bool set_rh_range(int row, double deltavalue)
-            => NativeMethods.set_rh_range(_lp, row, deltavalue);
 
         /// <summary>
         /// Sets the value of the right hand side (RHS) vector (column 0).
@@ -1120,143 +426,11 @@ namespace LpSolveDotNet.Idiomatic
         /// <remarks>
         /// <para>The method sets all values of the RHS vector (column 0) at once.</para>
         /// <para>Note that element 0 of the array is not considered (i.e. ignored). Row 1 is element 1, row 2 is element 2, ...</para>
-        /// <para>If the initial value of the objective function must also be set, use <see cref="set_rh"/>.</para>
+        /// <para>If the initial value of the objective function must also be set, use <see cref="ModelRow.RightHandSide"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_rh_vec.htm">Full C API documentation.</seealso>
         public void set_rh_vec(double[] rh)
             => NativeMethods.set_rh_vec(_lp, rh);
-
-        #endregion
-
-        #region Objective
-
-        /// <summary>
-        /// Sets the objective function (row 0) of the matrix.
-        /// </summary>
-        /// <param name="column">The column number for which the value must be set.</param>
-        /// <param name="value">The value that must be set.</param>
-        /// <returns><c>true</c> if operation was successful, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>Note that element 0 of the array is not considered (i.e. ignored). Column 1 is element 1, column 2 is element 2, ...</para>
-        /// <para>It is better to use <see cref="set_obj_fnex"/> or <see cref="set_obj_fn"/>.</para>
-        /// <para>Note that it is advised to set the objective function before adding rows via
-        /// <see cref="add_constraint(double[], ConstraintOperator, double)"/> or <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>.
-        /// This especially for larger models. This will be much more performant than adding the objective function afterwards.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_obj_fn.htm">Full C API documentation.</seealso>
-        public bool set_obj(int column, double value)
-            => NativeMethods.set_obj(_lp, column, value);
-
-        /// <summary>
-        /// Returns initial "at least better than" guess for objective function.
-        /// </summary>
-        /// <returns>Returns initial "at least better than" guess for objective function.</returns>
-        /// <remarks>
-        /// <para>This is only used in the branch-and-bound algorithm when integer variables exist in the model. All solutions with a worse objective value than this value are immediately rejected. This can result in faster solving times, but it can be difficult to predict what value to take for this bound. Also there is the chance that the found solution is not the most optimal one.</para>
-        /// <para>The default is infinite.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_obj_bound.htm">Full C API documentation.</seealso>
-        public double get_obj_bound()
-            => NativeMethods.get_obj_bound(_lp);
-
-        /// <summary>
-        /// Sets initial "at least better than" guess for objective function.
-        /// </summary>
-        /// <param name="obj_bound">The initial "at least better than" guess for objective function.</param>
-        /// <remarks>
-        /// <para>This is only used in the branch-and-bound algorithm when integer variables exist in the model.
-        /// All solutions with a worse objective value than this value are immediately rejected.
-        /// This can result in faster solving times, but it can be difficult to predict what value to take for this bound.
-        /// Also there is the chance that the found solution is not the most optimal one.</para>
-        /// <para>The default is infinite.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_obj_bound.htm">Full C API documentation.</seealso>
-        public void set_obj_bound(double obj_bound)
-            => NativeMethods.set_obj_bound(_lp, obj_bound);
-
-        /// <summary>
-        /// Sets the objective function (row 0) of the matrix.
-        /// </summary>
-        /// <param name="row">An array with 1+<see cref="NumberOfColumns"/> elements that contains the values of the objective function.</param>
-        /// <returns><c>true</c> if operation was successful, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>This method set the values of the objective function in the model at once.</para>
-        /// <para>Note that element 0 of the array is not considered (i.e. ignored). Column 1 is element 1, column 2 is element 2, ...</para>
-        /// <para>It is almost always better to use <see cref="set_obj_fnex"/> instead of <see cref="set_obj_fn"/>. <see cref="set_obj_fnex"/> is always at least as performant as <see cref="set_obj_fnex"/>.</para>
-        /// <para>It is more performant to call these methods than multiple times <see cref="set_obj"/>.</para>
-        /// <para>Note that it is advised to set the objective function before adding rows via <see cref="add_constraint(double[], ConstraintOperator, double)"/>,
-        /// <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>.
-        /// This especially for larger models. This will be much more performant than adding the objective function afterwards.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_obj_fn.htm">Full C API documentation.</seealso>
-        public bool set_obj_fn(double[] row)
-            => NativeMethods.set_obj_fn(_lp, row);
-
-        /// <summary>
-        /// Sets the objective function (row 0) of the matrix.
-        /// </summary>
-        /// <param name="count">Number of elements in <paramref name="row"/> and <paramref name="colno"/>.</param>
-        /// <param name="row">An array with <paramref name="count"/> elements (or 1+<see cref="NumberOfColumns"/> elements if <paramref name="row"/> is <c>null</c>) that contains the values of the row.</param>
-        /// <param name="colno">An array with <paramref name="count"/> elements that contains the column numbers of the row. However this variable can also be <c>null</c>.</param>
-        /// <returns><c>true</c> if operation was successful, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>This method set the values of the objective function in the model at once.</para>
-        /// <para>Note that when <paramref name="colno"/> is <c>null</c> element 0 of the array is not considered (i.e. ignored). Column 1 is element 1, column 2 is element 2, ...</para>
-        /// <para>This method has the possibility to specify only the non-zero elements. In that case colno specifies the column numbers of the non-zero elements.
-        /// This will speed up building the model considerably if there are a lot of zero values. In most cases the matrix is sparse and has many zero value.</para>
-        /// <para>It is almost always better to use <see cref="set_obj_fnex"/> instead of <see cref="set_obj_fn"/>. <see cref="set_obj_fnex"/> is always at least as performant as <see cref="set_obj_fnex"/>.</para>
-        /// <para>It is more performant to call these methods than multiple times <see cref="set_obj"/>.</para>
-        /// <para>Note that it is advised to set the objective function before adding rows via <see cref="add_constraint(double[], ConstraintOperator, double)"/>,
-        /// <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>.
-        /// This especially for larger models. This will be much more performant than adding the objective function afterwards.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_obj_fn.htm">Full C API documentation.</seealso>
-        public bool set_obj_fnex(int count, double[] row, int[] colno)
-            => NativeMethods.set_obj_fnex(_lp, count, row, colno);
-
-        /// <summary>
-        /// Returns objective function direction.
-        /// </summary>
-        /// <returns><c>true</c> if the objective function is maximize, <c>false</c> if it is minimize.</returns>
-        /// <remarks>
-        /// The default of lp_solve is to minimize, except for <see cref="CreateFromLPFile"/> where the default is to maximize.
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_maxim.htm">Full C API documentation.</seealso>
-        public bool is_maxim()
-            => NativeMethods.is_maxim(_lp);
-
-        /// <summary>
-        /// Sets the objective function to <c>maximize</c>.
-        /// </summary>
-        /// <remarks>
-        /// The default of lp_solve is to minimize, except for <see cref="CreateFromLPFile"/> where the default is to maximize.
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_maxim.htm">Full C API documentation.</seealso>
-        public void set_maxim()
-            => NativeMethods.set_maxim(_lp);
-
-        /// <summary>
-        /// Sets the objective function to <c>minimize</c>.
-        /// </summary>
-        /// <remarks>
-        /// The default of lp_solve is to minimize, except for <see cref="CreateFromLPFile"/> where the default is to maximize.
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_minim.htm">Full C API documentation.</seealso>
-        public void set_minim()
-            => NativeMethods.set_minim(_lp);
-
-        /// <summary>
-        /// Sets the objective function sense.
-        /// </summary>
-        /// <param name="maximize">When <c>true</c>, the objective function sense is maximize, when <c>false</c> it is minimize.</param>
-        /// <remarks>
-        /// The default of lp_solve is to minimize, except for <see cref="CreateFromLPFile"/> where the default is to maximize.
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_sense.htm">Full C API documentation.</seealso>
-        public void set_sense(bool maximize)
-            => NativeMethods.set_sense(_lp, maximize);
-
-        #endregion
 
 
         /// <summary>
@@ -1284,23 +458,21 @@ namespace LpSolveDotNet.Idiomatic
         /// <para>This method deletes the last rows/columns of the model if the new number of rows/columns is less than the number of rows/columns before the call.</para>
         /// <para>However, the function does **not** add rows/columns to the model if the new number of rows/columns is larger.
         /// It does however changes internal memory allocations to the new specified sizes.
-        /// This to make the <see cref="add_constraint(double[], ConstraintOperator, double)"/>,
-        /// <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/> and <see cref="add_column"/>,
-        /// <see cref="add_columnex"/> methods faster. Without <see cref="Resize"/>, these methods have to reallocated
-        /// memory at each call for the new dimensions. However if <see cref="Resize "/> is used, then memory reallocation
+        /// This to make the <see cref="ModelRows.Add"/> and <see cref="ModelColumns.Add"/> methods faster. Without <see cref="ResizeMatrix"/>, these methods have to reallocated
+        /// memory at each call for the new dimensions. However if <see cref="ResizeMatrix "/> is used, then memory reallocation
         /// must be done only once resulting in better performance. So if the number of rows/columns that will be added is known in advance, then performance can be improved by using this method.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/resize_lp.htm">Full C API documentation.</seealso>
-        public bool Resize(int rows, int columns)
+        public bool ResizeMatrix(int rows, int columns)
             => NativeMethods.resize_lp(_lp, rows, columns);
 
         /// <summary>
-        /// Specifies which entry methods perform best. Whether <see cref="add_column"/>, <see cref="add_columnex"/>
-        /// or <see cref="add_constraint(double[], ConstraintOperator, double)"/>, <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>.
+        /// Specifies which entry methods perform best. Whether <see cref="ModelColumns.Add"/>
+        /// or <see cref="ModelRows.Add"/>.
         /// </summary>
         /// <remarks>
-        /// <para>Default value is <see cref="EntryMode.Column"/>, meaning that <see cref="add_column"/>, <see cref="add_columnex"/> perform best.
-        /// If the model is built via calls to <see cref="add_constraint(double[], ConstraintOperator, double)"/> or <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>,
+        /// <para>Default value is <see cref="EntryMode.Column"/>, meaning that <see cref="ModelColumns.Add"/> perform best.
+        /// If the model is built via calls to <see cref="ModelRows.Add"/>,
         /// then these methods will be much faster if this property is first set to <see cref="EntryMode.Row"/>.
         /// The speed improvement is spectacular, especially for bigger models, so it is 
         /// advisable to set the proper mode. Normally a model is built either column by column or row by row.</para>
@@ -1308,8 +480,8 @@ namespace LpSolveDotNet.Idiomatic
         /// <list type="bullet">
         /// <item><description>Only set the mode after a <see cref="Create"/> call.</description></item>
         /// <item><description>Never set the mode when the model is read from file.</description></item>
-        /// <item><description>If you use <see cref="EntryMode.Row"/> entry mode, first add the objective function via <see cref="set_obj_fn"/>, <see cref="set_obj_fnex"/>
-        /// and after that add the constraints via <see cref="add_constraint(double[], ConstraintOperator, double)"/>, <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>.</description></item>
+        /// <item><description>If you use <see cref="EntryMode.Row"/> entry mode, first add the objective function via <see cref="ModelObjectiveFunction.SetValues"/> or <see cref="ModelObjectiveFunction.SetValue"/>
+        /// and after that add the constraints via <see cref="ModelRows.Add"/>.</description></item>
         /// <item><description>Don't call other API methods while in row entry mode.</description></item>
         /// <item><description>No other data matrix access is allowed while in row entry mode.</description></item>
         /// <item><description>After adding the contraints, turn row entry mode back off.</description></item>
@@ -1334,30 +506,12 @@ namespace LpSolveDotNet.Idiomatic
         }
 
         /// <summary>
-        /// Gets the index of a given column or row name in the model.
-        /// </summary>
-        /// <param name="name">The name of the column or row for which the index (column/row number) must be retrieved.</param>
-        /// <param name="isrow">Use <c>false</c> when column information is needed and <c>true</c> when row information is needed.</param>
-        /// <returns>Returns the index (column/row number) of the given column/row name.
-        /// A return value of -1 indicates that the name does not exist.
-        /// Note that the index is the original index number.
-        /// So if presolve is active, it has no effect.
-        /// It is the original column/row number that is returned.</returns>
-        /// <remarks>
-        /// Note that this index starts from 1.
-        /// Some API methods expect zero-based indexes and thus this value must then be corrected with -1.
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_nameindex.htm">Full C API documentation.</seealso>
-        public int get_nameindex(string name, bool isrow)
-            => NativeMethods.get_nameindex(_lp, name, isrow);
-
-        /// <summary>
         /// Checks if the provided absolute of the value is larger or equal to "infinite".
         /// </summary>
         /// <param name="value">The value to check against "infinite".</param>
         /// <returns><c>true</c> if the value is equal or larger to "infinite", <c>false</c> otherwise.</returns>
         /// <remarks>
-        /// Note that the absolute of the provided value is checked against the value set by <see cref="Infinite"/>.
+        /// Note that the absolute of the provided value is checked against the value set by <see cref="InfiniteValue"/>.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_infinite.htm">Full C API documentation.</seealso>
         public bool is_infinite(double value)
@@ -1372,31 +526,31 @@ namespace LpSolveDotNet.Idiomatic
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_infinite.htm">Full C API documentation (get).</seealso>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_infinite.htm">Full C API documentation (set).</seealso>
-        public double Infinite
+        public double InfiniteValue
         {
             get => NativeMethods.get_infinite(_lp);
             set => NativeMethods.set_infinite(_lp, value);
         }
 
-    /// <summary>
-    /// Gets a single element from the matrix.
-    /// </summary>
-    /// <param name="row">Row number of the matrix. Must be between 0 and number of rows in the model. Row 0 is objective function.</param>
-    /// <param name="column">Column number of the matrix. Must be between 1 and number of columns in the model.</param>
-    /// <returns>
-    /// <para>Returns the value of the element on row <paramref name="row"/>, column <paramref name="column"/>.
-    /// If no value was set for this element, the method returns 0.</para>
-    /// <para>Note that row entry mode must be off, else this method also fails.
-    /// See <see cref="EntryMode"/>.</para></returns>
-    /// <remarks>
-    /// <para>This method is not efficient if many values are to be retrieved.
-    /// Consider to use <see cref="get_row"/>, <see cref="get_rowex"/>, <see cref="get_column"/>, <see cref="get_columnex"/>.</para>
-    /// <para>
-    /// If row and/or column are outside the allowed range, the method returns 0.
-    /// </para>
-    /// </remarks>
-    /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_mat.htm">Full C API documentation.</seealso>
-    public double get_mat(int row, int column)
+        /// <summary>
+        /// Gets a single element from the matrix.
+        /// </summary>
+        /// <param name="row">Row number of the matrix. Must be between 0 and number of rows in the model. Row 0 is objective function.</param>
+        /// <param name="column">Column number of the matrix. Must be between 1 and number of columns in the model.</param>
+        /// <returns>
+        /// <para>Returns the value of the element on row <paramref name="row"/>, column <paramref name="column"/>.
+        /// If no value was set for this element, the method returns 0.</para>
+        /// <para>Note that row entry mode must be off, else this method also fails.
+        /// See <see cref="EntryMode"/>.</para></returns>
+        /// <remarks>
+        /// <para>This method is not efficient if many values are to be retrieved.
+        /// Consider to use <see cref="ModelRow.GetValues"/>, <see cref="ModelRow.GetNonZeroValues"/>, <see cref="ModelColumn.GetValues"/>, <see cref="ModelColumn.GetNonZeroValues"/>.</para>
+        /// <para>
+        /// If row and/or column are outside the allowed range, the method returns 0.
+        /// </para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_mat.htm">Full C API documentation.</seealso>
+        public double get_mat(int row, int column)
             => NativeMethods.get_mat(_lp, row, column);
 
         /// <summary>
@@ -1411,10 +565,9 @@ namespace LpSolveDotNet.Idiomatic
         /// <remarks>
         /// <para>If there was already a value for this element, it is replaced and if there was no value, it is added.</para>
         /// <para>This method is not efficient if many values are to be set.
-        /// Consider to use <see cref="add_constraint(double[], ConstraintOperator, double)"/>, <see cref="add_constraintex(int, double[], int[], ConstraintOperator, double)"/>,
-        /// <see cref="set_row"/>, <see cref="set_rowex"/>, <see cref="set_obj_fn"/>, <see cref="set_obj_fnex"/>,
-        /// <see cref="set_obj"/>, <see cref="add_column"/>, <see cref="add_columnex"/>,
-        /// <see cref="set_column"/>, <see cref="set_columnex"/>.</para>
+        /// Consider to use <see cref="ModelRows.Add"/>,
+        /// <see cref="ModelRow.SetValues"/>, <see cref="ModelObjectiveFunction.SetValues"/>, <see cref="ModelObjectiveFunction.SetValue"/>, <see cref="ModelColumns.Add"/>,
+        /// <see cref="ModelColumn.SetValues"/>.</para>
         /// <para>
         /// If row and/or column are outside the allowed range, the method returns 0.
         /// </para>
@@ -1429,12 +582,12 @@ namespace LpSolveDotNet.Idiomatic
         /// <param name="tighten">Specifies if set bounds may only be tighter <c>true</c> or also less restrictive <c>false</c>.</param>
         /// <remarks>
         /// <para>If set to <c>true</c> then bounds may only be tighter.
-        /// This means that when <see cref="set_lowbo"/> or <see cref="set_upbo"/> is used to set a bound
+        /// This means that when <see cref="ModelColumn.LowerBound"/> or <see cref="ModelColumn.UpperBound"/> is used to set a bound
         /// and the bound is less restrictive than an already set bound, then this new bound will be ignored.
         /// If tighten is set to <c>false</c>, the new bound is accepted.
         /// This functionality is useful when several bounds are set on a variable and at the end you want
         /// the most restrictive ones. By default, this setting is <c>false</c>.
-        /// Note that this setting does not affect <see cref="set_bounds"/>.
+        /// Note that this setting does not affect <see cref="ModelColumn.SetBounds"/>.
         /// </para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_bounds_tighter.htm">Full C API documentation.</seealso>
@@ -1447,12 +600,12 @@ namespace LpSolveDotNet.Idiomatic
         /// <returns>Returns <c>true</c> if set bounds may only be tighter or <c>false</c> if they can also be less restrictive.</returns>
         /// <remarks>
         /// <para>If it returns <c>true</c> then bounds may only be tighter.
-        /// This means that when <see cref="set_lowbo"/> or <see cref="set_lowbo"/> is used to set a bound
+        /// This means that when <see cref="ModelColumn.LowerBound"/> or <see cref="ModelColumn.UpperBound"/> is used to set a bound
         /// and the bound is less restrictive than an already set bound, then this new bound will be ignored.
         /// If it returns <c>false</c>, the new bound is accepted.
         /// This functionality is useful when several bounds are set on a variable and at the end you want
         /// the most restrictive ones. By default, this setting is <c>false</c>.
-        /// Note that this setting does not affect <see cref="set_bounds"/>.
+        /// Note that this setting does not affect <see cref="ModelColumn.SetBounds"/>.
         /// </para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_bounds_tighter.htm">Full C API documentation.</seealso>

@@ -6,12 +6,12 @@ namespace LpSolveDotNet.Idiomatic
     public enum EntryMode
     {
         /// <summary>
-        /// The methods <see cref="LpSolve.add_column"/>, <see cref="LpSolve.add_columnex"/> perform best.
+        /// The methods <see cref="ModelColumns.Add"/> perform best.
         /// </summary>
         Column = 0,
 
         /// <summary>
-        /// The methods <see cref="LpSolve.add_constraint(double[], ConstraintOperator, double)"/>, <see cref="LpSolve.add_constraintex(int, double[], int[], ConstraintOperator, double)"/> perform best.
+        /// The methods <see cref="ModelRows.Add"/> performs best.
         /// </summary>
         Row = 1,
     }
