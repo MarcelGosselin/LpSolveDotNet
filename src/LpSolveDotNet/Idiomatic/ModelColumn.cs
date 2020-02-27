@@ -233,7 +233,7 @@ namespace LpSolveDotNet.Idiomatic
         /// of the non-zero elements. Both <paramref name="columnValues"/> and <paramref name="rowNumbers"/> are then zero-based arrays. 
         /// This will speed up building the model considerably if there are a lot of zero values. In most cases the matrix is sparse and has many zero values.
         /// </para>
-        /// <para>It is more performant to call this method than call <see cref="LpSolve.set_mat"/>.</para>
+        /// <para>It is more performant to call this method than call cell-by-bell the <see cref="LpSolve.Cells"/> property.</para>
         /// <para>Note that unspecified values are set to zero.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_column.htm">Full C API documentation.</seealso>

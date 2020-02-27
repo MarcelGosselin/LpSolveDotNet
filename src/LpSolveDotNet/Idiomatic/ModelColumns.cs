@@ -140,5 +140,6 @@ namespace LpSolveDotNet.Idiomatic
             => NativeMethods.del_column(Lp, column)
                 .HandleResultAndReturnIt(ReturnValueHandler);
         // TODO: see TODO in ModelRows
+
     }
 }

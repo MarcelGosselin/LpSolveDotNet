@@ -527,83 +527,115 @@ namespace LpSolveDotNet.Idiomatic
 
         [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.SetValues), true)]
         public bool set_column(int col_no, double[] column)
-            => NativeMethods.set_column(_lp, col_no, column);
+            => throw new NotImplementedException();
 
         [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.SetValues), true)]
         public bool set_columnex(int col_no, int count, double[] column, int[] rowno)
-            => NativeMethods.set_columnex(_lp, col_no, count, column, rowno);
+            => throw new NotImplementedException();
 
         [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.GetValues), true)]
         public bool get_column(int col_nr, double[] column)
-            => NativeMethods.get_column(_lp, col_nr, column);
+            => throw new NotImplementedException();
 
         [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.GetNonZeroValues), true)]
         public int get_columnex(int col_nr, double[] column, int[] nzrow)
-            => NativeMethods.get_columnex(_lp, col_nr, column, nzrow);
+            => throw new NotImplementedException();
 
         [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.Name), true)]
         public bool set_col_name(int column, string new_name)
-            => NativeMethods.set_col_name(_lp, column, new_name);
+            => throw new NotImplementedException();
 
         [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.Name), true)]
         public string get_col_name(int column)
-            => NativeMethods.get_col_name(_lp, column);
+            => throw new NotImplementedException();
 
         [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.IsNegative), true)]
         public bool is_negative(int column)
-            => NativeMethods.is_negative(_lp, column);
+            => throw new NotImplementedException();
 
         [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.IsInteger), true)]
         public bool is_int(int column)
-            => NativeMethods.is_int(_lp, column);
+            => throw new NotImplementedException();
 
         [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.IsInteger), true)]
         public bool set_int(int column, bool must_be_int)
-            => NativeMethods.set_int(_lp, column, must_be_int);
+            => throw new NotImplementedException();
 
         [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.IsBinary), true)]
         public bool is_binary(int column)
-            => NativeMethods.is_binary(_lp, column);
+            => throw new NotImplementedException();
 
         [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.IsBinary), true)]
         public bool set_binary(int column, bool must_be_bin)
-            => NativeMethods.set_binary(_lp, column, must_be_bin);
+            => throw new NotImplementedException();
 
         [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.IsSemiContinuous), true)]
         public bool is_semicont(int column)
-            => NativeMethods.is_semicont(_lp, column);
+            => throw new NotImplementedException();
 
         [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.IsSemiContinuous), true)]
         public bool set_semicont(int column, bool must_be_sc)
-            => NativeMethods.set_semicont(_lp, column, must_be_sc);
+            => throw new NotImplementedException();
 
         [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.SetBounds), true)]
         public bool set_bounds(int column, double lower, double upper)
-            => NativeMethods.set_bounds(_lp, column, lower, upper);
+            => throw new NotImplementedException();
 
         [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.IsUnbounded), true)]
         public bool set_unbounded(int column)
-            => NativeMethods.set_unbounded(_lp, column);
+            => throw new NotImplementedException();
 
         [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.IsUnbounded), true)]
         public bool is_unbounded(int column)
-            => NativeMethods.is_unbounded(_lp, column);
+            => throw new NotImplementedException();
 
         [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.UpperBound), true)]
         public double get_upbo(int column)
-            => NativeMethods.get_upbo(_lp, column);
+            => throw new NotImplementedException();
 
         [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.UpperBound), true)]
         public bool set_upbo(int column, double value)
-            => NativeMethods.set_upbo(_lp, column, value);
+            => throw new NotImplementedException();
 
         [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.LowerBound), true)]
         public double get_lowbo(int column)
-            => NativeMethods.get_lowbo(_lp, column);
+            => throw new NotImplementedException();
 
         [Obsolete("Replaced by " + nameof(Columns) + "[row]." + nameof(ModelColumn.LowerBound), true)]
         public bool set_lowbo(int column, double value)
-            => NativeMethods.set_lowbo(_lp, column, value);
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(SetRightHandSideValues), true)]
+        public void set_rh_vec(double[] rh)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(SetRightHandSideValues), true)]
+        public bool is_infinite(double value)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(IsRestrictingBoundsTighter), true)]
+        public void set_bounds_tighter(bool tighten)
+          => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(IsRestrictingBoundsTighter), true)]
+        public bool get_bounds_tighter()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(BreakNumericAccuracy), true)]
+        public void set_break_numeric_accuracy(double accuracy)
+            => throw new NotImplementedException();
+            
+        [Obsolete("Replaced by " + nameof(BreakNumericAccuracy), true)]
+        public double get_break_numeric_accuracy()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Cells) + "[row, column]", true)]
+        public double get_mat(int row, int column)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Cells) + "[row, column]", true)]
+        public bool set_mat(int row, int column, double value)
+            => throw new NotImplementedException();
         #endregion
 
         #region Support removed
@@ -620,13 +652,15 @@ namespace LpSolveDotNet.Idiomatic
         public bool str_set_obj_fn(params object[] _)
             => throw new NotImplementedException();
 
-        [Obsolete("Support for string version of model building was removed, use " + nameof(set_rh_vec) + " instead", true)]
+        [Obsolete("Support for string version of model building was removed, use " + nameof(SetRightHandSideValues) + " instead", true)]
         public bool str_set_rh_vec(params object[] _)
             => throw new NotImplementedException();
 
         [Obsolete("Removed as this was not meant to be used http://lpsolve.sourceforge.net/5.5/reset_basis.htm", true)]
         public void reset_basis()
             => throw new NotImplementedException();
+
+
         #endregion
 
     }

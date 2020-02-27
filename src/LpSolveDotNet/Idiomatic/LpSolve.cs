@@ -263,6 +263,7 @@ namespace LpSolveDotNet.Idiomatic
             ObjectiveFunction = new ModelObjectiveFunction(_lp);
             Rows = new ModelRows(_lp);
             Columns = new ModelColumns(_lp);
+            Cells = new ModelCells(_lp);
         }
 
         private static LpSolve CreateFromLpRecStructurePointer(IntPtr lp)
@@ -400,6 +401,11 @@ namespace LpSolveDotNet.Idiomatic
         public ModelRows Rows { get; }
 
         /// <summary>
+        /// Returns a sub-object to deal with everything cell-related.
+        /// </summary>
+        public ModelCells Cells { get; }
+
+        /// <summary>
         /// Returns a sub-object to deal with everything ObjectiveFunction-related (row with index 0).
         /// </summary>
         public ModelObjectiveFunction ObjectiveFunction { get; }
@@ -413,24 +419,6 @@ namespace LpSolveDotNet.Idiomatic
         /// Returns a sub-object to deal with everything Basis-related.
         /// </summary>
         public ModelBasis Basis { get; }
-
-        #region Column
-
-
-        #endregion // Build model /  Column
-
-        /// <summary>
-        /// Sets the value of the right hand side (RHS) vector (column 0).
-        /// </summary>
-        /// <param name="rh">An array with row elements that contains the values of the RHS.</param>
-        /// <remarks>
-        /// <para>The method sets all values of the RHS vector (column 0) at once.</para>
-        /// <para>Note that element 0 of the array is not considered (i.e. ignored). Row 1 is element 1, row 2 is element 2, ...</para>
-        /// <para>If the initial value of the objective function must also be set, use <see cref="ModelRow.RightHandSide"/>.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_rh_vec.htm">Full C API documentation.</seealso>
-        public void set_rh_vec(double[] rh)
-            => NativeMethods.set_rh_vec(_lp, rh);
 
 
         /// <summary>
@@ -514,7 +502,7 @@ namespace LpSolveDotNet.Idiomatic
         /// Note that the absolute of the provided value is checked against the value set by <see cref="InfiniteValue"/>.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_infinite.htm">Full C API documentation.</seealso>
-        public bool is_infinite(double value)
+        public bool IsInfinite(double value)
             => NativeMethods.is_infinite(_lp, value);
 
         /// <summary>
@@ -533,53 +521,24 @@ namespace LpSolveDotNet.Idiomatic
         }
 
         /// <summary>
-        /// Gets a single element from the matrix.
+        /// Sets the value of all the right hand side (RHS) vector (column 0) at once.
         /// </summary>
-        /// <param name="row">Row number of the matrix. Must be between 0 and number of rows in the model. Row 0 is objective function.</param>
-        /// <param name="column">Column number of the matrix. Must be between 1 and number of columns in the model.</param>
-        /// <returns>
-        /// <para>Returns the value of the element on row <paramref name="row"/>, column <paramref name="column"/>.
-        /// If no value was set for this element, the method returns 0.</para>
-        /// <para>Note that row entry mode must be off, else this method also fails.
-        /// See <see cref="EntryMode"/>.</para></returns>
+        /// <param name="rh">An array with row elements that contains the values of the RHS.</param>
         /// <remarks>
-        /// <para>This method is not efficient if many values are to be retrieved.
-        /// Consider to use <see cref="ModelRow.GetValues"/>, <see cref="ModelRow.GetNonZeroValues"/>, <see cref="ModelColumn.GetValues"/>, <see cref="ModelColumn.GetNonZeroValues"/>.</para>
-        /// <para>
-        /// If row and/or column are outside the allowed range, the method returns 0.
-        /// </para>
+        /// <para>The method sets all values of the RHS vector (column 0) at once.</para>
+        /// <para>Note that element 0 of the array is not considered (i.e. ignored). Row 1 is element 1, row 2 is element 2, ...</para>
+        /// <para>If the initial value of the objective function must also be set, use <see cref="ModelRow.RightHandSide"/>.</para>
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_mat.htm">Full C API documentation.</seealso>
-        public double get_mat(int row, int column)
-            => NativeMethods.get_mat(_lp, row, column);
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_rh_vec.htm">Full C API documentation.</seealso>
+        public void SetRightHandSideValues(double[] rh)
+            => NativeMethods.set_rh_vec(_lp, rh);
+
+
+
 
         /// <summary>
-        /// Sets a single element in the matrix.
+        /// Specifies if set bounds may only be tighter <c>true</c> or also less restrictive <c>false</c>.
         /// </summary>
-        /// <param name="row">Row number of the matrix. Must be between 0 and number of rows in the model. Row 0 is objective function.</param>
-        /// <param name="column">Column number of the matrix. Must be between 1 and number of columns in the model.</param>
-        /// <param name="value">Value to set on row <paramref name="row"/>, column <paramref name="column"/>.</param>
-        /// <returns><para><c>true</c> if operation was successful, <c>false</c> otherwise.</para>
-        /// <para>Note that row entry mode must be off, else this method also fails.
-        /// See <see cref="EntryMode"/>.</para></returns>
-        /// <remarks>
-        /// <para>If there was already a value for this element, it is replaced and if there was no value, it is added.</para>
-        /// <para>This method is not efficient if many values are to be set.
-        /// Consider to use <see cref="ModelRows.Add"/>,
-        /// <see cref="ModelRow.SetValues"/>, <see cref="ModelObjectiveFunction.SetValues"/>, <see cref="ModelObjectiveFunction.SetValue"/>, <see cref="ModelColumns.Add"/>,
-        /// <see cref="ModelColumn.SetValues"/>.</para>
-        /// <para>
-        /// If row and/or column are outside the allowed range, the method returns 0.
-        /// </para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_mat.htm">Full C API documentation.</seealso>
-        public bool set_mat(int row, int column, double value)
-            => NativeMethods.set_mat(_lp, row, column, value);
-
-        /// <summary>
-        /// Specifies if set bounds may only be tighter or also less restrictive.
-        /// </summary>
-        /// <param name="tighten">Specifies if set bounds may only be tighter <c>true</c> or also less restrictive <c>false</c>.</param>
         /// <remarks>
         /// <para>If set to <c>true</c> then bounds may only be tighter.
         /// This means that when <see cref="ModelColumn.LowerBound"/> or <see cref="ModelColumn.UpperBound"/> is used to set a bound
@@ -590,32 +549,17 @@ namespace LpSolveDotNet.Idiomatic
         /// Note that this setting does not affect <see cref="ModelColumn.SetBounds"/>.
         /// </para>
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_bounds_tighter.htm">Full C API documentation.</seealso>
-        public void set_bounds_tighter(bool tighten)
-            => NativeMethods.set_bounds_tighter(_lp, tighten);
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_bounds_tighter.htm">Full C API documentation (get).</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_bounds_tighter.htm">Full C API documentation (set).</seealso>
+        public bool IsRestrictingBoundsTighter
+        {
+            get => NativeMethods.get_bounds_tighter(_lp);
+            set => NativeMethods.set_bounds_tighter(_lp, value);
+        }
 
         /// <summary>
-        /// Returns if set bounds may only be tighter or also less restrictive.
+        /// Specifies the minimal accuracy for a successful solve.
         /// </summary>
-        /// <returns>Returns <c>true</c> if set bounds may only be tighter or <c>false</c> if they can also be less restrictive.</returns>
-        /// <remarks>
-        /// <para>If it returns <c>true</c> then bounds may only be tighter.
-        /// This means that when <see cref="ModelColumn.LowerBound"/> or <see cref="ModelColumn.UpperBound"/> is used to set a bound
-        /// and the bound is less restrictive than an already set bound, then this new bound will be ignored.
-        /// If it returns <c>false</c>, the new bound is accepted.
-        /// This functionality is useful when several bounds are set on a variable and at the end you want
-        /// the most restrictive ones. By default, this setting is <c>false</c>.
-        /// Note that this setting does not affect <see cref="ModelColumn.SetBounds"/>.
-        /// </para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_bounds_tighter.htm">Full C API documentation.</seealso>
-        public bool get_bounds_tighter()
-            => NativeMethods.get_bounds_tighter(_lp);
-
-        /// <summary>
-        /// Sets the accuracy values when solve should fail.
-        /// </summary>
-        /// <param name="accuracy">From which minimal accuracy should solve fail.</param>
         /// <remarks>
         /// <para>
         /// When accuracy from <see cref="get_accuracy"/> is larger than this value, optimization will fail with <see cref="lpsolve_return.ACCURACYERROR"/> .
@@ -623,25 +567,13 @@ namespace LpSolveDotNet.Idiomatic
         /// </para>
         /// <para>Available since v4.1.0.</para>
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_break_numeric_accuracy.htm">Full C API documentation.</seealso>
-        public void set_break_numeric_accuracy(double accuracy)
-            => NativeMethods.set_break_numeric_accuracy(_lp, accuracy);
-
-        /// <summary>
-        /// Returns the accuracy values when solve should fail.
-        /// </summary>
-        /// <returns>The accuracy values when solve should fail.</returns>
-        /// <remarks>
-        /// <para>
-        /// This function returns the minimal accuracy for a successful solve.
-        /// When accuracy from <see cref="get_accuracy"/> is larger than this value, optimization will fail with <see cref="lpsolve_return.ACCURACYERROR"/> .
-        /// By default, break accuracy is <c>5e-7</c>.
-        /// </para>
-        /// <para>Available since v4.1.0.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_break_numeric_accuracy.htm">Full C API documentation.</seealso>
-        public double get_break_numeric_accuracy()
-            => NativeMethods.get_break_numeric_accuracy(_lp);
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_break_numeric_accuracy.htm">Full C API documentation (get).</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_break_numeric_accuracy.htm">Full C API documentation (set).</seealso>
+        public double BreakNumericAccuracy
+        {
+            get => NativeMethods.get_break_numeric_accuracy(_lp);
+            set => NativeMethods.set_break_numeric_accuracy(_lp, value);
+        }            
 
         /// <summary>
         /// Returns, for the specified variable, the priority the variable has in the branch-and-bound algorithm.
