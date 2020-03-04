@@ -35,11 +35,11 @@ namespace LpSolveDotNet
         #region Equals
 
         /// <inheritdoc/>
-        [EditorBrowsable]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public override bool Equals(object obj) => obj is PivotRuleAndModes other && Equals(other);
 
         /// <inheritdoc/>
-        [EditorBrowsable]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public override int GetHashCode()
         {
             int hashCode = -863896258;
@@ -49,15 +49,15 @@ namespace LpSolveDotNet
         }
 
         /// <inheritdoc/>
-        [EditorBrowsable]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static bool operator ==(PivotRuleAndModes left, PivotRuleAndModes right) => left.Equals(right);
 
         /// <inheritdoc/>
-        [EditorBrowsable]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static bool operator !=(PivotRuleAndModes left, PivotRuleAndModes right) => !(left == right);
 
         /// <inheritdoc/>
-        [EditorBrowsable]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public bool Equals(PivotRuleAndModes other) => Rule == other.Rule && Modes == other.Modes;
 
         #endregion
