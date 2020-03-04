@@ -3,14 +3,13 @@ name: CI
 on:
   pull_request:
     types: [assigned, opened, synchronize, reopened]
-    branches-ignore:
-      - gh-pages
+    branches:
+      - '!gh-pages'
   push:
     branches:
       - master
       - release/*
-    branches-ignore:
-      - gh-pages
+      - '!gh-pages'
 
 jobs:
   build:

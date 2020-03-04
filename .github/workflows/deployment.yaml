@@ -4,8 +4,8 @@ on:
   create:
     tags:
       - v[0-9]+.[0-9]+.[0-9]+*
-    branches-ignore:
-      - gh-pages
+    branches:
+      - '!gh-pages'
 
 jobs:
   deploy:
