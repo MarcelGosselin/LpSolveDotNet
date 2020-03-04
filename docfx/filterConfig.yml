@@ -1,0 +1,7 @@
+apiRules:
+- exclude:
+    hasAttribute:
+      uid: System.ObsoleteAttribute
+- exclude:
+    hasAttribute:
+      uid: System.ComponentModel.EditorBrowsableAttribute
