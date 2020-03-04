@@ -59,11 +59,11 @@ namespace LpSolveDotNet
         #region Equals
 
         /// <inheritdoc/>
-        [EditorBrowsable]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public override bool Equals(object obj) => obj is ScalingAlgorithmAndParameters other && Equals(other);
 
         /// <inheritdoc/>
-        [EditorBrowsable]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public override int GetHashCode()
         {
             int hashCode = -863896258;
@@ -73,15 +73,15 @@ namespace LpSolveDotNet
         }
 
         /// <inheritdoc/>
-        [EditorBrowsable]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static bool operator ==(ScalingAlgorithmAndParameters left, ScalingAlgorithmAndParameters right) => left.Equals(right);
 
         /// <inheritdoc/>
-        [EditorBrowsable]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static bool operator !=(ScalingAlgorithmAndParameters left, ScalingAlgorithmAndParameters right) => !(left == right);
 
         /// <inheritdoc/>
-        [EditorBrowsable]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public bool Equals(ScalingAlgorithmAndParameters other) => Algorithm == other.Algorithm && Parameters == other.Parameters;
 
         #endregion
