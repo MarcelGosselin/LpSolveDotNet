@@ -1,0 +1,28 @@
+name: 'Build Documentation'
+
+on:
+  push:
+    branches:
+      #- master
+      #- release/*
+      - '!gh-pages'
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Test Chocolatey
+      run: choco --version
+
+    # - name: Setup MSBuild.exe
+    #   uses: warrenbuckley/Setup-MSBuild@v1
+
+    # - name: Build and Package with MSBuild
+    #   working-directory: src
+    #   run: msbuild -t:"Clean;Build" -restore -p:Configuration=Release -p:TargetFramework=net471 LpSolveDotNet.sln
