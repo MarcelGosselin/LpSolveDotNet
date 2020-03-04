@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 
 namespace LpSolveDotNet
 {
@@ -55,14 +56,14 @@ namespace LpSolveDotNet
         /// </summary>
         public lpsolve_scale_parameters Parameters { get; }
 
-
-
         #region Equals
 
         /// <inheritdoc/>
+        [EditorBrowsable]
         public override bool Equals(object obj) => obj is ScalingAlgorithmAndParameters other && Equals(other);
 
         /// <inheritdoc/>
+        [EditorBrowsable]
         public override int GetHashCode()
         {
             int hashCode = -863896258;
@@ -72,12 +73,15 @@ namespace LpSolveDotNet
         }
 
         /// <inheritdoc/>
+        [EditorBrowsable]
         public static bool operator ==(ScalingAlgorithmAndParameters left, ScalingAlgorithmAndParameters right) => left.Equals(right);
 
         /// <inheritdoc/>
+        [EditorBrowsable]
         public static bool operator !=(ScalingAlgorithmAndParameters left, ScalingAlgorithmAndParameters right) => !(left == right);
 
         /// <inheritdoc/>
+        [EditorBrowsable]
         public bool Equals(ScalingAlgorithmAndParameters other) => Algorithm == other.Algorithm && Parameters == other.Parameters;
 
         #endregion

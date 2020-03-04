@@ -356,7 +356,7 @@ namespace LpSolveDotNet
             Dispose();
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="IDisposable.Dispose()"/>
         public void Dispose()
         {
             // implement Dispose pattern according to https://msdn.microsoft.com/en-us/library/b1yfkh5e.aspx
