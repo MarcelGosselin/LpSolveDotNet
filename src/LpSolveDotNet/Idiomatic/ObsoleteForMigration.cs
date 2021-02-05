@@ -636,6 +636,106 @@ namespace LpSolveDotNet.Idiomatic
         [Obsolete("Replaced by " + nameof(Cells) + "[row, column]", true)]
         public bool set_mat(int row, int column, double value)
             => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(TimeElapsed), true)]
+        public double time_elapsed()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(OriginalIndexFromCurrent), true)]
+        public int get_orig_index(int lp_index)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(CurrentIndexFromOriginal), true)]
+        public int get_lp_index(int orig_index)
+            => throw new NotImplementedException();        
+
+        [Obsolete("Replaced by " + nameof(Status), true)]
+        public int get_status()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(GetStatusText), true)]
+        public string get_statustext(int statuscode)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(NumberOfNonZeroElements), true)]
+        public int get_nonzeros()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Dualize), true)]
+        public bool dualize_lp()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(FindColumnWithValues), true)]
+        public int column_in_lp(double[] column)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(WriteInLPFormat), true)]
+        public bool write_lp(string filename)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(WriteInMPSFormat) + "(..., " + nameof(MPSOptions) + "." + nameof(MPSOptions.FreeMPSFormat) + ")", true)]
+        public bool write_freemps(string filename)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(WriteInMPSFormat) + "(..., " + nameof(MPSOptions) + "." + nameof(MPSOptions.FixedMPSFormat) + ")", true)]
+        public bool write_mps(string filename)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(XLI) + "." + nameof(ExternalLanguageInterface.IsNativeXLIAvailable), true)]
+        public bool is_nativeXLI()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(XLI) + "." + nameof(ExternalLanguageInterface.IsSet), true)]
+        public bool has_XLI()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(XLI) + "." + nameof(ExternalLanguageInterface.Set), true)]
+        public bool set_XLI(string filename)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(XLI) + "." + nameof(ExternalLanguageInterface.Write), true)]
+        public bool write_XLI(string filename, string options, bool results)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(SetOutputFile), true)]
+        public bool set_outputfile(string filename)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(PrintConstraints), true)]
+        public void print_constraints(int columns)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(PrintDebugDump), true)]
+        public bool print_debugdump(string filename)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(PrintDuals), true)]
+        public void print_duals()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(PrintModel), true)]
+        public void print_lp()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(PrintObjective), true)]
+        public void print_objective()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(PrintScales), true)]
+        public void print_scales()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(PrintSolution), true)]
+        public void print_solution(int columns)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(PrintString), true)]
+        public void print_str(string str)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(PrintTableau), true)]
+        public void print_tableau()
+            => throw new NotImplementedException();
         #endregion
 
         #region Support removed

@@ -59,6 +59,12 @@ namespace LpSolveDotNet.Idiomatic
         TimedOut = 7,
 
         /// <summary>
+        /// The <see cref="LpSolve.Solve"/> operation is currently running on model.
+        /// (RUNNING = 8 in C code).
+        /// </summary>
+        Running = 8,
+
+        /// <summary>
         /// The model could be solved by presolve. This can only happen if presolve is active via <see cref="LpSolve.PreSolveLevels"/>
         /// (PRESOLVED = 9 in C code).
         /// </summary>

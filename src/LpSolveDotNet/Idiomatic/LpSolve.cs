@@ -264,6 +264,7 @@ namespace LpSolveDotNet.Idiomatic
             Rows = new ModelRows(_lp);
             Columns = new ModelColumns(_lp);
             Cells = new ModelCells(_lp);
+            XLI = new ExternalLanguageInterface(_lp);
         }
 
         private static LpSolve CreateFromLpRecStructurePointer(IntPtr lp)
@@ -419,7 +420,6 @@ namespace LpSolveDotNet.Idiomatic
         /// Returns a sub-object to deal with everything Basis-related.
         /// </summary>
         public ModelBasis Basis { get; }
-
 
         /// <summary>
         /// The name of the model.
@@ -1490,7 +1490,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <remarks>
         /// <para>When set, the log handler is called when lp_solve has someting to report.
         /// The log handler can be cleared by specifying <c>null</c> as <paramref name="handler"/>.</para>
-        /// <para>This method is called at the same time as something is written to the file set via <see cref="set_outputfile"/>.</para>
+        /// <para>This method is called at the same time as something is written to the file set via <see cref="SetOutputFile"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/put_logfunc.htm">Full C API documentation.</seealso>
         public void PutLogHandler(LogHandler handler)
@@ -1509,7 +1509,6 @@ namespace LpSolveDotNet.Idiomatic
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/put_msgfunc.htm">Full C API documentation.</seealso>
         public void PutMessageHandler(MessageHandler handler, MessageMasks mask)
             => NativeMethods.put_msgfunc(_lp, (x, y, mask)=>handler(this,mask), IntPtr.Zero, mask);
-
 
         #endregion
 
@@ -1879,14 +1878,14 @@ namespace LpSolveDotNet.Idiomatic
         /// <remarks>
         /// <para>This is done at the same time as something is reported via <see cref="PutLogHandler"/>.
         /// The default reporting output is screen (stdout). 
-        /// If <see cref="set_outputfile"/> is called to change output to the specified file, then the file is automatically closed when <see cref="LpSolve"/> is disposed.
+        /// If <see cref="SetOutputFile"/> is called to change output to the specified file, then the file is automatically closed when <see cref="LpSolve"/> is disposed.
         /// Note that this was not the case in previous versions of lp_solve.
         /// If filename is "", then output is ignored.
         /// It doesn't go to the console or to a file then.
         /// This is useful in combination with put_logfunc to redirect output to somewhere completely different.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_output.htm">Full C API documentation.</seealso>
-        public bool set_outputfile(string filename)
+        public bool SetOutputFile(string filename)
             => NativeMethods.set_outputfile(_lp, filename);
 
         /// <summary>
@@ -1964,10 +1963,10 @@ namespace LpSolveDotNet.Idiomatic
         /// <remarks>
         /// <para>This method only works after a successful <see cref="Solve"/>.</para>
         /// <para>This method is meant for debugging purposes. By default, the output is stdout.
-        /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
+        /// However this can be changed via a call to <see cref="SetOutputFile"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_constraints.htm">Full C API documentation.</seealso>
-        public void print_constraints(int columns)
+        public void PrintConstraints(int columns)
             => NativeMethods.print_constraints(_lp, columns);
 
         /// <summary>
@@ -1979,7 +1978,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <para>This method is meant for debugging purposes.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_debugdump.htm">Full C API documentation.</seealso>
-        public bool print_debugdump(string filename)
+        public bool PrintDebugDump(string filename)
             => NativeMethods.print_debugdump(_lp, filename);
 
         /// <summary>
@@ -1988,10 +1987,10 @@ namespace LpSolveDotNet.Idiomatic
         /// <remarks>
         /// <para>This method only works after a successful <see cref="Solve"/>.</para>
         /// <para>This method is meant for debugging purposes. By default, the output is stdout.
-        /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
+        /// However this can be changed via a call to <see cref="SetOutputFile"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_duals.htm">Full C API documentation.</seealso>
-        public void print_duals()
+        public void PrintDuals()
             => NativeMethods.print_duals(_lp);
 
         /// <summary>
@@ -1999,10 +1998,10 @@ namespace LpSolveDotNet.Idiomatic
         /// </summary>
         /// <remarks>
         /// <para>This method is meant for debugging purposes. By default, the output is stdout.
-        /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
+        /// However this can be changed via a call to <see cref="SetOutputFile"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_lp.htm">Full C API documentation.</seealso>
-        public void print_lp()
+        public void PrintModel()
             => NativeMethods.print_lp(_lp);
 
         /// <summary>
@@ -2011,10 +2010,10 @@ namespace LpSolveDotNet.Idiomatic
         /// <remarks>
         /// <para>This method only works after a successful <see cref="Solve"/>.</para>
         /// <para>This method is meant for debugging purposes. By default, the output is stdout.
-        /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
+        /// However this can be changed via a call to <see cref="SetOutputFile"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_objective.htm">Full C API documentation.</seealso>
-        public void print_objective()
+        public void PrintObjective()
             => NativeMethods.print_objective(_lp);
 
         /// <summary>
@@ -2024,10 +2023,10 @@ namespace LpSolveDotNet.Idiomatic
         /// <para>This method only works after a successful <see cref="Solve"/>.</para>
         /// <para>It will only output something when the model is scaled.</para>
         /// <para>This method is meant for debugging purposes. By default, the output is stdout.
-        /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
+        /// However this can be changed via a call to <see cref="SetOutputFile"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_scales.htm">Full C API documentation.</seealso>
-        public void print_scales()
+        public void PrintScales()
             => NativeMethods.print_scales(_lp);
 
         /// <summary>
@@ -2037,10 +2036,10 @@ namespace LpSolveDotNet.Idiomatic
         /// <remarks>
         /// <para>This method only works after a successful <see cref="Solve"/>.</para>
         /// <para>This method is meant for debugging purposes. By default, the output is stdout.
-        /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
+        /// However this can be changed via a call to <see cref="SetOutputFile"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_solution.htm">Full C API documentation.</seealso>
-        public void print_solution(int columns)
+        public void PrintSolution(int columns)
             => NativeMethods.print_solution(_lp, columns);
 
         /// <summary>
@@ -2049,10 +2048,10 @@ namespace LpSolveDotNet.Idiomatic
         /// <param name="str">The string to print</param>
         /// <remarks>
         /// <para>This method is meant for debugging purposes. By default, the output is stdout.
-        /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
+        /// However this can be changed via a call to <see cref="SetOutputFile"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_str.htm">Full C API documentation.</seealso>
-        public void print_str(string str)
+        public void PrintString(string str)
             => NativeMethods.print_str(_lp, str);
 
         /// <summary>
@@ -2061,10 +2060,10 @@ namespace LpSolveDotNet.Idiomatic
         /// <remarks>
         /// <para>This method only works after a successful <see cref="Solve"/>.</para>
         /// <para>This method is meant for debugging purposes. By default, the output is stdout.
-        /// However this can be changed via a call to <see cref="set_outputfile"/>.</para>
+        /// However this can be changed via a call to <see cref="SetOutputFile"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/print_tableau.htm">Full C API documentation.</seealso>
-        public void print_tableau()
+        public void PrintTableau()
             => NativeMethods.print_tableau(_lp);
 
         #endregion
@@ -2072,7 +2071,7 @@ namespace LpSolveDotNet.Idiomatic
         #region Write model to file
 
         /// <summary>
-        /// Write the model in the lp format to <paramref name="filename"/>.
+        /// Write the model in the LP format to <paramref name="filename"/>.
         /// </summary>
         /// <param name="filename">Filename to write the model to.</param>
         /// <returns><c>true</c> if succeeded, <c>false</c> otherwise.</returns>
@@ -2081,96 +2080,37 @@ namespace LpSolveDotNet.Idiomatic
         /// <para>The model in the file will be in <seealso href="http://lpsolve.sourceforge.net/5.5/lp-format.htm">lp-format</seealso></para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/write_lp.htm">Full C API documentation.</seealso>
-        public bool write_lp(string filename)
+        public bool WriteInLPFormat(string filename)
             => NativeMethods.write_lp(_lp, filename);
 
         /// <summary>
-        /// Write the model in the Free MPS format to <paramref name="filename"/> or 
+        /// Write the model in one of the MPS formats to <paramref name="filename"/> or 
         /// if <paramref name="filename"/> is <c>null</c>, to default output.
         /// </summary>
         /// <param name="filename">Filename to write the model to or <c>null</c> to write to default output.</param>
+        /// <param name="format">File format. Supported values: <see cref="MPSOptions.FixedMPSFormat"/>, <see cref="MPSOptions.FreeMPSFormat"/>.</param>
         /// <returns><c>true</c> if succeeded, <c>false</c> otherwise.</returns>
         /// <remarks>
         /// <para>Note that row entry mode must be off, else this method fails. See <see cref="EntryMode"/>.</para>
         /// <para>When <paramref name="filename"/> is <c>null</c>, then output is written to the output 
-        /// set by <see cref="set_outputfile"/>. By default this is stdout.</para>
+        /// set by <see cref="SetOutputFile"/>. By default this is stdout.</para>
         /// <para>The model in the file will be in <seealso href="http://lpsolve.sourceforge.net/5.5/mps-format.htm">mps-format</seealso></para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/write_mps.htm">Full C API documentation.</seealso>
-        public bool write_freemps(string filename)
-            => NativeMethods.write_freemps(_lp, filename);
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/write_freemps.htm">Full C API documentation.</seealso>
+        public bool WriteInMPSFormat(string filename, MPSOptions format)
+        {
+            if (format.HasFlag(MPSOptions.FreeMPSFormat))
+            {
+                return NativeMethods.write_freemps(_lp, filename);
+            }
+            return NativeMethods.write_mps(_lp, filename);
+        }
 
         /// <summary>
-        /// Write the model in the Fixed MPS format to <paramref name="filename"/> or 
-        /// if <paramref name="filename"/> is <c>null</c>, to default output.
+        /// Returns a sub-object to deal with everything External Language Interface related.
         /// </summary>
-        /// <param name="filename">Filename to write the model to or <c>null</c> to write to default output.</param>
-        /// <returns><c>true</c> if succeeded, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>Note that row entry mode must be off, else this method fails. See <see cref="EntryMode"/>.</para>
-        /// <para>When <paramref name="filename"/> is <c>null</c>, then output is written to the output 
-        /// set by <see cref="set_outputfile"/>. By default this is stdout.</para>
-        /// <para>The model in the file will be in <seealso href="http://lpsolve.sourceforge.net/5.5/mps-format.htm">mps-format</seealso></para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/write_mps.htm">Full C API documentation.</seealso>
-        public bool write_mps(string filename)
-            => NativeMethods.write_mps(_lp, filename);
-
-        /// <summary>
-        /// Returns if a built-in External Language Interfaces (XLI) is available or not.
-        /// </summary>
-        /// <returns><c>true</c> if there is a built-in XLI is available, <c>false</c> if not.</returns>
-        /// <remarks>
-        /// <para>At this moment, this method always returns <c>false</c> since no built-in XLI is available.</para>
-        /// <para>See <seealso href="http://lpsolve.sourceforge.net/5.5/XLI.htm">External Language Interfaces</seealso>
-        /// for a complete description on XLIs.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_nativeXLI.htm">Full C API documentation.</seealso>
-        public bool is_nativeXLI()
-            => NativeMethods.is_nativeXLI(_lp);
-
-        /// <summary>
-        /// Returns if there is an external language interface (XLI) set.
-        /// </summary>
-        /// <returns><c>true</c> if there is an XLI is set, else <c>false</c>.</returns>
-        /// <remarks>
-        /// <para>See <seealso href="http://lpsolve.sourceforge.net/5.5/XLI.htm">External Language Interfaces</seealso>
-        /// for a complete description on XLIs.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/has_XLI.htm">Full C API documentation.</seealso>
-        public bool has_XLI()
-            => NativeMethods.has_XLI(_lp);
-
-        /// <summary>
-        /// Sets External Language Interfaces package.
-        /// </summary>
-        /// <param name="filename">The name of the XLI package.</param>
-        /// <returns><c>true</c> if succeeded, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>This call is normally only needed when <see cref="write_XLI"/> will be called. 
-        /// <see cref="CreateFromXLIFile"/> automatically calls this method</para>
-        /// <para>See <seealso href="http://lpsolve.sourceforge.net/5.5/XLI.htm">External Language Interfaces</seealso>
-        /// for a complete description on XLIs.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_XLI.htm">Full C API documentation.</seealso>
-        public bool set_XLI(string filename)
-            => NativeMethods.set_XLI(_lp, filename);
-
-        /// <summary>
-        /// Writes a model to a file via the External Language Interface.
-        /// </summary>
-        /// <param name="filename">Filename to write the model to.</param>
-        /// <param name="options">Extra options that can be used by the writer.</param>
-        /// <param name="results"><c>false</c> to generate a model file, <c>true</c> to generate a solution file.</param>
-        /// <returns><c>true</c> if succeeded, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>Note that <see cref="set_XLI"/> must be called before this method to set an XLI.</para>
-        /// <para>See <seealso href="http://lpsolve.sourceforge.net/5.5/XLI.htm">External Language Interfaces</seealso>
-        /// for a complete description on XLIs.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/write_XLI.htm">Full C API documentation.</seealso>
-        public bool write_XLI(string filename, string options, bool results)
-            => NativeMethods.write_XLI(_lp, filename, options, results);
+        public ExternalLanguageInterface XLI { get; }
 
         #endregion
 
@@ -2195,7 +2135,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <summary>
         /// Checks if a column is already present in the lp model.
         /// </summary>
-        /// <param name="column">An array with 1+<see cref="NumberOfRows"/> elements that are checked against the existing columns in the lp model.</param>
+        /// <param name="values">An array with 1+<see cref="NumberOfRows"/> elements that are checked against the existing columns in the lp model.</param>
         /// <returns>The (first) column number if the column is already in the lp model and 0 if not.</returns>
         /// <remarks>
         /// <para>It does not look at bounds and types, only at matrix values.</para>
@@ -2203,15 +2143,15 @@ namespace LpSolveDotNet.Idiomatic
         /// <para>Note that element 0 is the objective function value. Element 1 is column 1, and so on.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/column_in_lp.htm">Full C API documentation.</seealso>
-        public int column_in_lp(double[] column)
-            => NativeMethods.column_in_lp(_lp, column);
+        public int FindColumnWithValues(double[] values)
+            => NativeMethods.column_in_lp(_lp, values);
 
         /// <summary>
         /// Creates the dual of the current model.
         /// </summary>
         /// <returns><c>true</c> if succeeded, <c>false</c> otherwise.</returns>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/dualize_lp.htm">Full C API documentation.</seealso>
-        public bool dualize_lp()
+        public bool Dualize()
             => NativeMethods.dualize_lp(_lp);
 
         /// <summary>
@@ -2219,9 +2159,8 @@ namespace LpSolveDotNet.Idiomatic
         /// </summary>
         /// <returns>The number of non-zeros in the matrix.</returns>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_nonzeros.htm">Full C API documentation.</seealso>
-        public int get_nonzeros()
+        public int NumberOfNonZeroElements
             => NativeMethods.get_nonzeros(_lp);
-
 
         /// <summary>
         /// Returns the number of columns (variables) in the lp model.
@@ -2271,7 +2210,6 @@ namespace LpSolveDotNet.Idiomatic
         public int NumberOfRowsOriginally
             => NativeMethods.get_Norig_rows(_lp);
 
-
         /// <summary>
         /// Returns an extra status after a call to a method.
         /// </summary>
@@ -2281,62 +2219,62 @@ namespace LpSolveDotNet.Idiomatic
         /// To have more information on the reason of the failure, this method can be used to get an extended error code.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_status.htm">Full C API documentation.</seealso>
-        public int get_status()
-            => NativeMethods.get_status(_lp);
+        public SolveResult Status
+            => (SolveResult)NativeMethods.get_status(_lp);
 
         /// <summary>
         /// Returns the description of a returncode of the <see cref="Solve"/> method.
         /// </summary>
-        /// <param name="statuscode">Returncode of <see cref="Solve"/></param>
+        /// <param name="solveResult">Returncode of <see cref="Solve"/></param>
         /// <returns>The description of a returncode of the <see cref="Solve"/> method</returns>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_statustext.htm">Full C API documentation.</seealso>
-        public string get_statustext(int statuscode)
-            => NativeMethods.get_statustext(_lp, statuscode);
+        public string GetStatusText(SolveResult solveResult)
+            => NativeMethods.get_statustext(_lp, (int)solveResult);
 
         /// <summary>
         /// Gets the time elapsed since start of solve.
         /// </summary>
-        /// <returns>The number of seconds after <see cref="Solve"/> has started.</returns>
+        /// <returns>The time elapsed since <see cref="Solve"/> has started.</returns>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/time_elapsed.htm">Full C API documentation.</seealso>
-        public double time_elapsed()
-            => NativeMethods.time_elapsed(_lp);
+        public TimeSpan TimeElapsed
+            => TimeSpan.FromSeconds(NativeMethods.time_elapsed(_lp));
 
         /// <summary>
-        /// Returns the index in the lp of the original row/column.
+        /// Returns the index in the model of the original row/column.
         /// </summary>
-        /// <param name="orig_index">Original constraint or column number. 
-        /// If <paramref name="orig_index"/> is between 1 and <see cref="NumberOfRowsOriginally"/> then the index is a constraint (row) number.
-        /// If <paramref name="orig_index"/> is between 1+<see cref="NumberOfRowsOriginally"/> and <see cref="NumberOfRowsOriginally"/> + <see cref="NumberOfColumnsOriginally"/>
+        /// <param name="originalIndex">Original constraint or column number. 
+        /// If <paramref name="originalIndex"/> is between 1 and <see cref="NumberOfRowsOriginally"/> then the index is a constraint (row) number.
+        /// If <paramref name="originalIndex"/> is between 1+<see cref="NumberOfRowsOriginally"/> and <see cref="NumberOfRowsOriginally"/> + <see cref="NumberOfColumnsOriginally"/>
         /// then the index is a column number.</param>
-        /// <returns>The index in the lp of the original row/column.</returns>
+        /// <returns>The index in the model of the original row/column.</returns>
         /// <remarks>
         /// <para>Note that the number of constraints(<see cref="NumberOfRows"/>) and columns(<see cref="NumberOfColumns"/>) can change when
         /// a presolve is done or when negative variables are split in a positive and a negative part.
-        /// <see cref="get_lp_index"/> returns the position of the constraint/variable in the lp model.
-        /// If <paramref name="orig_index"/> is not a legal index  or the constraint/column is deleted,
+        /// <see cref="get_lp_index"/> returns the position of the constraint/variable in the model.
+        /// If <paramref name="originalIndex"/> is not a legal index  or the constraint/column is deleted,
         /// the return value is <c>0</c>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_lp_index.htm">Full C API documentation.</seealso>
-        public int get_lp_index(int orig_index)
-            => NativeMethods.get_lp_index(_lp, orig_index);
+        public int CurrentIndexFromOriginal(int originalIndex)
+            => NativeMethods.get_lp_index(_lp, originalIndex);
 
         /// <summary>
         /// Returns the original row/column where a constraint/variable was before presolve.
         /// </summary>
-        /// <param name="lp_index">Constraint or column number.
-        /// If <paramref name="lp_index"/> is between 1 and <see cref="NumberOfRows"/> then the index is a constraint (row) number.
-        /// If <paramref name="lp_index"/> is between 1+<see cref="NumberOfRows"/> and <see cref="NumberOfRows"/> + <see cref="NumberOfColumns"/>
+        /// <param name="index">Constraint or column number.
+        /// If <paramref name="index"/> is between 1 and <see cref="NumberOfRows"/> then the index is a constraint (row) number.
+        /// If <paramref name="index"/> is between 1+<see cref="NumberOfRows"/> and <see cref="NumberOfRows"/> + <see cref="NumberOfColumns"/>
         /// then the index is a column number.</param>
         /// <returns>The original row/column where a constraint/variable was before presolve.</returns>
         /// <remarks>
         /// <para>Note that the number of constraints(<see cref="NumberOfRows"/>) and columns(<see cref="NumberOfColumns"/>) can change when
         /// a presolve is done or when negative variables are split in a positive and a negative part.
         /// <see cref="get_orig_index"/> returns the original position of the constraint/variable.
-        /// If <paramref name="lp_index"/> is not a legal index, the return value is <c>0</c>.</para>
+        /// If <paramref name="index"/> is not a legal index, the return value is <c>0</c>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_orig_index.htm">Full C API documentation.</seealso>
-        public int get_orig_index(int lp_index)
-            => NativeMethods.get_orig_index(_lp, lp_index);
+        public int OriginalIndexFromCurrent(int index)
+            => NativeMethods.get_orig_index(_lp, index);
 
         #endregion
     }
