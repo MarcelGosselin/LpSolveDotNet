@@ -747,7 +747,7 @@ namespace LpSolveDotNet.Idiomatic
         {
             get => NativeMethods.get_scalelimit(_lp);
             set => NativeMethods.set_scalelimit(_lp, value);
-        }            
+        }
 
         /// <summary>
         /// Returns which scaling algorithm and parameters are used.
@@ -757,7 +757,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <para>
         /// This can influence numerical stability considerably.
         /// It is advisable to always use some sort of scaling.</para>
-        /// <para><see cref="set_scaling(ScaleAlgorithm, ScaleParameters)"/> must be called before solve is called.</para>
+        /// <para><see cref="SetScaling"/> must be called before solve is called.</para>
         /// See <see cref="ScalingAlgorithmAndParameters" /> for more information on scaling.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_scaling.htm">Full C API documentation.</seealso>
@@ -824,9 +824,9 @@ namespace LpSolveDotNet.Idiomatic
         /// <summary>
         /// Returns if integer scaling is active.
         /// </summary>
-        /// <returns><c>true</c> if <see cref="ScaleParameters.Integers"/> was set with <see cref="set_scaling(ScaleAlgorithm, ScaleParameters)"/>.</returns>
+        /// <returns><c>true</c> if <see cref="ScaleParameters.Integers"/> was set with <see cref="SetScaling"/>.</returns>
         /// <remarks>
-        /// By default, integers are not scaled, you mus call <see cref="set_scaling(ScaleAlgorithm, ScaleParameters)"/>
+        /// By default, integers are not scaled, you mus call <see cref="SetScaling"/>
         /// with <see cref="ScaleParameters.Integers"/> to activate this feature.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_integerscaling.htm">Full C API documentation.</seealso>
@@ -1084,44 +1084,32 @@ namespace LpSolveDotNet.Idiomatic
             set => NativeMethods.set_improve(_lp, value);
         }
 
-    /// <summary>
-    /// Returns the negative value below which variables are split into a negative and a positive part.
-    /// </summary>
-    /// <return>The negative value below which variables are split into a negative and a positive part.</return>
-    /// <remarks>
-    ///  <para>This value is always zero or negative.</para>
-    ///  <para>In some cases, negative variables must be split in a positive part and a negative part.
-    ///  This is when a negative lower or upper bound is set on a variable.
-    ///  If a bound is less than this value, it is <strong>possibly</strong> split.</para>
-    ///  <para>The default is -1e6.</para>
-    /// </remarks>
-    /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_negrange.htm">Full C API documentation.</seealso>
-    public double get_negrange()
-            => NativeMethods.get_negrange(_lp);
-
         /// <summary>
-        /// Sets the negative value below which variables are split into a negative and a positive part.
+        /// Gets/sets the negative value below which variables are split into a negative and a positive part.
         /// </summary>
-        /// <param name="negrange">The negative value below which variables are split into a negative and a positive part.</param>
+        /// <return>The negative value below which variables are split into a negative and a positive part.</return>
         /// <remarks>
         ///  <para>This value must always be zero or negative. If a positive value is specified, then 0 is taken.</para>
         ///  <para>In some cases, negative variables must be split in a positive part and a negative part.
         ///  This is when a negative lower or upper bound is set on a variable.
-        ///  If a bound is less than this value, it is possibly split.</para>
+        ///  If a bound is less than this value, it is <strong>possibly</strong> split.</para>
         ///  <para>The default is -1e6.</para>
         /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_negrange.htm">Full C API documentation.</seealso>
-        public void set_negrange(double negrange)
-            => NativeMethods.set_negrange(_lp, negrange);
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_negrange.htm">Full C API documentation.</seealso>
+        public double NegativeRange
+        {
+            get => NativeMethods.get_negrange(_lp);
+            set => NativeMethods.set_negrange(_lp, value);
+        }           
 
         /// <summary>
-        /// Returns if the degeneracy rules specified in <paramref name="testmask"/> are active.
+        /// Returns if the anti degeneracy rules specified in <paramref name="ruleMask"/> are active.
         /// </summary>
-        /// <param name="testmask">Any combination of <see cref="AntiDegeneracyRules"/> to check if they are active.</param>
-        /// <returns><c>true</c> if all rules specified in <paramref name="testmask"/> are active, <c>false</c> otherwise.</returns>
+        /// <param name="ruleMask">Any combination of <see cref="AntiDegeneracyRules"/> to check if they are active.</param>
+        /// <returns><c>true</c> if all rules specified in <paramref name="ruleMask"/> are active, <c>false</c> otherwise.</returns>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_anti_degen.htm">Full C API documentation.</seealso>
-        public bool is_anti_degen(AntiDegeneracyRules testmask)
-            => NativeMethods.is_anti_degen(_lp, testmask);
+        public bool AreAntiDegeneracyRulesActive(AntiDegeneracyRules ruleMask)
+            => NativeMethods.is_anti_degen(_lp, ruleMask);
 
         /// <summary>
         /// Specifies if special handling must be done to reduce degeneracy/cycling while solving.
@@ -1144,7 +1132,7 @@ namespace LpSolveDotNet.Idiomatic
         /// Resets parameters back to their default values.
         /// </summary>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/reset_params.htm">Full C API documentation.</seealso>
-        public void reset_params()
+        public void ResetParameters()
             => NativeMethods.reset_params(_lp);
 
         /// <summary>
@@ -1201,7 +1189,7 @@ namespace LpSolveDotNet.Idiomatic
         ///  <para>
         ///  Note that there are some options commented out (;).
         ///  This is done because these options can not be used in general for all models or because they are debug/trace/print options.
-        ///  These options can be made active and will be read by <see cref="read_params"/> but note again that they are possible 
+        ///  These options can be made active and will be read by <see cref="ReadParameters"/> but note again that they are possible 
         ///  dangerous to be used in general (except for the debug/trace/print options). Note that there are two kind of entries:
         ///  <list type="bullet">
         ///  <item><description>Numerical values</description></item>
@@ -1215,7 +1203,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <example>
         /// </example>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/read_params.htm">Full C API documentation.</seealso>
-        public bool read_params(string filename, string options)
+        public bool ReadParameters(string filename, string options)
             => NativeMethods.read_params(_lp, filename, options);
 
         /// <summary>
@@ -1272,7 +1260,7 @@ namespace LpSolveDotNet.Idiomatic
         ///  <para>
         ///  Note that there are some options commented out (;).
         ///  This is done because these options can not be used in general for all models or because they are debug/trace/print options.
-        ///  These options can be made active and will be read by <see cref="read_params"/> but note again that they are possible 
+        ///  These options can be made active and will be read by <see cref="ReadParameters"/> but note again that they are possible 
         ///  dangerous to be used in general (except for the debug/trace/print options). Note that there are two kind of entries:
         ///  <list type="bullet">
         ///  <item><description>Numerical values</description></item>
@@ -1286,7 +1274,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <example>
         /// </example>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/write_params.htm">Full C API documentation.</seealso>
-        public bool write_params(string filename, string options)
+        public bool WriteParameters(string filename, string options)
             => NativeMethods.write_params(_lp, filename, options);
 
         /// <summary>
@@ -1304,105 +1292,43 @@ namespace LpSolveDotNet.Idiomatic
         }
 
         /// <summary>
-        /// Returns the solution number that must be returned.
+        /// The solution number that must be returned.
         /// </summary>
-        /// <returns>The solution number that must be returned. This value gives the number of the solution that must be returned.</returns>
         /// <remarks>
-        /// <para>This method is only valid if there are integer, semi-continious or SOS variables in the 
+        /// <para>This is only valid if there are integer, semi-continuous or SOS variables in the 
         /// model so that the branch-and-bound algoritm is used.
         /// If there are more solutions with the same objective value, then this number specifies 
         /// which solution must be returned. This can be used to retrieve all possible solutions. 
-        /// Start with 1 till <see cref="get_solutioncount"/>.
+        /// Start with 1 till <see cref="SolutionCount"/>.
         /// </para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_solutionlimit.htm">Full C API documentation.</seealso>
-        public int get_solutionlimit()
-            => NativeMethods.get_solutionlimit(_lp);
+        public int SolutionLimit
+        {
+            get => NativeMethods.get_solutionlimit(_lp);
+            set => NativeMethods.set_solutionlimit(_lp, value);
+        }
 
         /// <summary>
-        /// Sets the solution number that must be returned.
+        /// Gets/sets the timeout, rounded to the second.
         /// </summary>
-        /// <param name="limit">The solution number that must be returned. This value gives the number of the solution that must be returned.</param>
-        /// <remarks>
-        /// <para>This method is only valid if there are integer, semi-continious or SOS variables in the 
-        /// model so that the branch-and-bound algoritm is used.
-        /// If there are more solutions with the same objective value, then this number specifies 
-        /// which solution must be returned. This can be used to retrieve all possible solutions. 
-        /// Start with 1 till <see cref="get_solutioncount"/>.
-        /// </para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_solutionlimit.htm">Full C API documentation.</seealso>
-        public void set_solutionlimit(int limit)
-            => NativeMethods.set_solutionlimit(_lp, limit);
-
-        /// <summary>
-        /// Gets the timeout.
-        /// </summary>
-        /// <returns>The number of seconds after which a timeout occurs.</returns>
         /// <remarks>
         /// <para>The <see cref="Solve"/> method may not last longer than this time or
         /// the method returns with a timeout. There is no valid solution at this time.
         /// The default timeout is 0, resulting in no timeout.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_timeout.htm">Full C API documentation.</seealso>
-        public int get_timeout()
-            => NativeMethods.get_timeout(_lp);
+        public TimeSpan Timeout
+        {
+            get => TimeSpan.FromSeconds(NativeMethods.get_timeout(_lp));
+            set => NativeMethods.set_timeout(_lp, (int)value.TotalSeconds);
+        }
 
         /// <summary>
-        /// Sets a timeout.
+        /// Returns if presolve level specified in <paramref name="levelMask"/> is active.
         /// </summary>
-        /// <param name="sectimeout">The number of seconds after which a timeout occurs. If zero, then no timeout will occur.</param>
-        /// <remarks>
-        /// <para>The <see cref="Solve"/> method may not last longer than this time or
-        /// the method returns with a timeout. The default timeout is 0, resulting in no timeout.</para>
-        /// <para>If a timout occurs, but there was already an integer solution found (that is possibly not the best),
-        /// then solve will return <see cref="SolveResult.SubOptimal"/>.
-        /// If there was no integer solution found yet or there are no integers or the solvers is still in the
-        /// first phase where a REAL optimal solution is searched for, then solve will return <see cref="SolveResult.TimedOut"/>.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_timeout.htm">Full C API documentation.</seealso>
-        public void set_timeout(int sectimeout)
-            => NativeMethods.set_timeout(_lp, sectimeout);
-
-        /// <summary>
-        /// Returns if variable or constraint names are used.
-        /// </summary>
-        /// <param name="isrow">Set to <c>false</c> if column information is needed and <c>true</c> if row information is needed.</param>
-        /// <returns>A boolean value indicating if variable or constraint names are used.</returns>
-        /// <remarks>
-        /// <para>When a model is read from file or created via the API, variables and constraints can be named.
-        /// These names are used to report information or to save the model in a given format.
-        /// However, sometimes it is required to ignore these names and to use the internal names of lp_solve.
-        /// This is for example the case when the names do not comply to the syntax rules of the format
-        /// that will be used to write the model to.</para>
-        /// <para>Names are used by default.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_use_names.htm">Full C API documentation.</seealso>
-        public bool is_use_names(bool isrow)
-            => NativeMethods.is_use_names(_lp, isrow);
-
-        /// <summary>
-        /// Sets if variable or constraint names are used.
-        /// </summary>
-        /// <param name="isrow">Set to <c>false</c> if column information is needed and <c>true</c> if row information is needed.</param>
-        /// <param name="use_names">If <c>false</c>, the names are not used, else they are.</param>
-        /// <remarks>
-        /// <para>When a model is read from file or created via the API, variables and constraints can be named.
-        /// These names are used to report information or to save the model in a given format.
-        /// However, sometimes it is required to ignore these names and to use the internal names of lp_solve.
-        /// This is for example the case when the names do not comply to the syntax rules of the format
-        /// that will be used to write the model to.</para>
-        /// <para>Names are used by default.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_use_names.htm">Full C API documentation.</seealso>
-        public void set_use_names(bool isrow, bool use_names)
-            => NativeMethods.set_use_names(_lp, isrow, use_names);
-
-        /// <summary>
-        /// Returns if presolve level specified in <paramref name="testmask"/> is active.
-        /// </summary>
-        /// <param name="testmask">The combination of any of the <see cref="PreSolveLevels"/> values to check whether they are active or not.</param>
-        /// <returns><c>true</c>, if all levels specified in <paramref name="testmask"/> are active, <c>false</c> otherwise.</returns>
+        /// <param name="levelMask">The combination of any of the <see cref="PreSolveLevels"/> values to check whether they are active or not.</param>
+        /// <returns><c>true</c>, if all levels specified in <paramref name="levelMask"/> are active, <c>false</c> otherwise.</returns>
         /// <remarks>
         /// <para>Presolve looks at the model and tries to simplify it so that solving times are shorter.
         /// For example a constraint on only one variable is converted to a bound on this variable
@@ -1411,8 +1337,8 @@ namespace LpSolveDotNet.Idiomatic
         /// <para>The default is not (<see cref="PreSolveLevels.None"/>) doing a presolve.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_presolve.htm">Full C API documentation.</seealso>
-        public bool is_presolve(PreSolveLevels testmask)
-            => NativeMethods.is_presolve(_lp, testmask);
+        public bool ArePresolveLevelsActive(PreSolveLevels levelMask)
+            => NativeMethods.is_presolve(_lp, levelMask);
 
         /// <summary>
         /// Specifies if a presolve must be done before solving.
@@ -1512,7 +1438,7 @@ namespace LpSolveDotNet.Idiomatic
         /// Between calls, the model may be modified in every way.
         /// Restrictions may be changed, matrix values may be changed and even rows and/or columns 
         /// may be added or deleted.</para>
-        /// <para>If <see cref="set_timeout"/> was called before solve with a non-zero timeout and a timout occurs,
+        /// <para>If <see cref="Timeout"/> was called before solve with a non-zero timeout and a timout occurs,
         /// and there was already an integer solution found (that is possibly not the best), 
         /// then solve will return <see cref="SolveResult.SubOptimal"/>.
         /// If there was no integer solution found yet or there are no integers or the solvers is still 
@@ -1731,15 +1657,14 @@ namespace LpSolveDotNet.Idiomatic
         /// <summary>
         /// Returns the number of equal solutions.
         /// </summary>
-        /// <returns>The number of equal solutions up to <see cref="get_solutionlimit"/></returns>
         /// <remarks>
-        /// <para>This is only valid if there are integer, semi-continious or SOS variables in the model
+        /// <para>This is only valid if there are integer, semi-continuous or SOS variables in the model
         /// so that the branch-and-bound algoritm is used.
         /// This count gives the number of solutions with the same optimal objective value.
         /// If there is only one optimal solution, the result is 1.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_solutioncount.htm">Full C API documentation.</seealso>
-        public int get_solutioncount()
+        public int SolutionCount
             => NativeMethods.get_solutioncount(_lp);
 
         /// <summary>
@@ -2239,7 +2164,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <remarks>
         /// <para>Note that the number of constraints(<see cref="NumberOfRows"/>) and columns(<see cref="NumberOfColumns"/>) can change when
         /// a presolve is done or when negative variables are split in a positive and a negative part.
-        /// <see cref="get_lp_index"/> returns the position of the constraint/variable in the model.
+        /// <see cref="CurrentIndexFromOriginal"/> returns the position of the constraint/variable in the model.
         /// If <paramref name="originalIndex"/> is not a legal index  or the constraint/column is deleted,
         /// the return value is <c>0</c>.</para>
         /// </remarks>
@@ -2258,7 +2183,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <remarks>
         /// <para>Note that the number of constraints(<see cref="NumberOfRows"/>) and columns(<see cref="NumberOfColumns"/>) can change when
         /// a presolve is done or when negative variables are split in a positive and a negative part.
-        /// <see cref="get_orig_index"/> returns the original position of the constraint/variable.
+        /// <see cref="OriginalIndexFromCurrent"/> returns the original position of the constraint/variable.
         /// If <paramref name="index"/> is not a legal index, the return value is <c>0</c>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_orig_index.htm">Full C API documentation.</seealso>

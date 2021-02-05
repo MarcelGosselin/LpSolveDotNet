@@ -10,7 +10,7 @@ namespace LpSolveDotNet.Idiomatic
     /// <para>
     /// This can influence numerical stability considerably.
     /// It is advisable to always use some sort of scaling.</para>
-    /// <para><see cref="LpSolve.set_scaling(ScaleAlgorithm, ScaleParameters)"/> must be called before solve is called.</para>
+    /// <para><see cref="LpSolve.SetScaling"/> must be called before solve is called.</para>
     /// <para><see cref="ScaleAlgorithm.Extreme"/>, <see cref="ScaleAlgorithm.Range"/>, <see cref="ScaleAlgorithm.Mean"/>,
     /// <see cref="ScaleAlgorithm.Geometric"/>, <see cref="ScaleAlgorithm.CurtisReid"/> are the possible scaling algorithms.
     /// <see cref="ScaleParameters.Quadratic"/>, <see cref="ScaleParameters.Logarithmic"/>, <see cref="ScaleParameters.UserWeight"/>,

@@ -55,7 +55,7 @@ namespace LpSolveDotNet.Idiomatic
         /// </summary>
         UserAborted = 6,
 
-        /// <summary>A timeout occurred. A timeout was set via <see cref="LpSolve.set_timeout"/> (TIMEOUT = 7 in C code).</summary>
+        /// <summary>A timeout occurred. A timeout was set via <see cref="LpSolve.Timeout"/> (TIMEOUT = 7 in C code).</summary>
         TimedOut = 7,
 
         /// <summary>

@@ -794,6 +794,63 @@ namespace LpSolveDotNet.Idiomatic
         [Obsolete("Replaced by " + nameof(Unscale), true)]
         public void unscale()
             => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Rows) + "." + nameof(ModelRows.UseNames) + " and " + nameof(Columns) + "." + nameof(ModelColumns.UseNames) + " and ", true)]
+        public bool is_use_names(bool isrow)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Rows) + "." + nameof(ModelRows.UseNames) + " and " + nameof(Columns) + "." + nameof(ModelColumns.UseNames) + " and ", true)]
+        public void set_use_names(bool isrow, bool use_names)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Timeout), true)]
+        public int get_timeout()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Timeout), true)]
+        public void set_timeout(int sectimeout)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(ArePresolveLevelsActive), true)]
+        public bool is_presolve(PreSolveLevels testmask)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(SolutionLimit), true)]
+        public int get_solutionlimit()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(SolutionLimit), true)]
+        public void set_solutionlimit(int limit)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(SolutionCount), true)]
+        public int get_solutioncount()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(ReadParameters), true)]
+        public bool read_params(string filename, string options)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(WriteParameters), true)]
+        public bool write_params(string filename, string options)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(ResetParameters), true)]
+        public void reset_params()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(AreAntiDegeneracyRulesActive), true)]
+        public bool is_anti_degen(AntiDegeneracyRules testmask)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(NegativeRange), true)]
+        public double get_negrange()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(NegativeRange), true)]
+        public void set_negrange(double negrange)
+            => throw new NotImplementedException();
+
         #endregion
 
         #region Support removed

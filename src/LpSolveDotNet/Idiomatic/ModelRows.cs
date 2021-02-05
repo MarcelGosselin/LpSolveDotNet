@@ -143,5 +143,26 @@ namespace LpSolveDotNet.Idiomatic
                 .HandleResultAndReturnIt(ReturnValueHandler);
         // TODO: would this be better as Rows[i].Delete(); ???
         // TODO: would this be better as throwing ArgOORange or IndexOOR 
+
+
+        /// <summary>
+        /// Gets/sets if constraint names are used.
+        /// </summary>
+        /// <returns>A boolean value indicating if constraint names are used.</returns>
+        /// <remarks>
+        /// <para>When a model is read from file or created via the API, constraints can be named.
+        /// These names are used to report information or to save the model in a given format.
+        /// However, sometimes it is required to ignore these names and to use the internal names of lp_solve.
+        /// This is for example the case when the names do not comply to the syntax rules of the format
+        /// that will be used to write the model to.</para>
+        /// <para>Names are used by default.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_use_names.htm">Full C API documentation.</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_use_names.htm">Full C API documentation.</seealso>
+        public bool UseNames
+        {
+            get => NativeMethods.is_use_names(Lp, true);
+            set => NativeMethods.set_use_names(Lp, true, value);
+        }
     }
 }
