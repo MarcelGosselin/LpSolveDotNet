@@ -650,26 +650,18 @@ namespace LpSolveDotNet.Idiomatic
         #region Pivoting
 
         /// <summary>
-        /// Returns the maximum number of pivots between a re-inversion of the matrix.
+        /// The maximum number of pivots between a re-inversion of the matrix.
         /// </summary>
-        /// <returns>Returns the maximum number of pivots between a re-inversion of the matrix.</returns>
         /// <remarks>
-        /// <para>For stability reasons, lp_solve re-inverts the matrix on regular times. max_num_inv determines how frequently this inversion is done. This can influence numerical stability. However, the more often this is done, the slower the solver becomes.</para>
+        /// <para>For stability reasons, lp_solve re-inverts the matrix on regular times. <see cref="PivotMaximum"/> determines how frequently this inversion is done. This can influence numerical stability. However, the more often this is done, the slower the solver becomes.</para>
         /// <para>The default is 250 for the LUSOL bfp and 42 for the other BFPs.</para></remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_maxpivot.htm">Full C API documentation.</seealso>
-        public int get_maxpivot()
-            => NativeMethods.get_maxpivot(_lp);
-
-        /// <summary>
-        /// Sets the maximum number of pivots between a re-inversion of the matrix.
-        /// </summary>
-        /// <param name="max_num_inv">The maximum number of pivots between a re-inversion of the matrix.</param>
-        /// <remarks>
-        /// <para>For stability reasons, lp_solve re-inverts the matrix on regular times. max_num_inv determines how frequently this inversion is done. This can influence numerical stability. However, the more often this is done, the slower the solver becomes.</para>
-        /// <para>The default is 250 for the LUSOL bfp and 42 for the other BFPs.</para></remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_maxpivot.htm">Full C API documentation.</seealso>
-        public void set_maxpivot(int max_num_inv)
-            => NativeMethods.set_maxpivot(_lp, max_num_inv);
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_maxpivot.htm">Full C API documentation.</seealso>        /// 
+        public int PivotMaximum
+        {
+            get => NativeMethods.get_maxpivot(_lp);
+            set => NativeMethods.set_maxpivot(_lp, value);
+        }
 
         /// <summary>
         /// Returns the pivot rule and modes. See <see cref="PivotRule"/> and <see cref="PivotModes"/> for possible values.
@@ -682,16 +674,19 @@ namespace LpSolveDotNet.Idiomatic
         /// <para>The default rule is <see cref="PivotRule.Devex"/> and the default mode is <see cref="PivotModes.Adaptive"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_pivoting.htm">Full C API documentation.</seealso>
-        public PivotRuleAndModes get_pivoting()
+        public PivotRuleAndModes Pivoting
         {
-            int pivoting = NativeMethods.get_pivoting(_lp);
-            int mask = (int)PivotRule.SteepestEdge;
-            int rule = pivoting & mask;
-            int modes = pivoting & ~mask;
-            return new PivotRuleAndModes(
-                (PivotRule)rule,
-                (PivotModes)modes
-                );
+            get
+            {
+                int pivoting = NativeMethods.get_pivoting(_lp);
+                int mask = (int)PivotRule.SteepestEdge;
+                int rule = pivoting & mask;
+                int modes = pivoting & ~mask;
+                return new PivotRuleAndModes(
+                    (PivotRule)rule,
+                    (PivotModes)modes
+                    );
+            }
         }
 
         /// <summary>
@@ -706,7 +701,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <para>The default rule is <see cref="PivotRule.Devex"/> and the default mode is <see cref="PivotModes.Adaptive"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_pivoting.htm">Full C API documentation.</seealso>
-        public void set_pivoting(PivotRule rule, PivotModes modes)
+        public void SetPivoting(PivotRule rule, PivotModes modes)
             => NativeMethods.set_pivoting(_lp, ((int)rule) | ((int)modes));
 
         /// <summary>
@@ -721,7 +716,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <para>The default is <see cref="PivotRule.Devex"/>.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_piv_rule.htm">Full C API documentation.</seealso>
-        public bool is_piv_rule(PivotRule rule)
+        public bool IsPivotRuleActive(PivotRule rule)
             => NativeMethods.is_piv_rule(_lp, rule);
 
 
@@ -734,7 +729,7 @@ namespace LpSolveDotNet.Idiomatic
         /// The pivot mode is an extra modifier to the pivot rule. Any combination (OR) of the defined values is possible.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_piv_mode.htm">Full C API documentation.</seealso>
-        public bool is_piv_mode(PivotModes testmask)
+        public bool IsPivotModeActive(PivotModes testmask)
             => NativeMethods.is_piv_mode(_lp, testmask);
 
         #endregion
@@ -742,29 +737,20 @@ namespace LpSolveDotNet.Idiomatic
         #region Scaling
 
         /// <summary>
-        /// Gets the relative scaling convergence criterion for the active scaling mode.
+        /// The relative scaling convergence criterion for the active scaling mode.
         /// </summary>
         /// <returns>The relative scaling convergence criterion for the active scaling mode;
         /// the integer part specifies the maximum number of iterations.</returns>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_scalelimit.htm">Full C API documentation.</seealso>
-        public double get_scalelimit()
-            => NativeMethods.get_scalelimit(_lp);
-
-        /// <summary>
-        /// Sets the relative scaling convergence criterion for the active scaling mode;
-        /// the integer part specifies the maximum number of iterations.
-        /// </summary>
-        /// <param name="scalelimit">The relative scaling convergence criterion for the active scaling mode;
-        /// the integer part specifies the maximum number of iterations.</param>
-        /// <remarks>
-        /// Default is 5.
-        /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_scalelimit.htm">Full C API documentation.</seealso>
-        public void set_scalelimit(double scalelimit)
-            => NativeMethods.set_scalelimit(_lp, scalelimit);
+        public double ScaleLimit
+        {
+            get => NativeMethods.get_scalelimit(_lp);
+            set => NativeMethods.set_scalelimit(_lp, value);
+        }            
 
         /// <summary>
-        /// Specifies which scaling algorithm and parameters are used.
+        /// Returns which scaling algorithm and parameters are used.
         /// </summary>
         /// <returns>The scaling algorithm and parameters that are used.</returns>
         /// <remarks>
@@ -775,16 +761,19 @@ namespace LpSolveDotNet.Idiomatic
         /// See <see cref="ScalingAlgorithmAndParameters" /> for more information on scaling.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_scaling.htm">Full C API documentation.</seealso>
-        public ScalingAlgorithmAndParameters get_scaling()
+        public ScalingAlgorithmAndParameters Scaling
         {
-            int scaling = NativeMethods.get_scaling(_lp);
-            int mask = (int)ScaleAlgorithm.CurtisReid;
-            int algorithm = scaling & mask;
-            int parameters = scaling & ~mask;
-            return new ScalingAlgorithmAndParameters(
-                (ScaleAlgorithm)algorithm,
-                (ScaleParameters)parameters
-                );
+            get
+            {
+                int scaling = NativeMethods.get_scaling(_lp);
+                int mask = (int)ScaleAlgorithm.CurtisReid;
+                int algorithm = scaling & mask;
+                int parameters = scaling & ~mask;
+                return new ScalingAlgorithmAndParameters(
+                    (ScaleAlgorithm)algorithm,
+                    (ScaleParameters)parameters
+                    );
+            }
         }
 
         /// <summary>
@@ -800,7 +789,7 @@ namespace LpSolveDotNet.Idiomatic
         /// See <see cref="ScalingAlgorithmAndParameters" /> for more information on scaling.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_scaling.htm">Full C API documentation.</seealso>
-        public void set_scaling(ScaleAlgorithm algorithm, ScaleParameters parameters)
+        public void SetScaling(ScaleAlgorithm algorithm, ScaleParameters parameters)
             => NativeMethods.set_scaling(_lp, ((int)algorithm) | ((int)parameters));
 
         /// <summary>
@@ -815,7 +804,7 @@ namespace LpSolveDotNet.Idiomatic
         /// See <see cref="ScalingAlgorithmAndParameters" /> for more information on scaling.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_scalemode.htm">Full C API documentation.</seealso>
-        public bool is_scalemode(
+        public bool IsScaleModeActive(
             ScaleAlgorithm algorithmMask = ScaleAlgorithm.None,
             ScaleParameters parameterMask = ScaleParameters.None)
             => NativeMethods.is_scalemode(_lp, ((int)algorithmMask) | ((int)parameterMask));
@@ -829,7 +818,7 @@ namespace LpSolveDotNet.Idiomatic
         /// See <see cref="ScalingAlgorithmAndParameters" /> for more information on scaling.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_scaletype.htm">Full C API documentation.</seealso>
-        public bool is_scaletype(ScaleAlgorithm algorithm)
+        public bool IsScaleAlgorithmActive(ScaleAlgorithm algorithm)
             => NativeMethods.is_scaletype(_lp, algorithm);
 
         /// <summary>
@@ -841,7 +830,7 @@ namespace LpSolveDotNet.Idiomatic
         /// with <see cref="ScaleParameters.Integers"/> to activate this feature.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_integerscaling.htm">Full C API documentation.</seealso>
-        public bool is_integerscaling()
+        public bool IsIntegerScaling
             => NativeMethods.is_integerscaling(_lp);
 
         /// <summary>
@@ -853,7 +842,7 @@ namespace LpSolveDotNet.Idiomatic
         /// It is advisable to always use some sort of scaling.
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/unscale.htm">Full C API documentation.</seealso>
-        public void unscale()
+        public void Unscale()
             => NativeMethods.unscale(_lp);
 
         #endregion

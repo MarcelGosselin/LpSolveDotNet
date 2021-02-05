@@ -736,6 +736,64 @@ namespace LpSolveDotNet.Idiomatic
         [Obsolete("Replaced by " + nameof(PrintTableau), true)]
         public void print_tableau()
             => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(PivotMaximum), true)]
+        public void get_maxpivot()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(PivotMaximum), true)]
+        public void set_maxpivot(int _)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Pivoting), true)]
+        public PivotRuleAndModes get_pivoting()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(SetPivoting), true)]
+        public void set_pivoting(PivotRule rule, PivotModes modes)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(IsPivotRuleActive), true)]
+        public bool is_piv_rule(PivotRule rule)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(IsPivotModeActive), true)]
+        public bool is_piv_mode(PivotModes testmask)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(ScaleLimit), true)]
+        public double get_scalelimit()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(ScaleLimit), true)]
+        public void set_scalelimit(double scalelimit)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Scaling), true)]
+        public ScalingAlgorithmAndParameters get_scaling()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(SetScaling), true)]
+        public void set_scaling(ScaleAlgorithm algorithm, ScaleParameters parameters)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(IsScaleModeActive), true)]
+        public bool is_scalemode(
+            ScaleAlgorithm algorithmMask = ScaleAlgorithm.None,
+            ScaleParameters parameterMask = ScaleParameters.None)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(IsScaleAlgorithmActive), true)]
+        public bool is_scaletype(ScaleAlgorithm algorithm)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(IsIntegerScaling), true)]
+        public bool is_integerscaling()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Unscale), true)]
+        public void unscale()
+            => throw new NotImplementedException();
         #endregion
 
         #region Support removed
