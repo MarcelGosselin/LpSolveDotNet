@@ -346,10 +346,7 @@ namespace LpSolveDotNet.Idiomatic
             return CreateFromLpRecStructurePointer(lp);
         }
 
-        /// <summary>
-        /// Frees all memory allocated to the model.
-        /// </summary>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/delete_lp.htm">Full C API documentation.</seealso>
+        /// <inheritdoc cref="IDisposable.Dispose()"/>
         public void Dispose()
         {
             // implement Dispose pattern according to https://msdn.microsoft.com/en-us/library/b1yfkh5e.aspx

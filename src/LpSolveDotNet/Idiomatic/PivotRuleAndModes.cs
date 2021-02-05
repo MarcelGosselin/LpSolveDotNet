@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 
 namespace LpSolveDotNet.Idiomatic
 {
@@ -34,9 +35,11 @@ namespace LpSolveDotNet.Idiomatic
         #region Equals
 
         /// <inheritdoc/>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public override bool Equals(object obj) => obj is PivotRuleAndModes other && Equals(other);
 
         /// <inheritdoc/>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public override int GetHashCode()
         {
             int hashCode = -863896258;
@@ -46,12 +49,15 @@ namespace LpSolveDotNet.Idiomatic
         }
 
         /// <inheritdoc/>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static bool operator ==(PivotRuleAndModes left, PivotRuleAndModes right) => left.Equals(right);
 
         /// <inheritdoc/>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static bool operator !=(PivotRuleAndModes left, PivotRuleAndModes right) => !(left == right);
 
         /// <inheritdoc/>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public bool Equals(PivotRuleAndModes other) => Rule == other.Rule && Modes == other.Modes;
 
         #endregion
