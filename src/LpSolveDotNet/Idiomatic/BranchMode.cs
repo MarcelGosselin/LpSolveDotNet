@@ -12,7 +12,7 @@ namespace LpSolveDotNet.Idiomatic
         /// <summary>Algorithm decides which branch being taken first (BRANCH_AUTOMATIC = 2 in C code).</summary>
         Automatic = 2,
         /// <summary>
-        /// (To be used only in <see cref="LpSolve.set_var_branch(int, BranchMode)"/>).
+        /// (To be used only in <see cref="ModelColumn.BranchAndBoundMode"/>).
         /// Means to use value set in <see cref="LpSolve.FirstBranch"/>.
         /// (BRANCH_DEFAULT = 3 in C code)
         /// </summary>

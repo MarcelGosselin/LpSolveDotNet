@@ -297,7 +297,7 @@ namespace LpSolveDotNet.Idiomatic
         /// </summary>
         /// <remarks>
         /// <para>The property returns if a variable is a SOS variable or not.
-        /// By default a variable is not a SOS. A variable becomes a SOS variable via <see cref="LpSolve.add_SOS"/>.</para>
+        /// By default a variable is not a SOS. A variable becomes a SOS variable via <see cref="LpSolve.AddSOS"/>.</para>
         /// <para>See <see href="http://lpsolve.sourceforge.net/5.5/SOS.htm">Special Ordered Sets</see> for a description about SOS variables.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_SOS_var.htm">Full C API documentation.</seealso>
