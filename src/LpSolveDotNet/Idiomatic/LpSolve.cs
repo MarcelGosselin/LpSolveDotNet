@@ -533,9 +533,6 @@ namespace LpSolveDotNet.Idiomatic
         public void SetRightHandSideValues(double[] rh)
             => NativeMethods.set_rh_vec(_lp, rh);
 
-
-
-
         /// <summary>
         /// Specifies if set bounds may only be tighter <c>true</c> or also less restrictive <c>false</c>.
         /// </summary>
@@ -576,27 +573,12 @@ namespace LpSolveDotNet.Idiomatic
         }            
 
         /// <summary>
-        /// Returns, for the specified variable, the priority the variable has in the branch-and-bound algorithm.
-        /// </summary>
-        /// <param name="column">The column number of the variable on which the priority must be returned.
-        /// It must be between 1 and the number of columns in the model. If it is not within this range, the return value is 0.</param>
-        /// <returns>Returns the priority of the variable.</returns>
-        /// <remarks>
-        /// The method returns the priority the variable has in the branch-and-bound algorithm.
-        /// This priority is determined by the weights set by <see cref="set_var_weights"/>.
-        /// The default priorities are the column positions of the variables in the model.
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_var_priority.htm">Full C API documentation.</seealso>
-        public int get_var_priority(int column)
-            => NativeMethods.get_var_priority(_lp, column);
-
-        /// <summary>
-        /// Sets the weights on variables.
+        /// Sets the weights on variables for branch-and-bound algorithm.
         /// </summary>
         /// <param name="weights">The weights array.</param>
         /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
         /// <remarks>
-        /// <para>The <see cref="set_var_weights"/> sets a weight factor on each variable. 
+        /// <para>The method sets a weight factor on each variable. 
         /// This is only used for the integer variables in the branch-and-bound algorithm.
         /// Array members are unique, real-valued numbers indicating the "weight" of the variable at the given index.
         /// The array is 0-based. So variable 1 is at index 0, variable 2 at index 1. 
@@ -605,43 +587,38 @@ namespace LpSolveDotNet.Idiomatic
         /// The lower the weight, the sooner the variable is chosen to make it integer.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_var_weights.htm">Full C API documentation.</seealso>
-        public bool set_var_weights(double[] weights)
+        public bool SetBranchAndBoundVariableWeights(double[] weights)
             => NativeMethods.set_var_weights(_lp, weights);
 
         /// <summary>
         /// Adds a SOS (Special Ordered Sets) constraint.
         /// </summary>
         /// <param name="name">The name of the SOS constraint.</param>
-        /// <param name="sostype">The type of the SOS constraint. Must be >= 1</param>
+        /// <param name="type">The type (or degree) of the SOS constraint. Must be >= 1</param>
         /// <param name="priority">Priority of the SOS constraint in the SOS set.</param>
-        /// <param name="count">The number of variables in the SOS list.</param>
-        /// <param name="sosvars">An array specifying the <paramref name="count"/> variables (their column numbers).</param>
-        /// <param name="weights">An array specifying the <paramref name="count"/> variable weights. May also be <c>null</c>.
+        /// <param name="variableIndices">An array specifying the indices of the variables (columns) in the model forming the SOS.</param>
+        /// <param name="variableWeights">An array specifying the variable weights. May also be <c>null</c>.
         /// In that case, lp_solve will weight the variables in the order they are specified.</param>
         /// <returns>Returns the list index of the new SOS if the operation was successful.
         /// A return value of 0 indicates an error.</returns>
         /// <remarks>
-        /// <para>The <see cref="add_SOS"/> method adds an SOS constraint.</para>
+        /// <para>The method adds an SOS constraint.</para>
         /// <para>See <see href="http://lpsolve.sourceforge.net/5.5/SOS.htm">Special Ordered Sets</see> for a description about SOS variables.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/add_SOS.htm">Full C API documentation.</seealso>
-        public int add_SOS(string name, int sostype, int priority, int count, int[] sosvars, double[] weights)
-            => NativeMethods.add_SOS(_lp, name, sostype, priority, count, sosvars, weights);
-
-        /// <summary>
-        /// Returns if the variable is SOS (Special Ordered Set) or not.
-        /// </summary>
-        /// <param name="column">The column number of the variable that must be checked.
-        /// It must be between 1 and the number of columns in the model.</param>
-        /// <returns><c>true</c> if variable is a SOS var, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>The <see cref="is_SOS_var "/> method returns if a variable is a SOS variable or not.
-        /// Default a variable is not SOS. A variable becomes a SOS variable via <see cref="add_SOS"/>.</para>
-        /// <para>See <see href="http://lpsolve.sourceforge.net/5.5/SOS.htm">Special Ordered Sets</see> for a description about SOS variables.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_SOS_var.htm">Full C API documentation.</seealso>
-        public bool is_SOS_var(int column)
-            => NativeMethods.is_SOS_var(_lp, column);
+        [SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "<Pending>")]
+        public int AddSOS(string name, int type, int priority, int[] variableIndices, double[] variableWeights = null)
+        {
+            if (variableIndices == null)
+            {
+                throw new ArgumentNullException(nameof(variableIndices));
+            }
+            if (variableWeights != null && variableIndices.Length != variableWeights.Length)
+            {
+                throw new ArgumentException($"Both {nameof(variableIndices)} and {nameof(variableWeights)} must be of same length.", nameof(variableWeights));
+            }
+            return NativeMethods.add_SOS(_lp, name, type, priority, variableIndices.Length, variableIndices, variableWeights);
+        }
 
         #endregion
 
@@ -850,71 +827,23 @@ namespace LpSolveDotNet.Idiomatic
         #region Branching
 
         /// <summary>
-        /// Returns, for the specified variable, which branch to take first in branch-and-bound algorithm.
+        /// Gets/sets whether the branch-and-bound algorithm stops at first found solution or not.
         /// </summary>
-        /// <param name="column">The column number of the variable on which the mode must be returned.
-        /// It must be between 1 and the number of columns in the model.
-        /// If it is not within this range, the return value is the value of <see cref="FirstBranch"/>.</param>
-        /// <returns>Returns which branch to take first in branch-and-bound algorithm.</returns>
-        /// <remarks>
-        /// This method returns which branch to take first in branch-and-bound algorithm.
-        /// This can influence solving times considerably.
-        /// Depending on the model one rule can be best and for another model another rule.
-        /// When no value was set via <see cref="set_var_branch(int, BranchMode)"/>, the return value is the value of <see cref="FirstBranch"/>.
-        /// It also returns the value of <see cref="FirstBranch"/> when <see cref="set_var_branch(int, BranchMode)"/> was called with branch mode <see cref="BranchMode.Default" />.
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_var_branch.htm">Full C API documentation.</seealso>
-        public BranchMode get_var_branch(int column)
-            => NativeMethods.get_var_branch(_lp, column);
-
-        /// <summary>
-        /// Specifies, for the specified variable, which branch to take first in branch-and-bound algorithm.
-        /// </summary>
-        /// <param name="column">The column number of the variable on which the mode must be set.
-        /// It must be between 1 and the number of columns in the model.</param>
-        /// <param name="branchMode">Specifies, for the specified variable, which branch to take first in branch-and-bound algorithm.</param>
-        /// <returns><c>true</c> if successful, <c>false</c> otherwise.</returns>
         /// <remarks>
         /// <para>
-        /// This method specifies which branch to take first in branch-and-bound algorithm.
-        /// This can influence solving times considerably.
-        /// Depending on the model one rule can be best and for another model another rule.
-        /// </para>
-        /// <para>The default is <see cref="BranchMode.Default" /> which means that 
-        /// the branch mode specified with <see cref="FirstBranch"/> method must be used.</para>
-        /// </remarks>
-        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_var_branch.htm">Full C API documentation.</seealso>
-        public bool set_var_branch(int column, BranchMode branchMode)
-            => NativeMethods.set_var_branch(_lp, column, branchMode);
-
-        /// <summary>
-        /// Returns whether the branch-and-bound algorithm stops at first found solution or not.
-        /// </summary>
-        /// <returns><c>true</c> if the branch-and-bound algorithm stops at first found solution, <c>false</c> otherwise.</returns>
-        /// <remarks>
-        /// <para>The method returns if the branch-and-bound algorithm stops at the first found solution or not.
         /// Stopping at the first found solution can be useful if you are only interested for a solution,
         /// but not necessarily (and most probably) the most optimal solution.</para>
         /// <para>The default is <c>false</c>: not stop at first found solution.</para></remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_break_at_first.htm">Full C API documentation.</seealso>
-        public bool is_break_at_first()
-            => NativeMethods.is_break_at_first(_lp);
-
-        /// <summary>
-        /// Specifies whether the branch-and-bound algorithm stops at first found solution or not.
-        /// </summary>
-        /// <param name="break_at_first"><c>true</c> if the branch-and-bound algorithm should break at first found solution, <c>false</c> if not.</param>
-        /// <remarks>
-        /// <para>The method specifies if the branch-and-bound algorithm stops at the first found solution or not.
-        /// Stopping at the first found solution can be useful if you are only interested for a solution,
-        /// but not necessarily (and most probably) the most optimal solution.</para>
-        /// <para>The default is <c>false</c>: not stop at first found solution.</para></remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_break_at_first.htm">Full C API documentation.</seealso>
-        public void set_break_at_first(bool break_at_first)
-            => NativeMethods.set_break_at_first(_lp, break_at_first);
+        public bool BranchAndBoundBreakIsBreakAtFirst
+        {
+            get => NativeMethods.is_break_at_first(_lp);
+            set => NativeMethods.set_break_at_first(_lp, value);
+        }
 
         /// <summary>
-        /// Returns the value which would cause the branch-and-bound algorithm to stop when the objective value reaches it.
+        /// Gets/sets the value which would cause the branch-and-bound algorithm to stop when the objective value reaches it.
         /// </summary>
         /// <returns>Returns the value to break on.</returns>
         /// <remarks>
@@ -924,33 +853,12 @@ namespace LpSolveDotNet.Idiomatic
         /// (and most probably not) the most optimal solution.</para>
         /// <para>The default value is (-) infinity (or +infinity when maximizing).</para></remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_break_at_value.htm">Full C API documentation.</seealso>
-        public double get_break_at_value()
-            => NativeMethods.get_break_at_value(_lp);
-
-        /// <summary>
-        /// Specifies the value which would cause the branch-and-bound algorithm to stop when the objective value reaches it.
-        /// </summary>
-        /// <param name="break_at_value">The value to break on.</param>
-        /// <remarks>
-        /// <para>The method sets the value at which the branch-and-bound algorithm stops when the objective value
-        /// is better than this value. Stopping at a given objective value can be useful if you are only interested
-        /// for a solution that has an objective value which is at least a given value, but not necessarily
-        /// (and most probably not) the most optimal solution.</para>
-        /// <para>The default value is (-) infinity (or +infinity when maximizing).</para></remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_break_at_value.htm">Full C API documentation.</seealso>
-        public void set_break_at_value(double break_at_value)
-            => NativeMethods.set_break_at_value(_lp, break_at_value);
-
-        /// <summary>
-        /// Returns the branch-and-bound rule.
-        /// </summary>
-        /// <returns>Returns the <see cref="BranchAndBoundRuleAndModes">branch-and-bound rule</see>.</returns>
-        /// <remarks>
-        /// <para>The method returns the branch-and-bound rule for choosing which non-integer variable is to be selected.
-        /// This rule can influence solving times considerably.
-        /// Depending on the model one rule can be best and for another model another rule.</para>
-        /// <para>The default is NODE_PSEUDONONINTSELECT + NODE_GREEDYMODE + NODE_DYNAMICMODE + NODE_RCOSTFIXING(17445).</para>
-        /// </remarks>
+        public double BranchAndBoundBreakAtValue
+        {
+            get => NativeMethods.get_break_at_value(_lp);
+            set => NativeMethods.set_break_at_value(_lp, value);
+        }
 
         /// <summary>
         /// Specifies the branch-and-bound rule and modes
@@ -982,11 +890,9 @@ namespace LpSolveDotNet.Idiomatic
         }
 
         /// <summary>
-        /// Returns the maximum branch-and-bound depth.
+        /// Gets/sets the maximum branch-and-bound depth limit.
         /// </summary>
-        /// <returns>Returns the maximum branch-and-bound depth</returns>
         /// <remarks>
-        /// <para>The method returns the maximum branch-and-bound depth.</para>
         /// <para>This is only useful if there are integer, semi-continuous or SOS variables in the model so that the
         /// branch-and-bound algorithm must be used to solve them.
         /// The branch-and-bound algorithm will not go deeper than this level.
@@ -1000,30 +906,12 @@ namespace LpSolveDotNet.Idiomatic
         /// <para>The default is -50.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_bb_depthlimit.htm">Full C API documentation.</seealso>
-        public int get_bb_depthlimit()
-            => NativeMethods.get_bb_depthlimit(_lp);
-
-        /// <summary>
-        /// Sets the maximum branch-and-bound depth.
-        /// </summary>
-        /// <param name="bb_maxlevel">Specifies the maximum branch-and-bound depth.
-        /// A positive value means that the depth is absoluut.
-        /// A negative value means a relative B&amp;B depth limit.
-        /// The "order" of a MIP problem is defined to be 2x the number of binary variables plus the number of SC and SOS variables.
-        /// A relative value of -x results in a maximum depth of x times the order of the MIP problem.</param>
-        /// <remarks>
-        /// <para>The method specifies the maximum branch-and-bound depth.</para>
-        /// <para>This is only useful if there are integer, semi-continuous or SOS variables in the model so that the
-        /// branch-and-bound algorithm must be used to solve them.
-        /// The branch-and-bound algorithm will not go deeper than this level.
-        /// When 0 then there is no limit to the depth.
-        /// Limiting the depth will speed up solving time, but there is a chance that the found solution is not the most optimal one.
-        /// Be aware of this. It can also result in not finding a solution at all.</para>
-        /// <para>The default is -50.</para>
-        /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_bb_depthlimit.htm">Full C API documentation.</seealso>
-        public void set_bb_depthlimit(int bb_maxlevel)
-            => NativeMethods.set_bb_depthlimit(_lp, bb_maxlevel);
+        public int BranchAndBoundDepthLimit
+        {
+            get => NativeMethods.get_bb_depthlimit(_lp);
+            set => NativeMethods.set_bb_depthlimit(_lp, value);
+        }
 
         /// <summary>
         /// Defines which branch to take first in branch-and-bound algorithm.

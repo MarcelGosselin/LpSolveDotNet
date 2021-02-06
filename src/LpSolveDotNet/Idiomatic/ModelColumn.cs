@@ -291,5 +291,47 @@ namespace LpSolveDotNet.Idiomatic
             }
             return NativeMethods.get_columnex(Lp, _columnNumber, columnValues, rowNumbers);
         }
+
+        /// <summary>
+        /// Returns if the variable is a SOS (Special Ordered Set) or not.
+        /// </summary>
+        /// <remarks>
+        /// <para>The property returns if a variable is a SOS variable or not.
+        /// By default a variable is not a SOS. A variable becomes a SOS variable via <see cref="LpSolve.add_SOS"/>.</para>
+        /// <para>See <see href="http://lpsolve.sourceforge.net/5.5/SOS.htm">Special Ordered Sets</see> for a description about SOS variables.</para>
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_SOS_var.htm">Full C API documentation.</seealso>
+        public bool IsSOS
+            => NativeMethods.is_SOS_var(Lp, _columnNumber);
+
+        /// <summary>
+        /// The priority the variable has in the branch-and-bound algorithm.
+        /// </summary>
+        /// <remarks>
+        /// The proeprty returns the priority the variable has in the branch-and-bound algorithm.
+        /// This priority is determined by the weights set by <see cref="LpSolve.SetBranchAndBoundVariableWeights"/>.
+        /// The default priorities are the column positions of the variables in the model.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_var_priority.htm">Full C API documentation.</seealso>
+        public int BranchAndBoundPriority
+            => NativeMethods.get_var_priority(Lp, _columnNumber);
+
+        /// <summary>
+        /// Specifies which branch to take first in branch-and-bound algorithm.
+        /// </summary>
+        /// <remarks>
+        /// This property defines which branch to take first in branch-and-bound algorithm.
+        /// This can influence solving times considerably.
+        /// Depending on the model one rule can be best and for another model another rule.
+        /// When no value was set explicitly, or when the value set is <see cref="BranchMode.Default" />,
+        /// the value is that of <see cref="LpSolve.FirstBranch"/>.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_var_branch.htm">Full C API documentation.</seealso>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_var_branch.htm">Full C API documentation.</seealso>
+        public BranchMode BranchAndBoundMode
+        {
+            get => NativeMethods.get_var_branch(Lp, _columnNumber);
+            set => NativeMethods.set_var_branch(Lp, _columnNumber, value);
+        }
     }
 }

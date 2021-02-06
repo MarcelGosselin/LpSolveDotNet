@@ -851,6 +851,54 @@ namespace LpSolveDotNet.Idiomatic
         public void set_negrange(double negrange)
             => throw new NotImplementedException();
 
+        [Obsolete("Replaced by " + nameof(Columns) + "[i]." + nameof(ModelColumn.IsSOS), true)]
+        public bool is_SOS_var(int column)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Columns) + "[i]." + nameof(ModelColumn.BranchAndBoundPriority), true)]
+        public int get_var_priority(int column)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(SetBranchAndBoundVariableWeights), true)]
+        public bool set_var_weights(double[] weights)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(AddSOS), true)]
+        public int add_SOS(string name, int sostype, int priority, int count, int[] sosvars, double[] weights)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(BranchAndBoundDepthLimit), true)]
+        public int get_bb_depthlimit()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(BranchAndBoundDepthLimit), true)]
+        public void set_bb_depthlimit(int bb_maxlevel)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(BranchAndBoundBreakAtValue), true)]
+        public double get_break_at_value()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(BranchAndBoundBreakAtValue), true)]
+        public void set_break_at_value(double _)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(BranchAndBoundBreakIsBreakAtFirst), true)]
+        public bool is_break_at_first()
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(BranchAndBoundBreakIsBreakAtFirst), true)]
+        public void set_break_at_first(bool _)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Columns) + "[i]." + nameof(ModelColumn.BranchAndBoundMode), true)]
+        public BranchMode get_var_branch(int column)
+            => throw new NotImplementedException();
+
+        [Obsolete("Replaced by " + nameof(Columns) + "[i]." + nameof(ModelColumn.BranchAndBoundMode), true)]
+        public bool set_var_branch(int column, BranchMode branchMode)
+            => throw new NotImplementedException();
+
         #endregion
 
         #region Support removed
@@ -874,7 +922,6 @@ namespace LpSolveDotNet.Idiomatic
         [Obsolete("Removed as this was not meant to be used http://lpsolve.sourceforge.net/5.5/reset_basis.htm", true)]
         public void reset_basis()
             => throw new NotImplementedException();
-
 
         #endregion
 
