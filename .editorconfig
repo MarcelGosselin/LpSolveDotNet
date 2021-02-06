@@ -1,18 +1,22 @@
 # Remove the line below if you want to inherit .editorconfig settings from higher directories
 root = true
-indent_size = 4
+indent_size = 2
 indent_style = space
 tab_width = 4
-end_of_line = crlf
+end_of_line = lf
 insert_final_newline = false
 charset = utf-8
 trim_trailing_whitespace = true
 
-[*.{csproj,props,targets,xml]
-indent_size = 2
+[*.{sln,cmd,bat}]
+end_of_line = crlf
+
+[*.{sln}]
+charset = utf-8-bom
 
 # C# files
 [*.cs]
+indent_size = 4
 #### .NET Coding Conventions ####
 
 # Organize usings

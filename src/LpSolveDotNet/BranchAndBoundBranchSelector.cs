@@ -1,4 +1,4 @@
-﻿namespace LpSolveDotNet
+namespace LpSolveDotNet
 {
     /// <summary>
     /// User function that specifies which B&amp;B branching to use given a column to branch on.

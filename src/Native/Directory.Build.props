@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <!-- Import parent Directory.build.props to get TargetFrameworks, NuGet package properties,...-->
   <Import Project="../Directory.Build.props" />
   <PropertyGroup>
