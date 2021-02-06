@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <!--
   These properties need to be defined in the .targets because they need the $(RuntimeID) property defined
   **after** Directory.Build.props is imported.

@@ -1,4 +1,4 @@
-﻿/*
+/*
     LpSolveDotNet is a .NET wrapper allowing usage of the 
     Mixed Integer Linear Programming (MILP) solver lp_solve.
 

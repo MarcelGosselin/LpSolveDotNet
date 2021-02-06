@@ -1,4 +1,4 @@
-﻿namespace LpSolveDotNet
+namespace LpSolveDotNet
 {
     /// <summary>
     /// User function that specifies which non-integer variable to select next to make integer in the B&amp;B solve

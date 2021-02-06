@@ -1,4 +1,4 @@
-﻿namespace LpSolveDotNet
+namespace LpSolveDotNet
 {
     /// <summary>
     /// Defines which branch to use first for a given column.

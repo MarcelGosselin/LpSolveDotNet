@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <!-- Assembly and NuGet package Properties -->
   <PropertyGroup>
     <Copyright>Copyright © Marcel Gosselin 2016-2020</Copyright>
