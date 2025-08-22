@@ -45,13 +45,17 @@ To see all commits for this version, [click here](https://github.com/MarcelGosse
    * `LpSolveDotNet.Native.win-x64`
    * `LpSolveDotNet.Native.win-x86`
 
-  You need to reference at least one of them from your project. [See README for details](./README).
+  You need to reference at least one of them from your project. [See README for details](./README.md).
 
 ## 3.1.0
 
 To see all commits for this version, [click here](https://github.com/MarcelGosselin/LpSolveDotNet/compare/v3.0.1...v3.1.0).
 
-* Update lpsolve dlls to [5.5.2.5](http://lp-solve.2324885.n4.nabble.com/lpsolve-version-5-5-2-5-released-td10331.html)
+* Update lpsolve dlls to [5.5.2.5](https://sourceforge.net/projects/lpsolve/files/lpsolve/5.5.2.5/). Since 5.5.2.3:
+    - When using set_lowbo and set_upbo to set bounds on a variable and the new low/up bounds are very close to each other
+  but not equal then they are set equal for numerical stability.
+    - When all variables in the model are integer, but not all binary (in fact difference between upper and lower bound 1),
+      then it could happen that not the most optimal integer solution was found.
 
 ## 3.0.1
 
@@ -63,7 +67,19 @@ To see all commits for this version, [click here](https://github.com/MarcelGosse
 
 To see all commits for this version, [click here](https://github.com/MarcelGosselin/LpSolveDotNet/compare/v2.0.0...v3.0.0).
 
-* Update lpsolve dlls to [5.5.2.3](http://lp-solve.2324885.n4.nabble.com/lpsolve-5-5-2-3-released-tt10210.html).
+- Update lpsolve dlls to [5.5.2.3](https://sourceforge.net/projects/lpsolve/files/lpsolve/5.5.2.3/). Since 5.5.2.0:
+    - fixed a small error in new and improved MIP_stepOF function to find integer solutions.
+    - For integer models with semi-cont variables it happened sometimes that a message
+      "fillbranches_BB: Inconsistent equal-valued bounds for ..." occured and that the semi-cont condition
+      was not respected.
+    - New functions added: get_accuracy to get the numeric accuracy after solve.
+    - New functions added: set_break_numeric_accuracy, get_break_numeric_accuracy to let lp_solve return ACCURACYERROR
+      instead of FEASIBLE when numerical accuracy if worse then the provided values.
+      In the past, lp_solve only returned a non-optimal status in case of very severe numerical instability.
+      Now it will return already ACCURACYERROR when it finds a relative inaccuracy of 5e-7
+    - When reading a model from the lp-format and important issues are detected such as already bounds on variables being overruled
+      later with for example a bin keyword, this is now reported in the default verbose level such that this is seen easier.
+    - For some models with integer variables, lp_solve did not find the most optimal solution.
 
 ### API changes
 
