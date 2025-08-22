@@ -13,31 +13,31 @@ jobs:
     steps:
 
     - name: Checkout
-      uses: actions/checkout@v2
-
-    - name: Fetch all history for all tags and branches so GitVersion can work its magic
-      run: git fetch --prune --unshallow
+      uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
 
     - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v0.9
+      uses: gittools/actions/gitversion/setup@v4.1.0
       with:
-        versionSpec: '5.1.x'
+        versionSpec: '6.1.x'
 
-    - name: Use GitVersion
-      id: gitversion # step id used as reference for output values
-      uses: gittools/actions/gitversion/execute@v0.9
+    - name: Determine Version
+      id: gitversion # step id used as a reference for output values
+      uses: gittools/actions/gitversion/execute@v4.1.0
 
-    - name: Setup MSBuild.exe
-      uses: warrenbuckley/Setup-MSBuild@v1
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v2
 
     - name: Build and Package with MSBuild
       working-directory: src
       run: msbuild -t:"Clean;Pack" -restore -p:Configuration=Release -p:"Version=${{ steps.gitversion.outputs.fullSemVer }}" LpSolveDotNet.sln
 
     - name: Setup Nuget.exe
-      uses: warrenbuckley/Setup-Nuget@v1
+      uses: nuget/setup-nuget@v2
+      with:
+        nuget-api-key: ${{ secrets.NUGET_APIKEY }}
+        nuget-version: '5.x'
 
     - name: Push to nuget.org
-      env:
-        NUGET_APIKEY: ${{ secrets.NUGET_APIKEY }}
-      run: nuget push "build\output\LpSolveDotNet.*.nupkg" -NoSymbols -Source https://api.nuget.org/v3/index.json -ApiKey $env:NUGET_APIKEY
+      run: nuget push "build\output\LpSolveDotNet.*.nupkg" -NoSymbols -Source https://api.nuget.org/v3/index.json
