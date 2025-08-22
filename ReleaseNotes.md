@@ -2,6 +2,10 @@
 
 ## vNext -- not released yet
 
+### New Features/Improvements
+* Add missing methods `set_break_numeric_accuracy`, `get_break_numeric_accuracy` and `get_accuracy`.
+
+
 ## 4.0.0
 
 To see all commits for this version, [click here](https://github.com/MarcelGosselin/LpSolveDotNet/compare/v3.1.0...v4.0.0).

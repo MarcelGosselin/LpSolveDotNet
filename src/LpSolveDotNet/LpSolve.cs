@@ -1528,6 +1528,31 @@ namespace LpSolveDotNet
             => NativeMethods.get_bounds_tighter(_lp);
 
         /// <summary>
+        /// Sets the accuracy values when solve should fail.
+        /// </summary>
+        /// <param name="accuracy">From which minimal accuracy should solve fail.</param>
+        /// <remarks>
+        /// When accuracy from <see cref="get_accuracy"/> is larger than this value, optimization will fail with <see cref="lpsolve_return.ACCURACYERROR"/> .
+        /// By default, break accuracy is <c>5e-7</c>.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_break_numeric_accuracy.htm">Full C API documentation.</seealso>
+        public void set_break_numeric_accuracy(double accuracy)
+            => NativeMethods.set_break_numeric_accuracy(_lp, accuracy);
+
+        /// <summary>
+        /// Returns the accuracy values when solve should fail.
+        /// </summary>
+        /// <returns>The accuracy values when solve should fail.</returns>
+        /// <remarks>
+        /// This function returns the minimal accuracy for a successful solve.
+        /// When accuracy from <see cref="get_accuracy"/> is larger than this value, optimization will fail with <see cref="lpsolve_return.ACCURACYERROR"/> .
+        /// By default, break accuracy is <c>5e-7</c>.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_break_numeric_accuracy.htm">Full C API documentation.</seealso>
+        public double get_break_numeric_accuracy()
+            => NativeMethods.get_break_numeric_accuracy(_lp);
+
+        /// <summary>
         /// Returns, for the specified variable, the priority the variable has in the branch-and-bound algorithm.
         /// </summary>
         /// <param name="column">The column number of the variable on which the priority must be returned.
@@ -3309,6 +3334,17 @@ namespace LpSolveDotNet
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/is_feasible.htm">Full C API documentation.</seealso>
         public bool is_feasible(double[] values, double threshold)
             => NativeMethods.is_feasible(_lp, values, threshold);
+
+        /// <summary>
+        /// Returns the accuracy of bounds and constraints.
+        /// </summary>
+        /// <returns>The accuracy of bounds and constraints.</returns>
+        /// <remarks>
+        /// This value should be as close as possible to 0. The accuracy is the largest relative deviation of a bound or constraint.
+        /// </remarks>
+        /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_accuracy.htm">Full C API documentation.</seealso>
+        public double get_accuracy()
+            => NativeMethods.get_accuracy(_lp);
 
         #endregion
 
