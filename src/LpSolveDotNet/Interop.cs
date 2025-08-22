@@ -1108,6 +1108,12 @@ namespace LpSolveDotNet
         public static extern bool write_XLI(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string filename, [MarshalAs(UnmanagedType.LPStr)] string options, bool results);
         [DllImport(LibraryName, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true, SetLastError = true)]
         public static extern bool write_params(IntPtr lp, [MarshalAs(UnmanagedType.LPStr)] string filename, [MarshalAs(UnmanagedType.LPStr)] string options);
+        [DllImport(LibraryName, SetLastError = true)]
+        public static extern double get_accuracy(IntPtr lp);
+        [DllImport(LibraryName, SetLastError = true)]
+        public static extern void set_break_numeric_accuracy(IntPtr lp, double accuracy);
+        [DllImport(LibraryName, SetLastError = true)]
+        public static extern double get_break_numeric_accuracy(IntPtr lp);
 
         public static string get_col_name(IntPtr lp, int column) => (Marshal.PtrToStringAnsi(get_col_name_c(lp, column)));
 
