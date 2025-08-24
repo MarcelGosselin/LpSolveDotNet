@@ -6,18 +6,19 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../LpSolveDotNet/LpSolveDotNet.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)../LpSolveDotNet/LpSolveDotNet.csproj" />
   </ItemGroup>
   <ItemGroup>
     <!-- In order for the Pack/PackagePath to work with multiple TargetFrameworks, we need to use Content instead of None -->
-    <None Remove="LpSolveDotNet.*.targets;NativeBinaries\**" />
+    <None Remove="LpSolveDotNet.*.targets" />
     <Content Include="LpSolveDotNet.Native.$(RuntimeID).targets">
       <Pack>true</Pack>
       <PackagePath>build</PackagePath>
     </Content>
-    <Content Include="NativeBinaries\**\$(RuntimeID)\*">
+    <None Remove="$(MSBuildThisFileDirectory)NativeBinaries/**" />
+    <Content Include="$(MSBuildThisFileDirectory)NativeBinaries/**/$(RuntimeID)/*">
       <Pack>true</Pack>
-      <PackagePath>build\NativeBinaries</PackagePath>
+      <PackagePath>build/NativeBinaries</PackagePath>
       <!-- To let dependent projects in this solution work. -->
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

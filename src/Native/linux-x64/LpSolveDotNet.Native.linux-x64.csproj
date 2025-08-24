@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RuntimeID>linux-x64</RuntimeID>    
+    <TargetFrameworks>$(TargetFrameworksCommon)</TargetFrameworks>
+  </PropertyGroup>
+</Project>
