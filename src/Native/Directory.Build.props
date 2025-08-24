@@ -4,6 +4,18 @@
   <PropertyGroup>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <!--
+    warning NU5128:
+        Some target frameworks declared in the dependencies group of the nuspec and the lib/ref folder do not have exact matches in the other location. Consult the list of actions belo      w:
+        - Add lib or ref assemblies for the netstandard1.5 target framework
+        - Add lib or ref assemblies for the netcoreapp3.0 target framework
+        - Add lib or ref assemblies for the netstandard2.0 target framework
+        This happens because we do not build any DLL in this project, we only pack the .targets file and the native binaries.
+    warning CS2008:
+        No source files specified.
+        This happens because we do not compile any code in this project, we only pack the .targets file and the native binaries.
+    -->
+    <NoWarn>$(NoWarn);NU5128;CS2008</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="$(MSBuildThisFileDirectory)../LpSolveDotNet/LpSolveDotNet.csproj" />
