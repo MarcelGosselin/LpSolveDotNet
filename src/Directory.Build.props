@@ -1,7 +1,7 @@
 <Project>
   <!-- Assembly and NuGet package Properties -->
   <PropertyGroup>
-    <Copyright>Copyright © Marcel Gosselin 2016-2020</Copyright>
+    <Copyright>Copyright © Marcel Gosselin 2016-2025</Copyright>
     <Version>4.0.0-alpha1</Version>
   </PropertyGroup>
   <!-- NuGet Package properties -->

@@ -2,7 +2,7 @@
     LpSolveDotNet is a .NET wrapper allowing usage of the 
     Mixed Integer Linear Programming (MILP) solver lp_solve.
 
-    Copyright (C) 2016 Marcel Gosselin
+    Copyright (C) 2016-2025 Marcel Gosselin
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
