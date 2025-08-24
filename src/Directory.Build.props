@@ -23,7 +23,7 @@
       This release contains:
       - Issue #16: Add missing methods `set_break_numeric_accuracy`, `get_break_numeric_accuracy` and `get_accuracy`.
     </PackageReleaseNotes>
-    <PackageOutputPath>..\..\build\output</PackageOutputPath>
+    <PackageOutputPath>$(MSBuildThisFileDirectory)../build/output</PackageOutputPath>
     <RepositoryUrl>https://github.com/MarcelGosselin/LpSolveDotNet.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <MinClientVersion>2.5</MinClientVersion>
@@ -39,13 +39,15 @@
     Targeting .NET Standard:
         1.5   lowest possible otherwise we have no Assembly.CodeBase property
         2.0   because of https://docs.microsoft.com/en-us/dotnet/standard/net-standard#which-net-standard-version-to-target
-    Targeting .NET Framework:
-        2.0   because the previous do not include .NET Framework < 4.6 which this library clearly supports
-        4.7.1 because it is the first to support same APIs we use with .NET core
     Targeting .NET Core:
-        3.0   first version of .NET Core to have full feature of Init() method (this is not in a standard yet)
+        3.0   first version of .NET Core to have all features of Init() method (this is not in a standard yet)
+    Targeting .NET Framework:
+        4.7.1 because it is the first framework version to support same APIs we use with .NET core
+        4.0   because the .NET standards above do not include .NET Framework <= 4.6 which this library clearly supports
+        2.0   same as 4.0 and I vaguely remember someone telling me it used this library with .NET Micro Framework once
     -->
-    <TargetFrameworks>net20;net471;netstandard20;netstandard15;netcoreapp30</TargetFrameworks>
+    <TargetFrameworksCommon>netstandard15;netstandard20;netcoreapp30</TargetFrameworksCommon>
+    <TargetFrameworksWindowsSpecific>net20;net471</TargetFrameworksWindowsSpecific>
   </PropertyGroup>
   <!-- For editor config with FxCop https://docs.microsoft.com/en-us/visualstudio/code-quality/configure-fxcop-analyzers?view=vs-2019#shared-configuration -->
   <PropertyGroup>

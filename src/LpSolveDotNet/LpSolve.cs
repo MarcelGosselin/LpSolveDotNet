@@ -1,7 +1,9 @@
-#if NETCOREAPP3_0 || NET471 || NETSTANDARD2_0 || NETSTANDARD1_5
-#define SUPPORTS_OS_PLATFORM
+// https://learn.microsoft.com/en-us/dotnet/standard/net-standard?tabs=net-standard-2-1
+// https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/preprocessor-directives
+#if NETCOREAPP1_0_OR_GREATER || NET471_OR_GREATER || NETSTANDARD1_1_OR_GREATER
+#define SUPPORTS_RUNTIMEINFORMATION
 #endif
-#if NETCOREAPP3_0
+#if NETCOREAPP3_0_OR_GREATER
 #define SUPPORTS_NATIVELIBRARY
 #define SUPPORTS_ASSEMBLYLOADCONTEXT_RESOLVINGUNMANAGEDDLL
 #endif
@@ -10,7 +12,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
-#if SUPPORTS_OS_PLATFORM || SUPPORTS_NATIVELIBRARY
+#if SUPPORTS_RUNTIMEINFORMATION || SUPPORTS_NATIVELIBRARY
 using System.Runtime.InteropServices;
 #endif
 #if SUPPORTS_ASSEMBLYLOADCONTEXT_RESOLVINGUNMANAGEDDLL
@@ -112,17 +114,7 @@ namespace LpSolveDotNet
         /// </summary>
         public static Action<string> CustomLoadNativeLibrary { get; set; }
 
-#if NET20 // That was Windows only 
-
-        private static string GetFolderNameByOSAndArchitecture() => IntPtr.Size == 8
-            ? "win-x64"
-            : "win-x86";
-
-        private static string GetLibraryNamePrefix() => "";
-
-        private static string GetLibraryExtension() => ".dll";
-
-#elif SUPPORTS_OS_PLATFORM
+#if SUPPORTS_RUNTIMEINFORMATION
 
         private static string GetFolderNameByOSAndArchitecture()
         {
@@ -177,6 +169,17 @@ namespace LpSolveDotNet
             }
             return null;
         }
+
+#elif NET20_OR_GREATER // .NET Framework is on Windows only 
+
+        private static string GetFolderNameByOSAndArchitecture() => IntPtr.Size == 8
+            ? "win-x64"
+            : "win-x86";
+
+        private static string GetLibraryNamePrefix() => "";
+
+        private static string GetLibraryExtension() => ".dll";
+
 #endif
 
 #if SUPPORTS_NATIVELIBRARY && SUPPORTS_ASSEMBLYLOADCONTEXT_RESOLVINGUNMANAGEDDLL
@@ -202,7 +205,7 @@ namespace LpSolveDotNet
         }
         private static string _nativeLibraryFilePath;
 
-#elif NET20 || NET471
+#elif NET20_OR_GREATER
 
         private static void LoadNativeLibrary(string nativeLibraryFilePath)
         {

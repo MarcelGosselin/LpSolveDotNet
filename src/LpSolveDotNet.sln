@@ -7,15 +7,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LpSolveDotNet", "LpSolveDot
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LpSolveDotNet.Demo", "LpSolveDotNet.Demo\LpSolveDotNet.Demo.csproj", "{8850A1FB-5764-43BA-BCBE-3D4002014F20}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LpSolveDotNet.Native.win-x64", "Native\LpSolveDotNet.Native.win-x64.csproj", "{49D703D3-795D-4CF6-A0C6-2E922FDA09CB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LpSolveDotNet.Native.win-x64", "Native\win-x64\LpSolveDotNet.Native.win-x64.csproj", "{49D703D3-795D-4CF6-A0C6-2E922FDA09CB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LpSolveDotNet.Native.win-x86", "Native\LpSolveDotNet.Native.win-x86.csproj", "{2939A810-A37F-4E87-9570-76F97A6872C3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LpSolveDotNet.Native.win-x86", "Native\win-x86\LpSolveDotNet.Native.win-x86.csproj", "{2939A810-A37F-4E87-9570-76F97A6872C3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LpSolveDotNet.Native.linux-x64", "Native\LpSolveDotNet.Native.linux-x64.csproj", "{B8C558F0-A422-4A9C-9AAA-2BDED4F45B0F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LpSolveDotNet.Native.linux-x64", "Native\linux-x64\LpSolveDotNet.Native.linux-x64.csproj", "{B8C558F0-A422-4A9C-9AAA-2BDED4F45B0F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LpSolveDotNet.Native.linux-x86", "Native\LpSolveDotNet.Native.linux-x86.csproj", "{AE226500-7324-4CD0-A737-C711FF7C484C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LpSolveDotNet.Native.linux-x86", "Native\linux-x86\LpSolveDotNet.Native.linux-x86.csproj", "{AE226500-7324-4CD0-A737-C711FF7C484C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LpSolveDotNet.Native.osx-x86", "Native\LpSolveDotNet.Native.osx-x86.csproj", "{D67D526B-F876-4FBB-B49F-21E182465696}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LpSolveDotNet.Native.osx-x86", "Native\osx-x86\LpSolveDotNet.Native.osx-x86.csproj", "{D67D526B-F876-4FBB-B49F-21E182465696}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Native", "Native", "{AAAC7C01-7C4D-43FC-BD6C-5BCD8E73A5A4}"
 	ProjectSection(SolutionItems) = preProject

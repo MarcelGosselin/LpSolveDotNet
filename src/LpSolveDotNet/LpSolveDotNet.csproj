@@ -1,16 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <!-- 
-    Targeting .NET Standard:
-        1.5   lowest possible otherwise we have no Assembly.CodeBase property
-        2.0   because of https://docs.microsoft.com/en-us/dotnet/standard/net-standard#which-net-standard-version-to-target
-    Targeting .NET Framework:
-        2.0   because the previous do not include .NET Framework < 4.6 which this library clearly supports
-        4.7.1 because it is the first to support same APIs we use with .NET core
-    Targeting .NET Core:
-        3.0   first version of .NET Core to have full feature of Init() method (this is not in a standard yet)
-    -->
-    <TargetFrameworks>net20;net471;netstandard20;netstandard15;netcoreapp30</TargetFrameworks>
+    <TargetFrameworks>$(TargetFrameworksCommon);$(TargetFrameworksWindowsSpecific)</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
