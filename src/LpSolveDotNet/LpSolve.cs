@@ -51,7 +51,6 @@ namespace LpSolveDotNet
         /// <item><description><c>basedir/NativeBinaries/win-x86</c></description></item>
         /// <item><description><c>basedir/NativeBinaries/linux-x64</c></description></item>
         /// <item><description><c>basedir/NativeBinaries/linux-x86</c></description></item>
-        /// <item><description><c>basedir/NativeBinaries/osx-x64</c></description></item>
         /// <item><description><c>basedir/NativeBinaries/osx-x86</c></description></item>
         /// </list>
         /// </param>
@@ -89,7 +88,7 @@ namespace LpSolveDotNet
             nativeLibraryExtension ??= GetLibraryExtension();
 
             string nativeLibraryFileName = nativeLibraryNamePrefix + NativeMethods.LibraryName + nativeLibraryExtension;
-            string nativeLibraryFilePath = Path.Combine(nativeLibraryFolderPath + Path.DirectorySeparatorChar, nativeLibraryFileName);
+            string nativeLibraryFilePath = Path.Combine(nativeLibraryFolderPath, nativeLibraryFileName);
 
             bool returnValue = File.Exists(nativeLibraryFilePath);
             if (returnValue)
