@@ -16,6 +16,12 @@ namespace LpSolveDotNet.Demo
             return Demo();
         }
 
+        static class MyModelColumnIndices
+        {
+            internal const int X = 1;
+            internal const int Y = 2;
+        };
+
         private static int Demo()
         {
             // We will build the model row by row
@@ -30,78 +36,58 @@ namespace LpSolveDotNet.Demo
                 }
 
                 //let us name our variables. Not required, but can be useful for debugging
-                lp.set_col_name(1, "x");
-                lp.set_col_name(2, "y");
-
-                //create space large enough for one row
-                int[] colno = new int[Ncol];
-                double[] row = new double[Ncol];
+                lp.set_col_name(MyModelColumnIndices.X, "x");
+                lp.set_col_name(MyModelColumnIndices.Y, "y");
 
                 // makes building the model faster if it is done rows by row
                 lp.set_add_rowmode(true);
 
-                int j = 0;
-                //construct first row (120 x + 210 y <= 15000)
-                colno[j] = 1; // first column
-                row[j++] = 120;
-
-                colno[j] = 2; // second column
-                row[j++] = 210;
-
-                // add the row to lpsolve
-                if (lp.add_constraintex(j, row, colno, lpsolve_constr_types.LE, 15000) == false)
+                // construct first row (120 x + 210 y <= 15000) and add it to model
                 {
-                    return 3;
+                    // both columnIndices and columnValues must have the same length
+                    var columnIndices = new int[] { MyModelColumnIndices.X, MyModelColumnIndices.Y };
+                    var columnValues = new double[] { 120, 210 };
+                    if (lp.add_constraintex(columnIndices.Length, columnValues, columnIndices, lpsolve_constr_types.LE, 15000) == false)
+                    {
+                        return 3;
+                    }
+                }
+                // construct second row (110 x + 30 y <= 4000) and add it to model
+                {
+                    var columnIndices = new int[] { MyModelColumnIndices.X, MyModelColumnIndices.Y };
+                    var columnValues = new double[] { 110, 30 };
+                    if (lp.add_constraintex(columnIndices.Length, columnValues, columnIndices, lpsolve_constr_types.LE, 4000) == false)
+                    {
+                        return 3;
+                    }
+                }
+                // construct third row (x + y <= 75) and add it to model
+                {
+                    var columnIndices = new int[] { MyModelColumnIndices.X, MyModelColumnIndices.Y };
+                    var columnValues = new double[] { 1, 1 };
+                    if (lp.add_constraintex(columnIndices.Length, columnValues, columnIndices, lpsolve_constr_types.LE, 75) == false)
+                    {
+                        return 3;
+                    }
                 }
 
-                //construct second row (110 x + 30 y <= 4000)
-                j = 0;
-                colno[j] = 1; // first column
-                row[j++] = 110;
-
-                colno[j] = 2; // second column
-                row[j++] = 30;
-
-                // add the row to lpsolve
-                if (lp.add_constraintex(j, row, colno, lpsolve_constr_types.LE, 4000) == false)
-                {
-                    return 3;
-                }
-
-                //construct third row (x + y <= 75)
-                j = 0;
-                colno[j] = 1; // first column
-                row[j++] = 1;
-
-                colno[j] = 2; // second column
-                row[j++] = 1;
-
-                // add the row to lpsolve
-                if (lp.add_constraintex(j, row, colno, lpsolve_constr_types.LE, 75) == false)
-                {
-                    return 3;
-                }
-
-                //rowmode should be turned off again when done building the model
+                // rowmode should be turned off again when done building the model
                 lp.set_add_rowmode(false);
 
-                //set the objective function (143 x + 60 y)
-                j = 0;
-                colno[j] = 1; // first column
-                row[j++] = 143;
-
-                colno[j] = 2; // second column
-                row[j++] = 60;
-
-                if (lp.set_obj_fnex(j, row, colno) == false)
+                // set the objective function (143 x + 60 y)
                 {
-                    return 4;
+                    var columnIndices = new int[] { MyModelColumnIndices.X, MyModelColumnIndices.Y };
+                    var columnValues = new double[] { 143, 60 };
+                    if (lp.set_obj_fnex(columnIndices.Length, columnValues, columnIndices) == false)
+                    {
+                        return 4;
+                    }
                 }
 
-                // set the object direction to maximize
+                // set the objective direction to maximize
                 lp.set_maxim();
 
-                // just out of curioucity, now show the model in lp format on screen
+                // just out of curiosity, now show the model in lp format on screen
                 // this only works if this is a console application. If not, use write_lp and a filename
                 lp.write_lp("model.lp");
 
@@ -115,17 +101,17 @@ namespace LpSolveDotNet.Demo
                     return 5;
                 }
 
-
                 // a solution is calculated, now lets get some results
 
                 // objective value
-                Debug.WriteLine("Objective value: " + lp.get_objective());
+                Console.WriteLine("Objective value: " + lp.get_objective());
 
                 // variable values
-                lp.get_variables(row);
-                for (j = 0; j < Ncol; j++)
+                var results = new double[Ncol];
+                lp.get_variables(results);
+                for (int j = 0; j < Ncol; j++)
                 {
-                    Console.WriteLine(lp.get_col_name(j + 1) + ": " + row[j]);
+                    Console.WriteLine(lp.get_col_name(j + 1) + ": " + results[j]);
                 }
             }
             return 0;
