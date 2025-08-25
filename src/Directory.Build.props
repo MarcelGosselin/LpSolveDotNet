@@ -24,7 +24,7 @@
       This release contains:
       - Issue #16: Add missing methods `set_break_numeric_accuracy`, `get_break_numeric_accuracy` and `get_accuracy`.
     </PackageReleaseNotes>
-    <PackageOutputPath>$(MSBuildThisFileDirectory)../build/output</PackageOutputPath>
+    <PackageOutputPath>$(MSBuildThisFileDirectory)../build/output/nuget</PackageOutputPath>
     <RepositoryUrl>https://github.com/MarcelGosselin/LpSolveDotNet.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <MinClientVersion>2.5</MinClientVersion>

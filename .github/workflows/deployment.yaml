@@ -40,4 +40,4 @@ jobs:
         nuget-version: '5.x'
 
     - name: Push to nuget.org
-      run: nuget push "build\output\LpSolveDotNet.*.nupkg" -NoSymbols -Source https://api.nuget.org/v3/index.json
+      run: nuget push "build\output\nuget\LpSolveDotNet.*.nupkg" -NoSymbols -Source https://api.nuget.org/v3/index.json
