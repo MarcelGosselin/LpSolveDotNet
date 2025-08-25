@@ -85,7 +85,7 @@ Find the package name for your target platform(s) in the table below and add it 
 | Windows | x86 (or 32 bit on x64) | LpSolveDotNet.Native.win-x86 | |
 | Linux   | x64          | LpSolveDotNet.Native.linux-x64 | |
 | Linux   | x86          | LpSolveDotNet.Native.linux-x86 | |
-| OSX     | x86          | LpSolveDotNet.Native.osx-x86 | |
+| OSX     | x86          | LpSolveDotNet.Native.osx-x86 | This is likely the **last version of this osx-x86 package**. More recent versions of the _lp_solve_ libraries were not built in that platform so we cannot bundle it anymore. You can still use a more recent version of _LpSolveDotNet_ on that platform by following [_Other OS / Architectures_ below](#other-os--architectures) |
 | Others  | Others       | LpSolveDotNet | See [_Other OS / Architectures_ below](#other-os--architectures) |
 
 #### Other OS / Architectures
