@@ -1,0 +1,46 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dotnet/docfx/main/schemas/docfx.schema.json",
+  "metadata": [
+    {
+      "src": [
+        {
+          "src": "..",
+          "files": [
+            "src/LpSolveDotNet/LpSolveDotNet.csproj"
+          ]
+        }
+      ],
+      "output": "api",
+      "properties": {
+        "TargetFramework": "netcoreapp3.0"
+      }
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "**/*.{md,yml}"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "docs/images/**"
+        ]
+      }
+    ],
+    "output": "../build/output/docs",
+    "template": [
+      "default",
+      "modern"
+    ],
+    "globalMetadata": {
+      "_appName": "LpSolveDotNet Documentation",
+      "_appTitle": "LpSolveDotNet Documentation",
+      "_enableSearch": true,
+      "pdf": false
+    }
+  }
+}

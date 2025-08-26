@@ -123,7 +123,7 @@ To complete the initialization from previous steps, your code **must** call **on
 
 ## More documentation
 
-- [Online documentation (WIP)](https://marcelgosselin.github.io/LpSolveDotNet/) The online documentation is begin worked on and should appear eventually.
+- [Online documentation](https://marcelgosselin.github.io/LpSolveDotNet/)
 - [official lp_solve documentation](https://lp-solve.github.io/), the LpSolveDotNet's LpSolve object has the same methods as [lp_solve API](https://lp-solve.github.io/lp_solveAPIreference.htm) except the first parameter `lprec *lp` which is passed implicitly instead.
 
 *In a future version, the API will be more idiomatic to .NET instead of looking like C.*
