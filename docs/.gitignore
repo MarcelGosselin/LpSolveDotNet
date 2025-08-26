@@ -1,0 +1,3 @@
+# The API documentation built from DocFX and the XML comments in the code need to be
+# alongside the rest of the documentation to be picked up by the static site generator.
+api

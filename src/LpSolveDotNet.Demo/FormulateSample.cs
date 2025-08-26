@@ -1,5 +1,5 @@
 using System;
-using System.Diagnostics;
+using System.IO;
 
 namespace LpSolveDotNet.Demo
 {
@@ -90,6 +90,7 @@ namespace LpSolveDotNet.Demo
                 // just out of curiosity, now show the model in lp format on screen
                 // this only works if this is a console application. If not, use write_lp and a filename
                 lp.write_lp("model.lp");
+                Console.WriteLine(File.ReadAllText("model.lp"));
 
                 // I only want to see important messages on screen while solving
                 lp.set_verbose(lpsolve_verbosity.IMPORTANT);
