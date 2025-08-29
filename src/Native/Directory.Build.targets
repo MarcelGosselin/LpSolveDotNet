@@ -1,15 +1,15 @@
 <Project>
   <!--
-  These properties need to be defined in the .targets because they need the $(RuntimeID) property defined
+  These properties need to be defined in the .targets because they need the $(RuntimeIdentifier) property defined
   **after** Directory.Build.props is imported.
   -->
   <PropertyGroup>
-    <Title>Native library for platform '$(RuntimeID)' for NuGet package 'LpSolveDotNet'.</Title>
+    <Title>Native library for platform '$(RuntimeIdentifier)' for NuGet package 'LpSolveDotNet'.</Title>
     <Description>
-      'LpSolveDotNet.Native.$(RuntimeID)' and its dependency 'LpSolveDotNet' allow running the Mixed Integer Linear Programming (MILP) solver 'lp_solve' in .NET.
+      'LpSolveDotNet.Native.$(RuntimeIdentifier)' and its dependency 'LpSolveDotNet' allow running the Mixed Integer Linear Programming (MILP) solver 'lp_solve' in .NET.
       That can solve pure linear, (mixed) integer/binary, semi-continuous and special ordered sets (SOS) models.
 
-      This package specifically targets platform '$(RuntimeID)'.
+      This package specifically targets platform '$(RuntimeIdentifier)'.
 
       You can find other 'LpSolveDotNet.Native.*' packages to run on other platforms (you can target multiple platforms at the same time).
       Another option would be to bring your own native library and allow 'LpSolveDotNet' to find it at runtime.

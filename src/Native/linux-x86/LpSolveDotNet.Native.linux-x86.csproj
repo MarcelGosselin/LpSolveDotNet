@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <RuntimeID>linux-x86</RuntimeID>
+    <RuntimeIdentifier>linux-x86</RuntimeIdentifier>
     <TargetFrameworks>$(TargetFrameworksCommon)</TargetFrameworks>
   </PropertyGroup>
 </Project>
