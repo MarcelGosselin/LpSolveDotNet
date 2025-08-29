@@ -1534,8 +1534,11 @@ namespace LpSolveDotNet
         /// </summary>
         /// <param name="accuracy">From which minimal accuracy should solve fail.</param>
         /// <remarks>
+        /// <para>
         /// When accuracy from <see cref="get_accuracy"/> is larger than this value, optimization will fail with <see cref="lpsolve_return.ACCURACYERROR"/> .
         /// By default, break accuracy is <c>5e-7</c>.
+        /// </para>
+        /// <para>Available since v4.1.0.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/set_break_numeric_accuracy.htm">Full C API documentation.</seealso>
         public void set_break_numeric_accuracy(double accuracy)
@@ -1546,9 +1549,12 @@ namespace LpSolveDotNet
         /// </summary>
         /// <returns>The accuracy values when solve should fail.</returns>
         /// <remarks>
+        /// <para>
         /// This function returns the minimal accuracy for a successful solve.
         /// When accuracy from <see cref="get_accuracy"/> is larger than this value, optimization will fail with <see cref="lpsolve_return.ACCURACYERROR"/> .
         /// By default, break accuracy is <c>5e-7</c>.
+        /// </para>
+        /// <para>Available since v4.1.0.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_break_numeric_accuracy.htm">Full C API documentation.</seealso>
         public double get_break_numeric_accuracy()
@@ -3342,7 +3348,10 @@ namespace LpSolveDotNet
         /// </summary>
         /// <returns>The accuracy of bounds and constraints.</returns>
         /// <remarks>
+        /// <para>
         /// This value should be as close as possible to 0. The accuracy is the largest relative deviation of a bound or constraint.
+        /// </para>
+        /// <para>Available since v4.1.0.</para>
         /// </remarks>
         /// <seealso href="http://lpsolve.sourceforge.net/5.5/get_accuracy.htm">Full C API documentation.</seealso>
         public double get_accuracy()

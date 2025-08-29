@@ -19,7 +19,7 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
     USA
 
-    https://github.com/MarcelGosselin/LpSolveDotNet/blob/master/LICENSE
+    https://github.com/MarcelGosselin/LpSolveDotNet/blob/main/LICENSE
 
  * 
  * This file is a modified version of lpsolve55.cs from lpsolve project available at
