@@ -13,6 +13,8 @@ LpSolveDotNet works on a wide variety of .NET implementations and platforms:
 | .NET Standard | 1.5, 1.6, 2.0, 2.1 |
 | OS / Architecture | Windows x86 and x64, Unix x86 and x64, OSX x86 and others (for others you need to build lp_solve yourself) |
 
+**IMPORTANT**: For **osx-x86**, the native package will not be provided starting with LpSolveDotNet 5.0 and you will need to fallback to the [Other Platforms](https://marcelgosselin.github.io/LpSolveDotNet/docs/setting-up-project.html?tabs=other-platforms) procedure instead of using the native package.
+
 ## How to Use - Short Version
 
 Here is the short version, see [long version below](#how-to-use---long-version) for more details.
