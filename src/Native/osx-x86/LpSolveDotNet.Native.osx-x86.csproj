@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <RuntimeID>osx-x86</RuntimeID>
+    <RuntimeIdentifier>osx-x86</RuntimeIdentifier>
     <TargetFrameworks>$(TargetFrameworksCommon)</TargetFrameworks>
   </PropertyGroup>
 </Project>

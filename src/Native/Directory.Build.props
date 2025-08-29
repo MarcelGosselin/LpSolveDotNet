@@ -23,12 +23,12 @@
   <ItemGroup>
     <!-- In order for the Pack/PackagePath to work with multiple TargetFrameworks, we need to use Content instead of None -->
     <None Remove="LpSolveDotNet.*.targets" />
-    <Content Include="LpSolveDotNet.Native.$(RuntimeID).targets">
+    <Content Include="LpSolveDotNet.Native.$(RuntimeIdentifier).targets">
       <Pack>true</Pack>
       <PackagePath>build</PackagePath>
     </Content>
     <None Remove="$(MSBuildThisFileDirectory)NativeBinaries/**" />
-    <Content Include="$(MSBuildThisFileDirectory)NativeBinaries/**/$(RuntimeID)/*">
+    <Content Include="$(MSBuildThisFileDirectory)NativeBinaries/**/$(RuntimeIdentifier)/*">
       <Pack>true</Pack>
       <PackagePath>build/NativeBinaries</PackagePath>
       <!-- To let dependent projects in this solution work. -->

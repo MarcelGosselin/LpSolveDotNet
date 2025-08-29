@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <RuntimeID>win-x86</RuntimeID>
+    <RuntimeIdentifier>win-x86</RuntimeIdentifier>
     <TargetFrameworks>$(TargetFrameworksCommon);$(TargetFrameworksWindowsSpecific)</TargetFrameworks>
   </PropertyGroup>
 </Project>
