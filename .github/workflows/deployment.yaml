@@ -26,18 +26,16 @@ jobs:
       id: gitversion # step id used as a reference for output values
       uses: gittools/actions/gitversion/execute@v4.1.0
 
-    - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v2
-
-    - name: Build and Package with MSBuild
-      working-directory: src
-      run: msbuild -t:"Clean;Pack" -restore -p:Configuration=Release -p:"Version=${{ steps.gitversion.outputs.fullSemVer }}" LpSolveDotNet.sln
-
-    - name: Setup Nuget.exe
-      uses: nuget/setup-nuget@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
       with:
-        nuget-api-key: ${{ secrets.NUGET_APIKEY }}
-        nuget-version: '5.x'
+        dotnet-version: 9.x
 
-    - name: Push to nuget.org
-      run: nuget push "build\output\nuget\LpSolveDotNet.*.nupkg" -NoSymbols -Source https://api.nuget.org/v3/index.json
+    - name: Restore dependencies
+      run: dotnet restore ./src/LpSolveDotNet.sln
+
+    - name: Build and Package Nuget
+      run: dotnet pack --no-restore --configuration Release -p:"Version=${{ steps.gitversion.outputs.fullSemVer }}" ./src/LpSolveDotNet.sln
+
+    - name: Push packages to nuget.org
+      run: dotnet nuget push "build\output\nuget\LpSolveDotNet.*.nupkg" --no-symbols --api-key ${{ secrets.NUGET_APIKEY }} --source https://api.nuget.org/v3/index.json
