@@ -121,7 +121,7 @@ To complete the initialization from previous steps, your code **must** call **on
    * read_MPS
    * read_XLI
 1. Place the returned `LpSolve` instance into a `using` statement so it is properly disposed of when done with it.
-1. Use methods on that instance like the example in [How to Use - Short Version](#how-to-use---short-version) or those in the [Demo project](https://github.com/MarcelGosselin/LpSolveDotNet/tree/master/src/LpSolveDotNet.Demo).
+1. Use methods on that instance like the example in [How to Use - Short Version](#how-to-use---short-version) or those in the [Demo project](https://github.com/MarcelGosselin/LpSolveDotNet/tree/main/src/LpSolveDotNet.Demo).
 
 ## More documentation
 
@@ -133,10 +133,10 @@ To complete the initialization from previous steps, your code **must** call **on
 
 ## Examples
 
-You can see examples in the [Demo project](https://github.com/MarcelGosselin/LpSolveDotNet/tree/master/src/LpSolveDotNet.Demo) translated from lpsolve's original C# samples.
+You can see examples in the [Demo project](https://github.com/MarcelGosselin/LpSolveDotNet/tree/main/src/LpSolveDotNet.Demo) translated from lpsolve's original C# samples.
 
-* [Formulation of an lp model in lpsolve](https://github.com/MarcelGosselin/LpSolveDotNet/tree/master/src/LpSolveDotNet.Demo/FormulateSample.cs)
-* [demo inside lp_solve_5.5.2.3_cs.net.zip](https://github.com/MarcelGosselin/LpSolveDotNet/tree/master/src/LpSolveDotNet.Demo/OriginalSample.cs)
+* [Formulation of an lp model in lpsolve](https://github.com/MarcelGosselin/LpSolveDotNet/tree/main/src/LpSolveDotNet.Demo/FormulateSample.cs)
+* [demo inside lp_solve_5.5.2.3_cs.net.zip](https://github.com/MarcelGosselin/LpSolveDotNet/tree/main/src/LpSolveDotNet.Demo/OriginalSample.cs)
 
 ## Feedback
 

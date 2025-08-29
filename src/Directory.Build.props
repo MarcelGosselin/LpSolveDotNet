@@ -20,7 +20,7 @@
     <PackageTags>lpsolve;lp_solve;milp;solver</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>
-      Complete release notes can be found at https://github.com/MarcelGosselin/LpSolveDotNet/blob/master/ReleaseNotes.md
+      Complete release notes can be found at https://github.com/MarcelGosselin/LpSolveDotNet/blob/main/docs/release-notes/index.md
       This release contains:
       - Issue #16: Add missing methods `set_break_numeric_accuracy`, `get_break_numeric_accuracy` and `get_accuracy`.
     </PackageReleaseNotes>

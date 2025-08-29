@@ -1,14 +1,15 @@
 # Migrating from version 3 to 4
 
-Below are the steps to follow for a smooth transition from versions 3.x to version 4.0.0 of LpSolveDotNet. For any doubt when migrating, look at [the release notes](./ReleaseNotes.md#400) which contain details about changed APIs.
+Below are the steps to follow for a smooth transition from versions 3.x to version 4.0.0 of LpSolveDotNet. For any doubt when migrating, look at [the release notes](./index.md#400) which contain details about changed APIs.
 
 ## 1. NuGet Packages
 
 There is a **major** difference between versions 3 and 4 regarding NuGet packages: **the native libraries have been moved to separate packages**. You will need to add them manually.
 
 Determine which packages you need to reference (you can pick more than one).
+
 | OS      | Architecture | Package to reference | Notes |
-| ------- | ------------ | -------------------- | -- |
+| ------- | ------------ | -------------------- | ----- |
 | Windows | x64          | LpSolveDotNet.Native.win-x64 | |
 | Windows | x86 (or 32 bit on x64) | LpSolveDotNet.Native.win-x86 | |
 | Linux   | x64          | LpSolveDotNet.Native.linux-x64 | |
@@ -42,7 +43,7 @@ Some numerical values for enums were different from latest lp_solve C code so th
 * Your application thought it was using the right value but did not
 * You explicitly used a different value because you knew they were off
 
-In the first case, leave your code as is. However in the second case you need to update your code. If you need to modify your code, look at [the release notes](./ReleaseNotes.md#400) for details. The enums that were modified are:
+In the first case, leave your code as is. However in the second case you need to update your code. If you need to modify your code, look at [the release notes](./index.md#400) for details. The enums that were modified are:
 
 * `lpsolve_msgmask.MSG_MILPEQUAL`
 * `lpsolve_piv_rules.PRICE_AUTOPARTIALCOLS`

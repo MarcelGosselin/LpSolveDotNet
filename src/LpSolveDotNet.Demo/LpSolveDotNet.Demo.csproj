@@ -12,7 +12,7 @@
     <ProjectReference Include="..\Native\**\*.csproj" >
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <!-- Add specifically the master library because the ReferenceOutputAssembly=false above prevents copying the dll -->
+    <!-- Add specifically the main library because the ReferenceOutputAssembly=false above prevents copying the dll -->
     <ProjectReference Include="..\LpSolveDotNet\LpSolveDotNet.csproj" />
   </ItemGroup>
 </Project>
