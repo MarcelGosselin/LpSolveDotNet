@@ -22,7 +22,7 @@
     <PackageReleaseNotes>
       Complete release notes can be found at https://github.com/MarcelGosselin/LpSolveDotNet/blob/main/docs/release-notes/index.md
       This release contains:
-      - Issue #16: Add missing methods `set_break_numeric_accuracy`, `get_break_numeric_accuracy` and `get_accuracy`.
+      - Issue #26: LpSolveDotNet.Native.* packages should not force unconditional copy of native binaries on every build.
     </PackageReleaseNotes>
     <PackageOutputPath>$(MSBuildThisFileDirectory)../build/output/nuget</PackageOutputPath>
     <RepositoryUrl>https://github.com/MarcelGosselin/LpSolveDotNet.git</RepositoryUrl>
