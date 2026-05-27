@@ -21,6 +21,16 @@ To see all commits for this version, [click here](https://github.com/MarcelGosse
 
 -->
 
+## 4.1.1
+
+To see all commits for this version, [click here](https://github.com/MarcelGosselin/LpSolveDotNet/compare/v4.1.0...v4.1.1).
+
+### Fixes
+* LpSolveDotNet.Native.* packages should not force unconditional copy of native binaries on every build [Issue #26](https://github.com/MarcelGosselin/LpSolveDotNet/issues/26).
+
+### Others
+* [Online Documentation](https://marcelgosselin.github.io/LpSolveDotNet/)
+
 ## 4.1.0
 
 To see all commits for this version, [click here](https://github.com/MarcelGosselin/LpSolveDotNet/compare/v4.0.0...v4.1.0).
