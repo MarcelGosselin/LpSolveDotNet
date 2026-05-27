@@ -32,7 +32,7 @@
       <Pack>true</Pack>
       <PackagePath>build/NativeBinaries</PackagePath>
       <!-- To let dependent projects in this solution work. -->
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 </Project>
