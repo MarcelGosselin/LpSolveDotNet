@@ -5,7 +5,7 @@
     <!-- star after NativeBinaries is to have it included in RecursiveDir-->
     <None Include="$(MSBuildThisFileDirectory)NativeBinaries*\**\*">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </None>
   </ItemGroup>
