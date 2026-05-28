@@ -46,9 +46,16 @@
         4.7.1 because it is the first framework version to support same APIs we use with .NET core
         4.0   because the .NET standards above do not include .NET Framework <= 4.6 which this library clearly supports
         2.0   same as 4.0 and I vaguely remember someone telling me it used this library with .NET Micro Framework once
+
+    If we remove some frameworks in the future, we might want to update the CheckNotRecommendedTargetFramework 
+    and CheckEolTargetFramework properties to give them back their default values.
     -->
     <TargetFrameworksCommon>netstandard15;netstandard20;netcoreapp30</TargetFrameworksCommon>
     <TargetFrameworksWindowsSpecific>net20;net471</TargetFrameworksWindowsSpecific>
+    <!-- Silence warning NETSDK1215: Targeting .NET Standard prior to 2.0 is no longer recommended.  -->
+    <CheckNotRecommendedTargetFramework>false</CheckNotRecommendedTargetFramework>
+    <!-- Silence warning: The target framework 'netcoreapp3.0' is out of support and will not receive security updates in the future. -->
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
   </PropertyGroup>
   <!-- For editor config with FxCop https://docs.microsoft.com/en-us/visualstudio/code-quality/configure-fxcop-analyzers?view=vs-2019#shared-configuration -->
   <PropertyGroup>
